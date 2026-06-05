@@ -8,19 +8,35 @@ const LoginPage: React.FC = () => {
   const { login, isLoginLoading, loginError } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [orgIdentifier, setOrgIdentifier] = useState('')
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!email || !password) {
+    if (!email || !password || !orgIdentifier) {
       toast.error('Please fill in all fields')
       return
     }
-    login({ email, password })
+    login({ email, password, organizationIdentifier: orgIdentifier })
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <h2 className="text-2xl font-bold text-white">Sign In</h2>
+
+      <div>
+        <label htmlFor="org" className="block text-sm font-medium text-purple-100">
+          Organization ID or Slug
+        </label>
+        <input
+          id="org"
+          type="text"
+          value={orgIdentifier}
+          onChange={(e) => setOrgIdentifier(e.target.value)}
+          className="mt-2 w-full rounded-lg bg-white/10 px-4 py-3 text-white placeholder-purple-300 backdrop-blur transition focus:outline-none focus:ring-2 focus:ring-purple-500"
+          placeholder="your-org-slug"
+          disabled={isLoginLoading}
+        />
+      </div>
 
       <div>
         <label htmlFor="email" className="block text-sm font-medium text-purple-100">

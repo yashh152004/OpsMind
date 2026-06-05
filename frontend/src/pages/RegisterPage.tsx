@@ -11,6 +11,7 @@ const RegisterPage: React.FC = () => {
     confirmPassword: '',
     firstName: '',
     lastName: '',
+    organizationName: '',
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -23,7 +24,7 @@ const RegisterPage: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!formData.email || !formData.password || !formData.firstName || !formData.lastName) {
+    if (!formData.email || !formData.password || !formData.firstName || !formData.lastName || !formData.organizationName) {
       toast.error('Please fill in all fields')
       return
     }
@@ -43,6 +44,7 @@ const RegisterPage: React.FC = () => {
       password: formData.password,
       firstName: formData.firstName,
       lastName: formData.lastName,
+      organizationName: formData.organizationName,
     })
   }
 

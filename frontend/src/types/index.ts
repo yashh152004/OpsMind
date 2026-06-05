@@ -6,6 +6,7 @@
 export interface AuthCredentials {
   email: string
   password: string
+  organizationIdentifier: string
 }
 
 export interface AuthResponse {
