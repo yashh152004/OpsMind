@@ -133,6 +133,22 @@ const RegisterPage: React.FC = () => {
         />
       </div>
 
+      <div>
+        <label htmlFor="organizationName" className="block text-sm font-medium text-purple-100">
+          Organization Name
+        </label>
+        <input
+          id="organizationName"
+          name="organizationName"
+          type="text"
+          value={formData.organizationName}
+          onChange={handleChange}
+          className="mt-2 w-full rounded-lg bg-white/10 px-4 py-2 text-white placeholder-purple-300 backdrop-blur transition focus:outline-none focus:ring-2 focus:ring-purple-500"
+          placeholder="Acme Corp"
+          disabled={isRegisterLoading}
+        />
+      </div>
+
       {registerError && (
         <div className="rounded-lg bg-red-500/10 p-4 text-red-200">
           {(registerError as any)?.response?.data?.message || 'Registration failed. Please try again.'}
