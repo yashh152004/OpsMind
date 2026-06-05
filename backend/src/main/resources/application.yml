@@ -1,0 +1,189 @@
+spring:
+  application:
+    name: opsmind-backend
+  
+  # Profile
+  profiles:
+    active: dev
+  
+  # Database
+  datasource:
+    url: jdbc:postgresql://localhost:5432/opsmind
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        use_sql_comments: true
+        jdbc:
+          batch_size: 20
+          fetch_size: 50
+        order_inserts: true
+        order_updates: true
+    show-sql: false
+    open-in-view: false
+  
+  # Redis
+  redis:
+    host: localhost
+    port: 6379
+    password: 
+    timeout: 2000ms
+    jedis:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+        max-wait: -1ms
+  
+  # Kafka
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      acks: all
+      retries: 3
+      properties:
+        linger.ms: 10
+        batch.size: 32768
+    consumer:
+      group-id: opsmind-service
+      auto-offset-reset: earliest
+      max-poll-records: 500
+      session-timeout-ms: 30000
+  
+  # Jackson
+  jackson:
+    default-property-inclusion: non_null
+    serialization:
+      write-dates-as-timestamps: false
+      indent-output: true
+    deserialization:
+      fail-on-unknown-properties: false
+  
+  # Task Scheduling
+  task:
+    scheduling:
+      pool:
+        size: 10
+      thread-name-prefix: opsmind-scheduler-
+  
+  # Servlet
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+# Server Configuration
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+    session:
+      timeout: 30m
+  compression:
+    enabled: true
+    min-response-size: 1024
+  error:
+    include-message: always
+    include-binding-errors: always
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:your-secret-key-change-in-production-at-least-256-bits-long-for-security}
+  expiration: 900000 # 15 minutes
+  refresh-expiration: 604800000 # 7 days
+
+# Elasticsearch Configuration
+elasticsearch:
+  host: localhost
+  port: 9200
+  username: elastic
+  password: changeme
+  index:
+    logs: logs-opsmind
+    incidents: incidents-opsmind
+
+# AWS Configuration
+aws:
+  s3:
+    bucket: opsmind-files
+    region: us-east-1
+  cloudwatch:
+    enabled: false
+    namespace: OpsMind
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.opsmind: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/application.log
+    max-size: 10MB
+    max-history: 10
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+    metrics:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+# API Documentation (Swagger)
+springdoc:
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+  show-actuator: true
+
+# Application-specific configuration
+app:
+  name: OpsMind
+  version: 1.0.0
+  cors:
+    allowed-origins: http://localhost:3000,http://localhost:5173
+    allowed-methods: GET,POST,PUT,PATCH,DELETE,OPTIONS
+    allowed-headers: "*"
+    allow-credentials: true
+  security:
+    require-https: false
+    enable-csrf: true
+    rate-limit:
+      enabled: true
+      requests-per-minute: 1000
+  retention:
+    logs-days: 30
+    metrics-days: 90
+    audit-logs-days: 365
