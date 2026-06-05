@@ -8,7 +8,7 @@ import lombok.Getter;
  */
 @Getter
 public class ApplicationException extends RuntimeException {
-    
+
     private final String errorCode;
     private final HttpStatus statusCode;
 

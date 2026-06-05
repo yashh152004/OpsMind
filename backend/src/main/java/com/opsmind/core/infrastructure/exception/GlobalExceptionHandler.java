@@ -32,9 +32,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<ErrorResponse> handleApplicationException(
             ApplicationException ex,
             WebRequest request) {
-        
+
         log.warn("Application exception occurred: {}", ex.getErrorCode(), ex);
-        
+
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .statusCode(ex.getStatusCode().value())
                 .errorCode(ex.getErrorCode())
@@ -43,7 +43,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .traceId(UUID.randomUUID().toString())
                 .path(request.getDescription(false).replace("uri=", ""))
                 .build();
-        
+
         return new ResponseEntity<>(errorResponse, ex.getStatusCode());
     }
 
@@ -51,9 +51,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<ErrorResponse> handleResourceNotFound(
             ResourceNotFoundException ex,
             WebRequest request) {
-        
+
         log.warn("Resource not found: {}", ex.getMessage());
-        
+
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .statusCode(HttpStatus.NOT_FOUND.value())
                 .errorCode("RESOURCE_NOT_FOUND")
@@ -62,7 +62,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .traceId(UUID.randomUUID().toString())
                 .path(request.getDescription(false).replace("uri=", ""))
                 .build();
-        
+
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
@@ -70,9 +70,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<ErrorResponse> handleAccessDenied(
             AccessDeniedException ex,
             WebRequest request) {
-        
+
         log.warn("Access denied: {}", ex.getMessage());
-        
+
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .statusCode(HttpStatus.FORBIDDEN.value())
                 .errorCode("FORBIDDEN")
@@ -81,7 +81,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .traceId(UUID.randomUUID().toString())
                 .path(request.getDescription(false).replace("uri=", ""))
                 .build();
-        
+
         return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
     }
 
@@ -89,7 +89,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<ErrorResponse> handleValidationException(
             MethodArgumentNotValidException ex,
             WebRequest request) {
-        
+
         List<ErrorDetail> errors = new ArrayList<>();
         ex.getBindingResult().getAllErrors().forEach((error) -> {
             String fieldName = ((FieldError) error).getField();
@@ -99,7 +99,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                     .message(message)
                     .build());
         });
-        
+
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .statusCode(HttpStatus.BAD_REQUEST.value())
                 .errorCode("VALIDATION_ERROR")
@@ -109,7 +109,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .errors(errors)
                 .path(request.getDescription(false).replace("uri=", ""))
                 .build();
-        
+
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
@@ -117,9 +117,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<ErrorResponse> handleGlobalException(
             Exception ex,
             WebRequest request) {
-        
+
         log.error("Unexpected exception occurred", ex);
-        
+
         String traceId = UUID.randomUUID().toString();
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
@@ -129,7 +129,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .traceId(traceId)
                 .path(request.getDescription(false).replace("uri=", ""))
                 .build();
-        
+
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
