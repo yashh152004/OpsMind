@@ -43,11 +43,13 @@ export const useAuth = () => {
     mutationFn: (data: {
       email: string
       password: string
+      confirmPassword: string
       firstName: string
       lastName: string
-    }) => apiClient.register(data.email, data.password, data.firstName, data.lastName),
+      organizationName: string
+    }) => apiClient.register(data),
     onSuccess: () => {
-      navigate('/verify-email')
+      navigate('/login')
     },
   })
 

@@ -108,7 +108,7 @@ public class AuthServiceImpl implements AuthService {
                         UUID orgId = UUID.fromString(request.getOrganizationIdentifier());
                         return organizationRepository.findById(orgId);
                     } catch (IllegalArgumentException e) {
-                        return org.springframework.boot.autoconfigure.data.web.SpringDataWebProperties.Empty.EMPTY;
+                        return java.util.Optional.empty();
                     }
                 })
                 .orElseThrow(() -> {

@@ -33,6 +33,11 @@ public interface UserService {
     void deleteUser(UUID userId, UUID organizationId);
 
     /**
+     * Update user profile (for current user)
+     */
+    UserResponse updateUserProfile(UUID userId, UpdateUserRequest request);
+
+    /**
      * Check if user exists
      */
     boolean userExists(UUID userId, UUID organizationId);

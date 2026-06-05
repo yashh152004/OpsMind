@@ -42,6 +42,7 @@ const RegisterPage: React.FC = () => {
     register({
       email: formData.email,
       password: formData.password,
+      confirmPassword: formData.confirmPassword,
       firstName: formData.firstName,
       lastName: formData.lastName,
       organizationName: formData.organizationName,

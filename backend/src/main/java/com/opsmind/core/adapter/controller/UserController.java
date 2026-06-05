@@ -30,12 +30,14 @@ import java.util.UUID;
 public class UserController {
 
     private final UserService userService;
+    private final com.opsmind.core.application.service.AuthService authService;
 
     @GetMapping("/me")
     @Operation(summary = "Get current authenticated user profile")
     public ResponseEntity<UserResponse> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
         log.debug("Fetching profile for user: {}", userDetails.getUsername());
-        UserResponse response = userService.getUserByEmail(userDetails.getUsername());
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        UserResponse response = authService.getCurrentUser(userId);
         return ResponseEntity.ok(response);
     }
 
@@ -45,7 +47,8 @@ public class UserController {
             @AuthenticationPrincipal UserDetails userDetails,
             @Valid @RequestBody UpdateUserRequest request) {
         log.info("Updating profile for user: {}", userDetails.getUsername());
-        UserResponse response = userService.updateUser(userDetails.getUsername(), request);
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        UserResponse response = userService.updateUserProfile(userId, request);
         return ResponseEntity.ok(response);
     }
 
@@ -55,7 +58,8 @@ public class UserController {
             @AuthenticationPrincipal UserDetails userDetails,
             @Valid @RequestBody ChangePasswordRequest request) {
         log.info("Changing password for user: {}", userDetails.getUsername());
-        userService.changePassword(userDetails.getUsername(), request);
+        UUID userId = UUID.fromString(userDetails.getUsername());
+        authService.changePassword(userId, request);
         return ResponseEntity.noContent().build();
     }
 

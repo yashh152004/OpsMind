@@ -81,6 +81,25 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public UserResponse updateUserProfile(UUID userId, UpdateUserRequest request) {
+        log.info("Updating profile for user: {}", userId);
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", userId.toString()));
+
+        if (request.getFirstName() != null) {
+            user.setFirstName(request.getFirstName());
+        }
+        if (request.getLastName() != null) {
+            user.setLastName(request.getLastName());
+        }
+        if (request.getEmail() != null) {
+            user.setEmail(request.getEmail());
+        }
+
+        return mapToUserResponse(userRepository.save(user));
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public boolean userExists(UUID userId, UUID organizationId) {
         return userRepository.findByIdAndOrganizationId(userId, organizationId).isPresent();
