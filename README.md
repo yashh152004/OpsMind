@@ -1,179 +1,283 @@
 # OpsMind - AI-Powered Observability & Incident Intelligence Platform
 
-**Production-Grade Full-Stack SaaS Platform**
+An enterprise-grade SaaS platform for observability, incident management, and AI-powered root cause analysis.
 
-![Status](https://img.shields.io/badge/Status-Production--Ready-green)
+![Status](https://img.shields.io/badge/Status-Development-blue)
 ![Java](https://img.shields.io/badge/Java-21-orange)
 ![Spring%20Boot](https://img.shields.io/badge/Spring%20Boot-3.3-green)
 ![React](https://img.shields.io/badge/React-19-blue)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.3+-blue)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)
+![Docker](https://img.shields.io/badge/Docker-Latest-2496ED)
 
-## 🎯 Overview
+## 📋 Overview
 
-OpsMind is an enterprise-grade observability platform that helps teams:
+OpsMind is a comprehensive observability and incident intelligence platform designed for modern DevOps teams. It combines real-time monitoring, intelligent alerting, log analytics, and AI-powered root cause analysis to help teams detect, understand, and resolve production incidents faster.
 
-- **Centralize** incident management across all services
-- **Analyze** logs and metrics with AI-powered insights
-- **Reduce** Mean Time To Resolution (MTTR)
-- **Correlate** alerts intelligently
-- **Generate** actionable root cause analysis
+### Key Features
 
-## 🏗️ Architecture
+- **Real-time Monitoring** - Collect and visualize metrics from applications and infrastructure
+- **Incident Management** - Track, assign, and resolve incidents with full context
+- **AI-Powered RCA** - Automatically analyze logs and metrics to identify root causes
+- **Log Analytics** - Full-text search across billions of log entries
+- **Alert Intelligence** - Smart alerting with correlation and deduplication
+- **Team Collaboration** - Comments, escalations, and handoffs
+- **Reporting & Analytics** - Compliance and trend reports
 
-- **Frontend**: React 19 + TypeScript + Vite + Tailwind CSS
-- **Backend**: Java 21 + Spring Boot 3 + Clean Architecture
-- **Database**: PostgreSQL + Elasticsearch + Redis
-- **Message Queue**: Apache Kafka
-- **AI/ML**: Python + LangChain + OpenAI/Claude
-- **Cloud**: AWS (EKS, RDS, S3, CloudFront)
-- **DevOps**: Docker, Kubernetes, Helm, GitHub Actions
+## 🏗️ Technology Stack
+
+**Frontend:**
+- React 19 with TypeScript
+- Vite (fast builds)
+- Tailwind CSS 3 + ShadCN UI
+- React Query + Zustand
+- Axios with JWT auth
+
+**Backend:**
+- Spring Boot 3.3 (Java 21)
+- Spring Security + JWT
+- Spring Data JPA + Hibernate
+- PostgreSQL 15, Redis 7, Elasticsearch 8, Kafka 3
+
+**Infrastructure:**
+- Docker Compose (local dev)
+- Kubernetes + Helm (production)
+- AWS (S3, RDS, ElastiCache, ECS, EKS)
+- GitHub Actions (CI/CD)
 
 ## 📁 Project Structure
 
 ```
-OpsMind/
-├── frontend/                 # React SaaS UI
-├── backend/                  # Spring Boot API
-├── ai-service/              # Python AI Engine
-├── infrastructure/          # Kubernetes & Terraform
-├── docs/                    # Architecture & Design
-├── scripts/                 # Utilities & Automation
-└── .github/workflows/       # CI/CD Pipelines
+opsmind/
+├── docs/                    # Architecture & design documentation
+├── frontend/                # React SPA (Vite + TypeScript)
+├── backend/                 # Spring Boot API (Java 21)
+├── ai-service/             # Python AI Engine
+├── infrastructure/         # Kubernetes & Terraform IaC
+├── scripts/               # Utility scripts
+├── docker-compose.yml     # Local development stack
+├── init-db.sql           # Database initialization
+└── README.md             # This file
 ```
 
-## 🚀 Quick Start
+## 🚀 Quick Start (5 Minutes)
 
 ### Prerequisites
-- Java 21
-- Node.js 20+
-- Docker & Docker Compose
-- PostgreSQL 15+
-- Redis 7+
-- Python 3.11+
 
-### Local Development
+- **Node.js 20+** - https://nodejs.org/
+- **Java 21 JDK** - https://adoptopenjdk.net/
+- **Docker & Docker Compose** - https://www.docker.com/
+- **Maven 3.9+** - https://maven.apache.org/
+
+### Step-by-Step Setup
+
+#### 1. Start Infrastructure (Docker Compose)
 
 ```bash
-# Start infrastructure
+# Clone repository
+git clone <repo-url>
+cd opsmind
+
+# Start all services
 docker-compose up -d
 
-# Backend
-cd backend
-./mvnw spring-boot:run
+# Wait for services to be healthy
+docker-compose logs -f
 
-# Frontend
+# Verify (in another terminal)
+docker-compose ps
+```
+
+Services available at:
+- PostgreSQL: `localhost:5432` (postgres/postgres)
+- Redis: `localhost:6379`
+- Elasticsearch: `localhost:9200`
+- Kafka UI: `localhost:8081`
+
+#### 2. Start Backend (Spring Boot)
+
+```bash
+cd backend
+
+# Build and run
+mvn clean install
+mvn spring-boot:run
+
+# Verify - in another terminal
+curl http://localhost:8080/actuator/health
+```
+
+Backend: `http://localhost:8080`
+
+#### 3. Start Frontend (React)
+
+```bash
 cd frontend
+
+# Install and run
 npm install
 npm run dev
 
-# AI Service
-cd ai-service
-pip install -r requirements.txt
-python main.py
+# Opens at: http://localhost:5173
 ```
 
-## 📚 Documentation
+#### 4. Test Full Auth Flow
 
-- [Architecture Overview](docs/01-ARCHITECTURE.md)
-- [System Design](docs/02-SYSTEM_DESIGN.md)
-- [Database Schema](docs/03-DATABASE_SCHEMA.md)
-- [API Design](docs/04-API_DESIGN.md)
-- [Development Roadmap](docs/10-DEVELOPMENT_ROADMAP.md)
+1. Open `http://localhost:5173` in browser
+2. Click "Register"
+3. Create account (any email/password)
+4. Login with credentials
+5. Redirected to dashboard ✅
 
-## 🔐 Security
+### Stop All Services
 
-- JWT Authentication with Refresh Tokens
-- Role-Based Access Control (RBAC)
-- Multi-Tenant Data Isolation
-- End-to-End Encryption
-- Rate Limiting & CORS
-- Input Validation & Sanitization
-- Audit Logging
+```bash
+docker-compose down
+```
 
-## 🎨 Features
+## 📚 Complete Documentation
 
-### Incident Management
-- Create, assign, and resolve incidents
-- Real-time incident tracking
-- Timeline and comment threads
-- Severity-based escalation
+- **[Architecture Overview](./docs/01-ARCHITECTURE.md)** - System design, principles, tech stack
+- **[System Design](./docs/02-SYSTEM_DESIGN.md)** - Detailed component interactions
+- **[Database Schema](./docs/03-DATABASE_SCHEMA.md)** - ER diagram & 18 table definitions
+- **[API Reference](./docs/04-API_DESIGN.md)** - 50+ REST API endpoints
+- **[Development Roadmap](./docs/10-DEVELOPMENT_ROADMAP.md)** - 10-phase implementation plan
+- **[Backend Guide](./backend/README.md)** - Setup, testing, deployment
+- **[Frontend Guide](./frontend/README.md)** - Setup, components, hooks, state management
 
-### Log Analytics
-- Centralized log ingestion
-- Full-text search
-- Pattern detection
-- Error grouping
+## 🔄 Development Commands
 
-### Real-Time Monitoring
-- CPU, Memory, Disk, Network monitoring
-- Error rate tracking
-- API latency metrics
-- Throughput analysis
+```bash
+# Frontend
+cd frontend
+npm run dev              # Development server
+npm run build           # Production build  
+npm run lint            # ESLint check
+npm run format          # Prettier format
+npm run test            # Run tests
 
-### AI-Powered Intelligence
-- Root cause analysis
-- Log pattern recognition
-- Incident summarization
-- Alert correlation
-- Engineering assistant chat
+# Backend
+cd backend
+mvn clean install       # Build
+mvn spring-boot:run     # Development server
+mvn test               # Tests
+mvn verify             # Full verification
 
-## 📊 Analytics & Reporting
-- MTTR & MTBF metrics
-- Incident trends
-- Reliability scores
-- Service health dashboards
+# Docker
+docker-compose up -d    # Start services
+docker-compose down     # Stop services
+docker-compose logs -f  # View logs
+```
 
-## 🔗 Multi-Tenant SaaS
+## 🔐 Security Features
 
-OpsMind supports multiple organizations with complete data isolation:
-- Separate user management per org
-- Team-based access control
-- Org-specific configurations
-- Usage tracking & billing
+- **JWT Authentication** - Secure token-based auth with auto-refresh
+- **RBAC** - Role-based access control (ADMIN, MANAGER, ANALYST, VIEWER)
+- **Multi-tenancy** - Complete data isolation per organization
+- **Row-Level Security** - Database-level isolation policies
+- **Encrypted Passwords** - BCrypt with salt
+- **CORS** - Properly configured cross-origin policies
+- **Input Validation** - All API inputs validated
+- **Audit Logging** - All user actions tracked
 
-## 📈 Technology Highlights
+## 📊 Architecture
 
-### Clean Architecture
-- Separation of concerns
-- Domain-Driven Design
-- SOLID Principles
-- Easy testing & maintenance
+```
+┌─────────────┐       ┌──────────────────┐       ┌─────────────┐
+│  Frontend   │◄────►│  API Gateway     │◄────►│  Kafka      │
+│  (React 19) │       │ (Spring Boot 3)  │       │  Broker     │
+└─────────────┘       └──────────────────┘       └─────────────┘
+                            ▲
+                            │
+                ┌───────────┼───────────┐
+                ▼           ▼           ▼
+           ┌────────┐  ┌────────┐  ┌──────────┐
+           │PostgreSQL│  │ Redis  │  │Elastic   │
+           │Database │  │ Cache  │  │Search    │
+           └────────┘  └────────┘  └──────────┘
+```
 
-### Scalability
-- Horizontal scaling via Kubernetes
-- Distributed caching with Redis
-- Event streaming with Kafka
-- Database replication
+## 🎯 Development Phases
 
-### Developer Experience
-- Hot reload in development
-- Comprehensive logging
-- Error tracking
-- Performance monitoring
+### ✅ Completed
+1. Project structure & documentation
+2. Backend security infrastructure
+3. Frontend React application scaffold
+4. Docker Compose local environment
+5. Database initialization
 
-## 🤝 Contributing
+### 🔄 In Progress
+6. User/Auth domain models & services
+7. REST API endpoints implementation
+8. Frontend UI components
 
-This is a reference implementation demonstrating enterprise SaaS architecture.
+### 📋 Upcoming
+9. AI RCA service
+10. Kubernetes deployment
+11. CI/CD pipelines
+12. Monitoring & observability
+13. Production deployment
+
+For detailed plan: [Development Roadmap](./docs/10-DEVELOPMENT_ROADMAP.md)
+
+## 🆘 Troubleshooting
+
+**Port already in use?**
+```bash
+# Find and kill process
+lsof -i :5173  # Frontend
+lsof -i :8080  # Backend
+kill -9 <PID>
+```
+
+**Database connection error?**
+```bash
+# Verify PostgreSQL is running
+docker-compose ps postgres
+
+# Test connection
+docker-compose exec postgres psql -U postgres -c "SELECT 1;"
+```
+
+**Frontend can't reach backend?**
+```bash
+# Verify backend is running
+curl http://localhost:8080/actuator/health
+
+# Check .env.local in frontend folder
+# Should have: VITE_API_URL=http://localhost:8080/api
+```
+
+**Docker services won't start?**
+```bash
+# Check logs
+docker-compose logs
+
+# Restart Docker
+docker-compose down -v
+docker-compose up -d
+```
 
 ## 📄 License
 
 MIT License - See LICENSE file
 
-## 👥 Team
+## 🤝 Contributing
 
-Built by an elite engineering team:
-- Staff Software Architect
-- Senior Full Stack Engineers
-- Senior Spring Boot Engineer
-- Senior React Engineer
-- Senior DevOps Engineer
-- Cloud Architect
-- AI/ML Engineer
-- Database Architect
-- SRE Engineer
+1. Create feature branch: `git checkout -b feature/your-feature`
+2. Implement changes with tests
+3. Run linters and tests
+4. Commit and push
+5. Create Pull Request
+
+## 📞 Support
+
+- 📖 **Docs**: Check `docs/` and README files
+- 🐛 **Issues**: GitHub Issues for bugs
+- 💬 **Discussions**: GitHub Discussions for questions
+- 📧 **Email**: [support email]
 
 ---
 
-**Last Updated**: June 2026
-**Version**: 1.0.0
-**Status**: Production Ready
+**Version**: 1.0.0 (Development)  
+**Last Updated**: 2024  
+**Status**: Active Development ✨
