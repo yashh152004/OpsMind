@@ -1,13 +1,18 @@
 package com.opsmind.security;
 
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
-import java.security.Key;
+import javax.crypto.SecretKey;
 import java.util.Date;
 
 @Component
@@ -19,40 +24,58 @@ public class JwtTokenProvider {
     @Value("${jwt.expiration}")
     private long jwtExpirationDate;
 
+    private SecretKey key() {
+        return Keys.hmacShaKeyFor(
+                Decoders.BASE64.decode(jwtSecret)
+        );
+    }
+
     public String generateToken(Authentication authentication) {
+
         String username = authentication.getName();
+
         Date currentDate = new Date();
-        Date expireDate = new Date(currentDate.getTime() + jwtExpirationDate);
+
+        Date expireDate = new Date(
+                currentDate.getTime() + jwtExpirationDate
+        );
 
         return Jwts.builder()
-                .setSubject(username)
-                .setIssuedAt(new Date())
-                .setExpiration(expireDate)
-                .signWith(key(), SignatureAlgorithm.HS256)
+                .subject(username)
+                .issuedAt(currentDate)
+                .expiration(expireDate)
+                .signWith(key())
                 .compact();
     }
 
-    private Key key() {
-        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
-    }
-
     public String getUsername(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(key())
+
+        Claims claims = Jwts.parser()
+                .verifyWith(key())
                 .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
+                .parseSignedClaims(token)
+                .getPayload();
+
+        return claims.getSubject();
     }
 
     public boolean validateToken(String token) {
+
         try {
-            Jwts.parserBuilder()
-                    .setSigningKey(key())
+
+            Jwts.parser()
+                    .verifyWith(key())
                     .build()
-                    .parse(token);
+                    .parseSignedClaims(token);
+
             return true;
-        } catch (MalformedJwtException | ExpiredJwtException | UnsupportedJwtException | IllegalArgumentException e) {
+
+        } catch (
+                MalformedJwtException |
+                ExpiredJwtException |
+                UnsupportedJwtException |
+                IllegalArgumentException e
+        ) {
             return false;
         }
     }
