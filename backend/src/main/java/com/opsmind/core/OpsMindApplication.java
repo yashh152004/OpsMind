@@ -8,7 +8,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
-
 /**
  * OpsMind Backend Application - Main Entry Point
  * 
