@@ -36,7 +36,7 @@ OpsMind is a comprehensive observability and incident intelligence platform desi
 - Spring Boot 3.3 (Java 21)
 - Spring Security + JWT
 - Spring Data JPA + Hibernate
-- PostgreSQL 15, Redis 7, Elasticsearch 8, Kafka 3
+- MySQL 8.0
 
 **Infrastructure:**
 - Docker Compose (local dev)
@@ -48,11 +48,9 @@ OpsMind is a comprehensive observability and incident intelligence platform desi
 
 ```
 opsmind/
-├── docs/                    # Architecture & design documentation
-├── frontend/                # React SPA (Vite + TypeScript)
 ├── backend/                 # Spring Boot API (Java 21)
-├── ai-service/             # Python AI Engine
-├── infrastructure/         # Kubernetes & Terraform IaC
+├── frontend/                # React SPA (Vite + TypeScript)
+├── infrastructure/         # IaC
 ├── scripts/               # Utility scripts
 ├── docker-compose.yml     # Local development stack
 ├── init-db.sql           # Database initialization
