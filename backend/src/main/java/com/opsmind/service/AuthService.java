@@ -41,10 +41,13 @@ public class AuthService {
         User user = userRepository.findByEmail(loginRequest.getEmail()).orElseThrow();
 
         return AuthResponse.builder()
-                .token(token)
-                .email(user.getEmail())
-                .firstName(user.getFirstName())
-                .lastName(user.getLastName())
+                .accessToken(token)
+                .refreshToken("fake-refresh-token") // Simplified
+                .user(AuthResponse.UserData.builder()
+                        .email(user.getEmail())
+                        .firstName(user.getFirstName())
+                        .lastName(user.getLastName())
+                        .build())
                 .build();
     }
 

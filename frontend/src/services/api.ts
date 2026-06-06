@@ -262,6 +262,14 @@ class ApiClient {
     return response.data
   }
 
+  /**
+   * AI Endpoints
+   */
+  async getChatResponse(message: string) {
+    const response = await this.client.post<{ response: string }>('/ai/chat', { message })
+    return response.data
+  }
+
   getAxiosInstance() {
     return this.client
   }
