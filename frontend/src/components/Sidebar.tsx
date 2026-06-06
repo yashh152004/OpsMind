@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { LayoutDashboard, AlertCircle, Bell, Settings, LogOut, X } from 'lucide-react'
+import { LayoutDashboard, AlertCircle, Bell, Settings, LogOut, X, MessageSquare } from 'lucide-react'
 import { useAuth } from '@/hooks'
 import { cn } from '@/utils/cn'
 
@@ -16,6 +16,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
     { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
     { label: 'Incidents', icon: AlertCircle, href: '/incidents' },
     { label: 'Alerts', icon: Bell, href: '/alerts' },
+    { label: 'AI Chat', icon: MessageSquare, href: '/ai-chat' },
     { label: 'Settings', icon: Settings, href: '/settings' },
   ]
 
