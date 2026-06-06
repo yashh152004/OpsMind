@@ -3,6 +3,7 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
          http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.opsmind</groupId>
@@ -11,7 +12,8 @@
     <packaging>jar</packaging>
 
     <name>OpsMind Backend</name>
-    <description>AI-Powered Observability & Incident Intelligence Platform</description>
+
+    <description>AI-Powered Observability &amp; Incident Intelligence Platform</description>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -26,7 +28,6 @@
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <!-- Dependency Versions -->
         <elasticsearch.version>8.11.0</elasticsearch.version>
         <kafka.version>3.6.0</kafka.version>
         <redis.version>5.0.0</redis.version>
@@ -38,6 +39,7 @@
     </properties>
 
     <dependencies>
+
         <!-- Spring Boot Starters -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -74,13 +76,13 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
-        <!-- Spring Kafka -->
+        <!-- Kafka -->
         <dependency>
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka</artifactId>
         </dependency>
 
-        <!-- Spring Cloud -->
+        <!-- OpenFeign -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-openfeign</artifactId>
@@ -178,13 +180,13 @@
             <version>4.11.0</version>
         </dependency>
 
-        <!-- JSON Processing -->
+        <!-- JSON -->
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
         </dependency>
 
-        <!-- Testing -->
+        <!-- Tests -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -216,21 +218,15 @@
             <version>1.19.6</version>
             <scope>test</scope>
         </dependency>
+
     </dependencies>
 
     <build>
         <plugins>
+
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <excludes>
-                        <exclude>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                        </exclude>
-                    </excludes>
-                </configuration>
             </plugin>
 
             <plugin>
@@ -274,6 +270,7 @@
                     </execution>
                 </executions>
             </plugin>
+
         </plugins>
     </build>
 

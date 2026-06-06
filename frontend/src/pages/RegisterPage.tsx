@@ -152,7 +152,9 @@ const RegisterPage: React.FC = () => {
 
       {registerError && (
         <div className="rounded-lg bg-red-500/10 p-4 text-red-200">
-          {(registerError as any)?.response?.data?.message || 'Registration failed. Please try again.'}
+          {(registerError as any)?.response?.data?.message || 
+           (registerError as any)?.message || 
+           'Registration failed. Please try again.'}
         </div>
       )}
 
