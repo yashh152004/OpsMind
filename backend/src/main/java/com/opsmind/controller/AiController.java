@@ -19,6 +19,9 @@ public class AiController {
     @PostMapping("/chat")
     public ResponseEntity<Map<String, String>> chat(@RequestBody Map<String, String> request) {
         String userMessage = request.get("message");
+        if (userMessage == null || userMessage.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Message cannot be empty"));
+        }
         String response = geminiService.generateChatResponse(userMessage);
         return ResponseEntity.ok(Map.of("response", response));
     }

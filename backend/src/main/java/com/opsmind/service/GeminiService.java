@@ -6,13 +6,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import com.opsmind.dto.GeminiRequest;
 
 @Service
 public class GeminiService {
@@ -31,20 +30,19 @@ public class GeminiService {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
-            // Structure for Gemini API
-            Map<String, Object> requestBody = new HashMap<>();
-            Map<String, Object> part = new HashMap<>();
-            part.put("text", message);
-
-            Map<String, Object> content = new HashMap<>();
-            content.put("parts", Collections.singletonList(part));
-
-            requestBody.put("contents", Collections.singletonList(content));
+            // Structure for Gemini API using DTO
+            GeminiRequest requestBody = new GeminiRequest(
+                    List.of(new GeminiRequest.Content(
+                            List.of(new GeminiRequest.Part(message))
+                    ))
+            );
 
             String urlWithKey = apiUrl + "?key=" + apiKey;
-            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+            HttpEntity<GeminiRequest> entity = new HttpEntity<>(requestBody, headers);
 
-            String response = restTemplate.postForObject(urlWithKey, entity, String.class);
+            ResponseEntity<String> responseEntity = restTemplate.postForEntity(urlWithKey, entity, String.class);
+            String response = responseEntity.getBody();
+
             JsonNode root = objectMapper.readTree(response);
             return root.path("candidates").get(0).path("content").path("parts").get(0).path("text").asText();
 
