@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, AxiosError } from 'axios'
 import { useAuthStore } from '@/stores/auth'
-import type { AuthResponse, AuthCredentials, User } from '@/types'
+import type { AuthResponse, AuthCredentials, User, RegisterRequest } from '@/types'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api'
 
@@ -68,14 +68,7 @@ class ApiClient {
   /**
    * Auth Endpoints
    */
-  async register(data: {
-    email: string
-    password: string
-    confirmPassword: string
-    firstName: string
-    lastName: string
-    organizationName: string
-  }) {
+  async register(data: RegisterRequest) {
     const response = await this.client.post<AuthResponse>('/auth/register', data)
     return response.data
   }

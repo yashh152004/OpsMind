@@ -7,7 +7,7 @@ services:
     container_name: opsmind-mysql
     environment:
       MYSQL_DATABASE: opsmind
-      MYSQL_ROOT_PASSWORD: password
+      MYSQL_ROOT_PASSWORD: ***SCRUBBED_DB_PASSWORD***
     ports:
       - "3306:3306"
     volumes:

@@ -9,6 +9,14 @@ export interface AuthCredentials {
   organizationIdentifier: string
 }
 
+export interface RegisterRequest {
+  email: string
+  password: string
+  firstName: string
+  lastName: string
+  organizationName: string
+}
+
 export interface AuthResponse {
   accessToken: string
   refreshToken: string

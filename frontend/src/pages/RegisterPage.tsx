@@ -26,7 +26,7 @@ const RegisterPage: React.FC = () => {
       password: formData.password,
       firstName: formData.firstName,
       lastName: formData.lastName,
-      organizationIdentifier: formData.orgIdentifier
+      organizationName: formData.orgIdentifier
     })
   }
 

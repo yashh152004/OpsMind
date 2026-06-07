@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuthStore, useOrganizationStore } from '@/stores/auth'
 import { apiClient } from '@/services/api'
-import type { AuthCredentials, AuthResponse, User } from '@/types'
+import type { AuthCredentials, AuthResponse, User, RegisterRequest } from '@/types'
 
 /**
  * Authentication Hook
@@ -41,14 +41,7 @@ export const useAuth = () => {
 
   // Register mutation
   const registerMutation = useMutation({
-    mutationFn: (data: {
-      email: string
-      password: string
-      confirmPassword: string
-      firstName: string
-      lastName: string
-      organizationName: string
-    }) => apiClient.register(data),
+    mutationFn: (data: RegisterRequest) => apiClient.register(data),
     onSuccess: () => {
       navigate('/login')
     },
