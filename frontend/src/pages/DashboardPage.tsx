@@ -18,7 +18,8 @@ import {
   Users,
   ArrowUpRight,
   ArrowDownRight,
-  Zap
+  Zap,
+  ShieldCheck
 } from 'lucide-react'
 import { useAuth } from '@/hooks'
 import { cn } from '@/utils/cn'

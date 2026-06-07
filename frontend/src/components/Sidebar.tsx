@@ -1,118 +1,88 @@
 import React from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
 import { 
   LayoutDashboard, 
   AlertCircle, 
-  Bell, 
+  Zap, 
+  BarChart3, 
   Settings, 
-  LogOut, 
-  X, 
-  MessageSquare,
+  MessageSquareCode,
   Activity,
-  BarChart3,
-  Search,
+  Terminal,
   ShieldCheck
 } from 'lucide-react'
-import { useAuth } from '@/hooks'
 import { cn } from '@/utils/cn'
 
-interface SidebarProps {
-  onClose?: () => void
-}
+const navigation = [
+  { group: "Operational", items: [
+    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    { name: 'Incidents', href: '/incidents', icon: AlertCircle },
+    { name: 'Alert Stream', href: '/alerts', icon: Activity },
+  ]},
+  { group: "Intelligence", items: [
+    { name: 'AI SRE Copilot', href: '/ai-chat', icon: MessageSquareCode },
+    { name: 'Predictive Insights', href: '/ai-insights', icon: Zap },
+    { name: 'Analytics', href: '/analytics', icon: BarChart3 },
+  ]},
+  { group: "System", items: [
+    { name: 'Infrastructure', href: '/infrastructure', icon: Terminal },
+    { name: 'Security Scan', href: '/security', icon: ShieldCheck },
+    { name: 'Settings', href: '/settings', icon: Settings },
+  ]}
+]
 
-const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
-  const location = useLocation()
-  const { logout } = useAuth()
-
-  const navGroups = [
-    {
-      title: 'Monitoring',
-      items: [
-        { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
-        { label: 'Incidents', icon: AlertCircle, href: '/incidents' },
-        { label: 'Alerts', icon: Bell, href: '/alerts' },
-      ]
-    },
-    {
-      title: 'Intelligence',
-      items: [
-        { label: 'AI Insights', icon: ShieldCheck, href: '/ai-insights' },
-        { label: 'AI Copilot', icon: MessageSquare, href: '/ai-chat' },
-        { label: 'Analytics', icon: BarChart3, href: '/analytics' },
-      ]
-    },
-    {
-      title: 'Platform',
-      items: [
-        { label: 'Settings', icon: Settings, href: '/settings' },
-      ]
-    }
-  ]
-
+const Sidebar: React.FC = () => {
   return (
-    <div className="flex h-full flex-col bg-card/40 backdrop-blur-xl border-r border-white/5">
-      {/* Brand */}
-      <div className="flex items-center gap-3 p-8">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl premium-gradient shadow-lg shadow-blue-500/20">
-          <Activity className="h-6 w-6 text-white" />
+    <aside className="w-64 bg-card border-r border-border flex flex-col shrink-0 overflow-y-auto">
+      {/* Brand Header */}
+      <div className="h-16 flex items-center px-6 border-b border-border">
+        <div className="flex items-center gap-3">
+          <div className="h-8 w-8 bg-primary rounded flex items-center justify-center text-white font-bold text-xl">
+            O
+          </div>
+          <span className="font-outfit font-bold text-lg tracking-tight">OpsMind</span>
         </div>
-        <span className="text-xl font-bold font-outfit tracking-tight">OpsMind</span>
       </div>
 
       {/* Navigation */}
-      <div className="flex-1 overflow-y-auto px-4 pb-4">
-        {navGroups.map((group, idx) => (
-          <div key={group.title} className={cn("mb-8", idx === 0 && "mt-2")}>
-            <h3 className="mb-4 px-4 text-xs font-semibold uppercase tracking-widest text-muted-foreground/60">
-              {group.title}
+      <nav className="flex-1 p-4 space-y-8 mt-4">
+        {navigation.map((group) => (
+          <div key={group.group}>
+            <h3 className="px-3 text-[10px] uppercase font-bold text-muted-foreground tracking-widest mb-4">
+              {group.group}
             </h3>
             <div className="space-y-1">
-              {group.items.map((item) => {
-                const Icon = item.icon
-                const isActive = location.pathname === item.href
-
-                return (
-                  <Link
-                    key={item.href}
-                    to={item.href}
-                    className={cn(
-                      'group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-300',
-                      isActive
-                        ? 'bg-primary/10 text-primary shadow-sm shadow-primary/5'
-                        : 'text-muted-foreground hover:bg-white/5 hover:text-foreground'
-                    )}
-                    onClick={onClose}
-                  >
-                    <Icon className={cn(
-                      'h-5 w-5 transition-colors',
-                      isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'
-                    )} />
-                    {item.label}
-                    {isActive && (
-                      <div className="ml-auto h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
-                    )}
-                  </Link>
-                )
-              })}
+              {group.items.map((item) => (
+                <NavLink
+                  key={item.name}
+                  to={item.href}
+                  className={({ isActive }) => cn(
+                    "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                    isActive 
+                      ? "bg-primary/10 text-primary" 
+                      : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                  )}
+                >
+                  <item.icon className="h-4 w-4" />
+                  {item.name}
+                </NavLink>
+              ))}
             </div>
           </div>
         ))}
-      </div>
+      </nav>
 
-      {/* User / Logout */}
-      <div className="mt-auto border-t border-white/5 p-4">
-        <button
-          onClick={() => {
-            logout()
-            onClose?.()
-          }}
-          className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-destructive/80 hover:bg-destructive/10 transition-colors"
-        >
-          <LogOut className="h-5 w-5" />
-          Log Out
-        </button>
+      {/* Footer Branding */}
+      <div className="p-4 border-t border-border">
+        <div className="p-3 bg-accent/30 rounded-md">
+          <div className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Status</div>
+          <div className="flex items-center gap-2 text-xs font-medium">
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            All Systems Operational
+          </div>
+        </div>
       </div>
-    </div>
+    </aside>
   )
 }
 

@@ -1,56 +1,56 @@
 import React from 'react'
-import { Search, Bell, Settings, Command } from 'lucide-react'
+import { Search, Bell, HelpCircle, ChevronDown, Command } from 'lucide-react'
 import { useAuth } from '@/hooks'
 
 const Header: React.FC = () => {
   const { user } = useAuth()
 
   return (
-    <div className="flex w-full items-center justify-between gap-8">
-      {/* Search Bar */}
-      <div className="relative group w-full max-w-md hidden sm:block">
-        <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-          <Search className="h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-        </div>
-        <input 
-          type="text" 
-          placeholder="Search for incidents, logs, services... (Ctrl + K)"
-          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 pl-11 text-sm outline-none transition-all focus:border-primary/50 focus:ring-4 focus:ring-primary/10"
-        />
-        <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-          <kbd className="hidden sm:inline-flex items-center gap-1 rounded border border-white/10 bg-white/5 px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-            <span className="text-xs">⌘</span>K
-          </kbd>
+    <header className="h-16 border-b border-border bg-card flex items-center justify-between px-8 sticky top-0 z-50">
+      {/* Search / Command Bar */}
+      <div className="flex-1 max-w-md">
+        <div className="relative group">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
+            <Search className="h-4 w-4" />
+          </div>
+          <input
+            type="text"
+            className="w-full bg-accent/40 border border-border rounded-md pl-10 pr-12 py-1.5 text-sm focus:bg-background transition-all focus:ring-1 focus:ring-primary focus:border-primary outline-none"
+            placeholder="Search incidents, metric, or service..."
+          />
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+             <kbd className="h-5 px-1.5 bg-background border border-border rounded text-[10px] flex items-center gap-1 text-muted-foreground">
+               <Command className="h-2.5 w-2.5" /> K
+             </kbd>
+          </div>
         </div>
       </div>
 
-      {/* Action Icons */}
-      <div className="flex items-center gap-2 ml-auto">
-        <button className="relative p-2.5 rounded-xl hover:bg-white/5 transition-all text-muted-foreground hover:text-foreground">
+      {/* Primary Actions */}
+      <div className="flex items-center gap-6">
+        <button className="text-muted-foreground hover:text-foreground transition-colors relative">
           <Bell className="h-5 w-5" />
-          <span className="absolute top-2 right-2 flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-          </span>
+          <span className="absolute -top-1 -right-1 h-2 w-2 bg-primary rounded-full border-2 border-card" />
+        </button>
+        <button className="text-muted-foreground hover:text-foreground transition-colors">
+          <HelpCircle className="h-5 w-5" />
         </button>
         
-        <button className="p-2.5 rounded-xl hover:bg-white/5 transition-all text-muted-foreground hover:text-foreground">
-          <Command className="h-5 w-5" />
+        <div className="h-6 w-px bg-border mx-2" />
+
+        {/* Profile */}
+        <button className="flex items-center gap-3 group">
+          <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xs ring-2 ring-transparent group-hover:ring-primary/20 transition-all">
+            {user?.firstName?.[0] || 'U'}
+          </div>
+          <div className="hidden md:block text-left">
+            <div className="text-xs font-bold leading-none">{user?.firstName} {user?.lastName}</div>
+            <div className="text-[10px] text-muted-foreground mt-1">Platform Admin</div>
+          </div>
+          <ChevronDown className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
         </button>
-
-        <div className="h-8 w-[1px] bg-white/10 mx-2" />
-
-        <div className="flex items-center gap-3 pl-2">
-          <div className="hidden lg:block text-right">
-            <div className="text-sm font-bold">{user?.firstName} {user?.lastName}</div>
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Standard SRE</div>
-          </div>
-          <div className="h-10 w-10 rounded-xl bg-primary/20 border border-primary/30 flex items-center justify-center font-bold text-primary shadow-inner">
-            {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
-          </div>
-        </div>
       </div>
-    </div>
+    </header>
   )
 }
 

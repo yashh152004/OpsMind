@@ -11,6 +11,7 @@ import {
   Slack,
   Webhook
 } from 'lucide-react'
+import { cn } from '@/utils/cn'
 
 const SettingsPage: React.FC = () => {
   return (
@@ -103,5 +104,4 @@ const SettingsPage: React.FC = () => {
   )
 }
 
-import { cn } from '@/utils/cn'
 export default SettingsPage

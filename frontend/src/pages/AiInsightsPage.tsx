@@ -8,6 +8,7 @@ import {
   RefreshCcw,
   CheckCircle2
 } from 'lucide-react'
+import { cn } from '@/utils/cn'
 
 const insights = [
   {
@@ -128,5 +129,4 @@ const AiInsightsPage: React.FC = () => {
   )
 }
 
-import { cn } from '@/utils/cn'
 export default AiInsightsPage

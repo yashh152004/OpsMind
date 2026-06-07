@@ -3,22 +3,15 @@ import { Outlet } from 'react-router-dom'
 
 const AuthLayout: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      <div className="flex min-h-screen items-center justify-center px-4">
-        <div className="w-full max-w-md">
-          <div className="mb-8 text-center">
-            <h1 className="text-4xl font-bold text-white">OpsMind</h1>
-            <p className="mt-2 text-purple-200">AI-Powered Observability & Incident Intelligence</p>
-          </div>
+    <div className="min-h-screen bg-background relative overflow-hidden flex items-center justify-center">
+      {/* Ambient Background Glows */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/10 blur-[120px] rounded-full animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-secondary/10 blur-[120px] rounded-full animate-pulse [animation-delay:2s]" />
+      </div>
 
-          <div className="rounded-lg bg-white/10 p-8 shadow-2xl backdrop-blur-xl">
-            <Outlet />
-          </div>
-
-          <p className="mt-8 text-center text-sm text-purple-200">
-            © 2024 OpsMind. All rights reserved.
-          </p>
-        </div>
+      <div className="relative z-10 w-full">
+        <Outlet />
       </div>
     </div>
   )
