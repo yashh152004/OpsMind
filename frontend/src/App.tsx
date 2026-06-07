@@ -11,6 +11,8 @@ import IncidentsPage from '@/pages/IncidentsPage'
 import AlertsPage from '@/pages/AlertsPage'
 import SettingsPage from '@/pages/SettingsPage'
 import AiChatPage from '@/pages/AiChatPage'
+import AnalyticsPage from '@/pages/AnalyticsPage'
+import AiInsightsPage from '@/pages/AiInsightsPage'
 
 // Layouts
 import AuthLayout from '@/layouts/AuthLayout'
@@ -71,6 +73,8 @@ const App: React.FC = () => {
             <Route path="/alerts" element={<AlertsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/ai-chat" element={<AiChatPage />} />
+            <Route path="/analytics" element={<AnalyticsPage />} />
+            <Route path="/ai-insights" element={<AiInsightsPage />} />
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Route>
 

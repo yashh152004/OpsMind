@@ -1,178 +1,185 @@
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '@/hooks'
 import { toast } from 'sonner'
+import { Activity, Mail, Lock, User, Building, ArrowRight, Loader2, CheckCircle2 } from 'lucide-react'
 
 const RegisterPage: React.FC = () => {
+  const navigate = useNavigate()
   const { register, isRegisterLoading, registerError } = useAuth()
+  
   const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
     email: '',
     password: '',
     confirmPassword: '',
-    firstName: '',
-    lastName: '',
     organizationName: '',
   })
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    })
-  }
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (!formData.email || !formData.password || !formData.firstName || !formData.lastName || !formData.organizationName) {
-      toast.error('Please fill in all fields')
-      return
-    }
-
     if (formData.password !== formData.confirmPassword) {
       toast.error('Passwords do not match')
       return
     }
-
-    if (formData.password.length < 8) {
-      toast.error('Password must be at least 8 characters')
-      return
-    }
-
-    register({
-      email: formData.email,
-      password: formData.password,
-      confirmPassword: formData.confirmPassword,
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      organizationName: formData.organizationName,
-    })
+    register(formData)
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <h2 className="text-2xl font-bold text-white">Create Account</h2>
+    <div className="min-h-screen flex items-center justify-center bg-[#0B1220] px-4 py-12">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-secondary/10 blur-[120px] rounded-full" />
+      </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="firstName" className="block text-sm font-medium text-purple-100">
-            First Name
-          </label>
-          <input
-            id="firstName"
-            name="firstName"
-            type="text"
-            value={formData.firstName}
-            onChange={handleChange}
-            className="mt-2 w-full rounded-lg bg-white/10 px-4 py-2 text-white placeholder-purple-300 backdrop-blur transition focus:outline-none focus:ring-2 focus:ring-purple-500"
-            placeholder="John"
-            disabled={isRegisterLoading}
-          />
+      <div className="w-full max-w-[540px] z-10">
+        {/* Header */}
+        <div className="flex flex-col items-center mb-10 text-center">
+          <div className="h-16 w-16 rounded-2xl premium-gradient flex items-center justify-center shadow-2xl shadow-blue-500/20 mb-6">
+            <Activity className="h-10 w-10 text-white" />
+          </div>
+          <h1 className="text-4xl font-bold font-outfit tracking-tight mb-2">Scale Your SRE Team</h1>
+          <p className="text-muted-foreground font-medium">Join 500+ enterprises using OpsMind for predictive observability.</p>
         </div>
-        <div>
-          <label htmlFor="lastName" className="block text-sm font-medium text-purple-100">
-            Last Name
-          </label>
-          <input
-            id="lastName"
-            name="lastName"
-            type="text"
-            value={formData.lastName}
-            onChange={handleChange}
-            className="mt-2 w-full rounded-lg bg-white/10 px-4 py-2 text-white placeholder-purple-300 backdrop-blur transition focus:outline-none focus:ring-2 focus:ring-purple-500"
-            placeholder="Doe"
-            disabled={isRegisterLoading}
-          />
+
+        <div className="glass-card p-10 border border-white/5">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">First Name</label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-4 text-muted-foreground group-focus-within:text-primary transition-colors">
+                    <User className="h-5 w-5" />
+                  </div>
+                  <input
+                    type="text"
+                    required
+                    className="input-field pl-12"
+                    placeholder="John"
+                    value={formData.firstName}
+                    onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Last Name</label>
+                <input
+                  type="text"
+                  required
+                  className="input-field"
+                  placeholder="Doe"
+                  value={formData.lastName}
+                  onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Organization Name</label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-4 text-muted-foreground group-focus-within:text-primary transition-colors">
+                  <Building className="h-5 w-5" />
+                </div>
+                <input
+                  type="text"
+                  required
+                  className="input-field pl-12"
+                  placeholder="Acme Global Inc."
+                  value={formData.organizationName}
+                  onChange={(e) => setFormData({...formData, organizationName: e.target.value})}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Business Email</label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-4 text-muted-foreground group-focus-within:text-primary transition-colors">
+                  <Mail className="h-5 w-5" />
+                </div>
+                <input
+                  type="email"
+                  required
+                  className="input-field pl-12"
+                  placeholder="john@acme.com"
+                  value={formData.email}
+                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Password</label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-4 text-muted-foreground group-focus-within:text-primary transition-colors">
+                    <Lock className="h-5 w-5" />
+                  </div>
+                  <input
+                    type="password"
+                    required
+                    className="input-field pl-12"
+                    placeholder="••••••••"
+                    value={formData.password}
+                    onChange={(e) => setFormData({...formData, password: e.target.value})}
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Confirm</label>
+                <input
+                  type="password"
+                  required
+                  className="input-field"
+                  placeholder="••••••••"
+                  value={formData.confirmPassword}
+                  onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+                />
+              </div>
+            </div>
+
+            {registerError && (
+              <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-4 text-red-200 text-sm flex items-center gap-2">
+                 <Lock className="h-4 w-4 text-red-500" />
+                 <span>Registration failed. Email might be already in use.</span>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={isRegisterLoading}
+              className="btn-primary w-full h-12 mt-4"
+            >
+              {isRegisterLoading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <>Initialize OpsCenter <ArrowRight className="h-5 w-5 ml-1" /></>
+              )}
+            </button>
+          </form>
+
+          <div className="mt-8 pt-8 border-t border-white/5 flex flex-wrap justify-center gap-6">
+             <div className="flex items-center gap-2 text-[10px] uppercase font-bold text-muted-foreground">
+                <CheckCircle2 className="h-3 w-3 text-emerald-500" /> SOC2 Compliant
+             </div>
+             <div className="flex items-center gap-2 text-[10px] uppercase font-bold text-muted-foreground">
+                <CheckCircle2 className="h-3 w-3 text-emerald-500" /> GDPR Ready
+             </div>
+             <div className="flex items-center gap-2 text-[10px] uppercase font-bold text-muted-foreground">
+                <CheckCircle2 className="h-3 w-3 text-emerald-500" /> SSL Encrypted
+             </div>
+          </div>
+        </div>
+
+        <div className="text-center mt-8">
+          <p className="text-muted-foreground text-sm font-medium">
+            Already have an account? {' '}
+            <Link to="/login" className="text-primary font-bold hover:underline">Access Terminal</Link>
+          </p>
         </div>
       </div>
-
-      <div>
-        <label htmlFor="email" className="block text-sm font-medium text-purple-100">
-          Email Address
-        </label>
-        <input
-          id="email"
-          name="email"
-          type="email"
-          value={formData.email}
-          onChange={handleChange}
-          className="mt-2 w-full rounded-lg bg-white/10 px-4 py-2 text-white placeholder-purple-300 backdrop-blur transition focus:outline-none focus:ring-2 focus:ring-purple-500"
-          placeholder="you@example.com"
-          disabled={isRegisterLoading}
-        />
-      </div>
-
-      <div>
-        <label htmlFor="password" className="block text-sm font-medium text-purple-100">
-          Password
-        </label>
-        <input
-          id="password"
-          name="password"
-          type="password"
-          value={formData.password}
-          onChange={handleChange}
-          className="mt-2 w-full rounded-lg bg-white/10 px-4 py-2 text-white placeholder-purple-300 backdrop-blur transition focus:outline-none focus:ring-2 focus:ring-purple-500"
-          placeholder="••••••••"
-          disabled={isRegisterLoading}
-        />
-      </div>
-
-      <div>
-        <label htmlFor="confirmPassword" className="block text-sm font-medium text-purple-100">
-          Confirm Password
-        </label>
-        <input
-          id="confirmPassword"
-          name="confirmPassword"
-          type="password"
-          value={formData.confirmPassword}
-          onChange={handleChange}
-          className="mt-2 w-full rounded-lg bg-white/10 px-4 py-2 text-white placeholder-purple-300 backdrop-blur transition focus:outline-none focus:ring-2 focus:ring-purple-500"
-          placeholder="••••••••"
-          disabled={isRegisterLoading}
-        />
-      </div>
-
-      <div>
-        <label htmlFor="organizationName" className="block text-sm font-medium text-purple-100">
-          Organization Name
-        </label>
-        <input
-          id="organizationName"
-          name="organizationName"
-          type="text"
-          value={formData.organizationName}
-          onChange={handleChange}
-          className="mt-2 w-full rounded-lg bg-white/10 px-4 py-2 text-white placeholder-purple-300 backdrop-blur transition focus:outline-none focus:ring-2 focus:ring-purple-500"
-          placeholder="Acme Corp"
-          disabled={isRegisterLoading}
-        />
-      </div>
-
-      {registerError && (
-        <div className="rounded-lg bg-red-500/10 p-4 text-red-200">
-          {(registerError as any)?.response?.data?.message || 
-           (registerError as any)?.message || 
-           'Registration failed. Please try again.'}
-        </div>
-      )}
-
-      <button
-        type="submit"
-        disabled={isRegisterLoading}
-        className="w-full rounded-lg bg-gradient-to-r from-purple-600 to-purple-700 py-2 font-semibold text-white transition hover:from-purple-700 hover:to-purple-800 disabled:opacity-50"
-      >
-        {isRegisterLoading ? 'Creating Account...' : 'Create Account'}
-      </button>
-
-      <div className="text-center text-sm">
-        <span className="text-purple-200">Already have an account? </span>
-        <Link to="/login" className="font-semibold text-purple-300 hover:text-purple-200">
-          Sign In
-        </Link>
-      </div>
-    </form>
+    </div>
   )
 }
 
