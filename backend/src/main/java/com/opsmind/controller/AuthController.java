@@ -31,4 +31,12 @@ public class AuthController {
     public ResponseEntity<String> logout() {
         return ResponseEntity.ok("Logged out");
     }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<Map<String, String>> refresh(@RequestBody Map<String, String> request) {
+        return ResponseEntity.ok(Map.of(
+            "accessToken", request.get("refreshToken"), // Simple loopback for now
+            "refreshToken", request.get("refreshToken")
+        ));
+    }
 }
