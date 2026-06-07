@@ -2,183 +2,161 @@ import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '@/hooks'
 import { toast } from 'sonner'
-import { Activity, Mail, Lock, User, Building, ArrowRight, Loader2, CheckCircle2 } from 'lucide-react'
+import { Activity, Shield, Mail, ArrowRight, Loader2, User, Building } from 'lucide-react'
 
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate()
   const { register, isRegisterLoading, registerError } = useAuth()
-  
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
     email: '',
     password: '',
-    confirmPassword: '',
-    organizationName: '',
+    firstName: '',
+    lastName: '',
+    orgIdentifier: ''
   })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (formData.password !== formData.confirmPassword) {
-      toast.error('Passwords do not match')
+    if (!formData.email || !formData.password || !formData.firstName || !formData.orgIdentifier) {
+      toast.error('Identity creation failed. All mandatory fields required.')
       return
     }
-    register(formData)
+    register({
+      email: formData.email,
+      password: formData.password,
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      organizationIdentifier: formData.orgIdentifier
+    })
+  }
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0B1220] px-4 py-12">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-secondary/10 blur-[120px] rounded-full" />
-      </div>
-
-      <div className="w-full max-w-[540px] z-10">
-        {/* Header */}
+    <div className="w-full max-w-[480px] mx-auto animate-fade-in py-10">
+        {/* Brand Header */}
         <div className="flex flex-col items-center mb-10 text-center">
-          <div className="h-16 w-16 rounded-2xl premium-gradient flex items-center justify-center shadow-2xl shadow-blue-500/20 mb-6">
-            <Activity className="h-10 w-10 text-white" />
+          <div className="h-10 w-10 bg-primary rounded shadow-lg flex items-center justify-center mb-4">
+            <Activity className="h-6 w-6 text-white" />
           </div>
-          <h1 className="text-4xl font-bold font-outfit tracking-tight mb-2">Scale Your SRE Team</h1>
-          <p className="text-muted-foreground font-medium">Join 500+ enterprises using OpsMind for predictive observability.</p>
+          <h1 className="text-2xl font-bold font-outfit tracking-tighter">Provision Node Cluster</h1>
+          <p className="text-muted-foreground text-xs mt-1">Deploy an enterprise intelligence environment in minutes.</p>
         </div>
 
-        <div className="glass-card p-10 border border-white/5">
-          <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Form Surface */}
+        <div className="bg-card border border-border rounded-lg shadow-xl p-8 space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">First Name</label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-4 text-muted-foreground group-focus-within:text-primary transition-colors">
-                    <User className="h-5 w-5" />
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">First Name</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">
+                    <User className="h-4 w-4" />
                   </div>
                   <input
+                    name="firstName"
                     type="text"
-                    required
-                    className="input-field pl-12"
-                    placeholder="John"
-                    value={formData.firstName}
-                    onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+                    onChange={handleChange}
+                    className="input-field pl-10 h-10"
+                    placeholder="SRE Name"
                   />
                 </div>
               </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Last Name</label>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Last Name</label>
                 <input
+                  name="lastName"
                   type="text"
-                  required
-                  className="input-field"
-                  placeholder="Doe"
-                  value={formData.lastName}
-                  onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+                  onChange={handleChange}
+                  className="input-field h-10"
+                  placeholder="Last Name"
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Organization Name</label>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-4 text-muted-foreground group-focus-within:text-primary transition-colors">
-                  <Building className="h-5 w-5" />
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Organization ID</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">
+                  <Building className="h-4 w-4" />
                 </div>
                 <input
+                  name="orgIdentifier"
                   type="text"
-                  required
-                  className="input-field pl-12"
-                  placeholder="Acme Global Inc."
-                  value={formData.organizationName}
-                  onChange={(e) => setFormData({...formData, organizationName: e.target.value})}
+                  onChange={handleChange}
+                  className="input-field pl-10 h-10"
+                  placeholder="e.g. acme-engineering"
                 />
               </div>
+              <p className="text-[9px] text-muted-foreground/60 px-1 font-medium">This will be your dedicated multi-tenant namespace.</p>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Business Email</label>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-4 text-muted-foreground group-focus-within:text-primary transition-colors">
-                  <Mail className="h-5 w-5" />
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Corporate Email</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">
+                  <Mail className="h-4 w-4" />
                 </div>
                 <input
+                  name="email"
                   type="email"
-                  required
-                  className="input-field pl-12"
-                  placeholder="john@acme.com"
-                  value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  onChange={handleChange}
+                  className="input-field pl-10 h-10"
+                  placeholder="name@company.com"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Password</label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-4 text-muted-foreground group-focus-within:text-primary transition-colors">
-                    <Lock className="h-5 w-5" />
-                  </div>
-                  <input
-                    type="password"
-                    required
-                    className="input-field pl-12"
-                    placeholder="••••••••"
-                    value={formData.password}
-                    onChange={(e) => setFormData({...formData, password: e.target.value})}
-                  />
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Access Key (Password)</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 text-muted-foreground">
+                  <Shield className="h-4 w-4" />
                 </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">Confirm</label>
                 <input
+                  name="password"
                   type="password"
-                  required
-                  className="input-field"
-                  placeholder="••••••••"
-                  value={formData.confirmPassword}
-                  onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+                  onChange={handleChange}
+                  className="input-field pl-10 h-10"
+                  placeholder="Min 8 characters"
                 />
               </div>
             </div>
 
             {registerError && (
-              <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-4 text-red-200 text-sm flex items-center gap-2">
-                 <Lock className="h-4 w-4 text-red-500" />
-                 <span>Registration failed. Email might be already in use.</span>
+              <div className="bg-destructive/10 border border-destructive/20 p-3 rounded-md text-destructive text-xs animate-in slide-in-from-top-1">
+                Cluster provisioning failed: Identity conflict detected.
               </div>
             )}
 
             <button
               type="submit"
               disabled={isRegisterLoading}
-              className="btn-primary w-full h-12 mt-4"
+              className="btn-primary w-full h-11 mt-6"
             >
               {isRegisterLoading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
-                <>Initialize OpsCenter <ArrowRight className="h-5 w-5 ml-1" /></>
+                <>Deploy Cluster <ArrowRight className="h-4 w-4 ml-1" /></>
               )}
             </button>
           </form>
 
-          <div className="mt-8 pt-8 border-t border-white/5 flex flex-wrap justify-center gap-6">
-             <div className="flex items-center gap-2 text-[10px] uppercase font-bold text-muted-foreground">
-                <CheckCircle2 className="h-3 w-3 text-emerald-500" /> SOC2 Compliant
-             </div>
-             <div className="flex items-center gap-2 text-[10px] uppercase font-bold text-muted-foreground">
-                <CheckCircle2 className="h-3 w-3 text-emerald-500" /> GDPR Ready
-             </div>
-             <div className="flex items-center gap-2 text-[10px] uppercase font-bold text-muted-foreground">
-                <CheckCircle2 className="h-3 w-3 text-emerald-500" /> SSL Encrypted
-             </div>
-          </div>
+          <footer className="pt-4 text-center">
+             <p className="text-[10px] text-muted-foreground font-medium flex items-center justify-center gap-1">
+               <Shield className="h-3 w-3" /> GDPR & SOC2 Compliance Policy Included
+             </p>
+          </footer>
         </div>
 
         <div className="text-center mt-8">
           <p className="text-muted-foreground text-sm font-medium">
-            Already have an account? {' '}
-            <Link to="/login" className="text-primary font-bold hover:underline">Access Terminal</Link>
+            Already have a cluster? {' '}
+            <Link to="/login" className="text-primary font-bold hover:underline">Access Session</Link>
           </p>
         </div>
-      </div>
     </div>
   )
 }

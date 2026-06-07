@@ -1,211 +1,213 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { apiClient } from '@/services/api'
-import { toast } from 'sonner'
 import { 
-  SendRowVerify, 
-  Bot, 
-  User, 
+  Send, 
   Terminal, 
-  Sparkles,
-  Command,
-  HelpCircle,
+  History, 
+  Settings2, 
+  Trash2, 
+  Zap, 
+  AlertCircle,
   Copy,
-  Zap
+  PlusCircle
 } from 'lucide-react'
+import { apiClient } from '@/services/api'
 import { cn } from '@/utils/cn'
 
 interface Message {
-  role: 'user' | 'ai'
+  role: 'user' | 'assistant'
   content: string
   timestamp: Date
 }
 
 const AiChatPage: React.FC = () => {
-  const [message, setMessage] = useState('')
-  const [chatHistory, setChatHistory] = useState<Message[]>([])
+  const [messages, setMessages] = useState<Message[]>([])
+  const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }
+  useEffect(() => {
+    scrollRef.current?.scrollTo(0, scrollRef.current.scrollHeight)
+  }, [messages])
 
-  useEffect(scrollToBottom, [chatHistory, isLoading])
+  const handleSend = async () => {
+    if (!input.trim() || isLoading) return
 
-  const handleSend = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!message.trim()) return
+    const userMessage: Message = {
+      role: 'user',
+      content: input,
+      timestamp: new Date()
+    }
 
-    const userMsg = message.trim()
-    const newMsg: Message = { role: 'user', content: userMsg, timestamp: new Date() }
-    
-    setMessage('')
-    setChatHistory((prev) => [...prev, newMsg])
+    setMessages(prev => [...prev, userMessage])
+    setInput('')
     setIsLoading(true)
 
     try {
-      const response = await apiClient.getChatResponse(userMsg)
-      const aiMsg: Message = { role: 'ai', content: response.response, timestamp: new Date() }
-      setChatHistory((prev) => [...prev, aiMsg])
+      const response = await apiClient.getChatResponse(input)
+      const assistantMessage: Message = {
+        role: 'assistant',
+        content: response.response,
+        timestamp: new Date()
+      }
+      setMessages(prev => [...prev, assistantMessage])
     } catch (error) {
-      toast.error('Copilot connection lost. Please try again.')
+      const errorMessage: Message = {
+        role: 'assistant',
+        content: "CRITICAL FAILURE: AI endpoint unreachable. Check system logs for subsystem ID: 'GEMINI-API-CONNECT'.",
+        timestamp: new Date()
+      }
+      setMessages(prev => [...prev, errorMessage])
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-12rem)] max-w-5xl mx-auto animate-fade-in">
-      {/* Copilot Header */}
-      <div className="flex items-center justify-between mb-6 p-4 glass-card border-l-4 border-purple-500">
-        <div className="flex items-center gap-4">
-          <div className="h-12 w-12 rounded-2xl bg-purple-500/20 flex items-center justify-center">
-            <Bot className="h-6 w-6 text-purple-500" />
-          </div>
-          <div>
-            <h2 className="text-xl font-bold font-outfit">OpsMind Copilot</h2>
-            <p className="text-xs text-muted-foreground flex items-center gap-1">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-              Advanced Generative AI for Observability
-            </p>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <button className="p-2 rounded-lg hover:bg-white/5 text-muted-foreground">
-            <HelpCircle className="h-5 w-5" />
-          </button>
-          <button 
-            onClick={() => setChatHistory([])}
-            className="text-xs font-bold px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10"
-          >
-            Clear Thread
-          </button>
-        </div>
-      </div>
-
-      {/* Chat History */}
-      <div className="flex-1 overflow-y-auto space-y-6 px-4 py-8 rounded-2xl bg-black/20 border border-white/5 mb-6 scrollbar-hide">
-        {chatHistory.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full text-center space-y-8 animate-fade-in">
-            <div className="relative">
-               <div className="absolute inset-0 blur-2xl bg-purple-500/20 rounded-full" />
-               <Sparkles className="h-16 w-16 text-purple-500 relative" />
+    <div className="h-[calc(100vh-10rem)] flex gap-6">
+      {/* Search Space / History Sidebar */}
+      <div className="w-80 flex flex-col gap-6 hidden xl:flex">
+         <div className="enterprise-card h-full flex flex-col">
+            <div className="p-4 border-b border-border flex items-center justify-between">
+               <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                 <History className="h-3 w-3" /> Recent Reasoning
+               </h3>
+               <button className="text-primary"><PlusCircle className="h-4 w-4" /></button>
             </div>
-            <div className="max-w-md">
-              <h3 className="text-2xl font-bold font-outfit mb-2">How can I help you troubleshoot?</h3>
-              <p className="text-muted-foreground text-sm">
-                I can analyze logs, suggest fixes for incidents, or explain complex infrastructure behaviors.
-              </p>
-            </div>
-            <div className="grid gap-3 w-full max-w-sm">
-              {[
-                "Analyze recent S1 incident",
-                "Explain latency spikes in API gateway",
-                "How to optimize MySQL query performance?",
-                "Draft post-mortem for database failover"
-              ].map(prompt => (
-                <button 
-                  key={prompt}
-                  onClick={() => setMessage(prompt)}
-                  className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-left text-sm hover:border-primary/50 hover:bg-primary/5 transition-all flex items-center gap-3"
-                >
-                  <Command className="h-4 w-4 text-primary" />
-                  {prompt}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {chatHistory.map((chat, index) => (
-          <div
-            key={index}
-            className={cn(
-              "flex gap-4 group animate-fade-in",
-              chat.role === 'user' ? 'flex-row-reverse' : 'flex-row'
-            )}
-          >
-            <div className={cn(
-              "h-10 w-10 shrink-0 rounded-xl flex items-center justify-center",
-              chat.role === 'user' ? 'bg-primary/20 text-primary' : 'bg-purple-500/20 text-purple-500'
-            )}>
-              {chat.role === 'user' ? <User className="h-5 w-5" /> : <Bot className="h-5 w-5" />}
-            </div>
-            <div className={cn(
-              "relative max-w-[80%] rounded-2xl p-5 shadow-xl",
-              chat.role === 'user' 
-                ? 'bg-primary/90 text-white rounded-tr-none' 
-                : 'bg-card border border-white/5 rounded-tl-none'
-            )}>
-              {chat.role === 'ai' && (
-                 <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button className="p-1 rounded hover:bg-white/10" onClick={() => navigator.clipboard.writeText(chat.content)}>
-                        <Copy className="h-3 w-3" />
-                    </button>
-                 </div>
-              )}
-              <div className="text-sm leading-relaxed whitespace-pre-wrap">
-                {chat.content}
-              </div>
-              <div className={cn(
-                "mt-3 text-[10px] font-bold uppercase tracking-widest opacity-40",
-                chat.role === 'user' ? 'text-right' : 'text-left'
-              )}>
-                {chat.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </div>
-            </div>
-          </div>
-        ))}
-        
-        {isLoading && (
-          <div className="flex gap-4 animate-pulse">
-            <div className="h-10 w-10 rounded-xl bg-purple-500/20 flex items-center justify-center">
-              <Bot className="h-5 w-5 text-purple-500" />
-            </div>
-            <div className="bg-card border border-white/5 rounded-2xl rounded-tl-none p-5 max-w-[120px]">
-               <div className="flex gap-1.5">
-                  <div className="h-1.5 w-1.5 bg-purple-500/50 rounded-full animate-bounce [animation-delay:-0.3s]" />
-                  <div className="h-1.5 w-1.5 bg-purple-500/50 rounded-full animate-bounce [animation-delay:-0.15s]" />
-                  <div className="h-1.5 w-1.5 bg-purple-500/50 rounded-full animate-bounce" />
+            <div className="flex-1 p-2 space-y-1 overflow-y-auto">
+               <div className="p-3 bg-primary/5 border border-primary/20 rounded text-xs font-medium text-primary">
+                 Analyzing Memory Leak in Auth...
+               </div>
+               <div className="p-3 hover:bg-accent rounded text-xs text-muted-foreground cursor-pointer transition-colors">
+                 SLA Breach us-east-1 report
+               </div>
+               <div className="p-3 hover:bg-accent rounded text-xs text-muted-foreground cursor-pointer transition-colors">
+                 Log summarization for build #42
                </div>
             </div>
-          </div>
-        )}
-        <div ref={messagesEndRef} />
+         </div>
       </div>
 
-      {/* Input Area */}
-      <form onSubmit={handleSend} className="relative group">
-        <div className="absolute -inset-1 bg-gradient-to-r from-primary to-purple-600 rounded-2xl blur opacity-25 group-focus-within:opacity-50 transition duration-500" />
-        <div className="relative bg-card border border-white/10 rounded-2xl p-2 flex items-center gap-2">
-          <button type="button" className="p-3 text-muted-foreground hover:text-white transition-colors">
-             <Terminal className="h-5 w-5" />
-          </button>
-          <input
-            type="text"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="Ask Copilot something or type '/' for commands..."
-            className="flex-1 bg-transparent border-none outline-none px-2 py-4 text-sm text-foreground placeholder:text-muted-foreground/50"
-            disabled={isLoading}
-          />
-          <button
-            type="submit"
-            disabled={isLoading || !message.trim()}
-            className="h-12 w-12 rounded-xl premium-gradient flex items-center justify-center text-white shadow-lg shadow-blue-500/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:scale-100"
-          >
-            <Zap className="h-5 w-5" />
-          </button>
+      {/* Main Terminal Area */}
+      <div className="flex-1 flex flex-col gap-4">
+        {/* Terminal Header */}
+        <div className="enterprise-card p-4 flex items-center justify-between border-l-4 border-l-primary">
+           <div className="flex items-center gap-3">
+              <div className="h-10 w-10 bg-accent flex items-center justify-center rounded">
+                <Terminal className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <h2 className="font-bold">OpsCenter AI Copilot</h2>
+                <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-tighter flex items-center gap-1">
+                   <span className="h-1.5 w-1.5 bg-emerald-500 rounded-full animate-pulse" /> Subsystem: Gemini-1.5-Flash Online
+                </p>
+              </div>
+           </div>
+           <div className="flex items-center gap-2">
+              <button className="btn-ghost"><Settings2 className="h-4 w-4" /></button>
+              <button className="btn-ghost text-destructive hover:bg-destructive/10" onClick={() => setMessages([])}>
+                <Trash2 className="h-4 w-4" />
+              </button>
+           </div>
         </div>
-      </form>
-      
-      <div className="mt-4 text-center">
-        <p className="text-[10px] text-muted-foreground flex items-center justify-center gap-1">
-          <ShieldCheck className="h-3 w-3" /> Security-first AI: Your data is never used for training models.
-        </p>
+
+        {/* Message Stream */}
+        <div className="flex-1 enterprise-card flex flex-col overflow-hidden">
+          <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-6">
+            {messages.length === 0 && (
+              <div className="h-full flex flex-col items-center justify-center text-center space-y-4">
+                 <div className="h-16 w-16 bg-accent flex items-center justify-center rounded-full border border-border">
+                    <Zap className="h-8 w-8 text-primary/50" />
+                 </div>
+                 <div>
+                    <h3 className="font-bold text-lg">Infrastructure Reasoning Engine</h3>
+                    <p className="text-sm text-muted-foreground max-w-sm">Ask me about current incidents, service metrics, or log anomalies. I have direct access to system telemetry.</p>
+                 </div>
+              </div>
+            )}
+
+            {messages.map((msg, i) => (
+              <div key={i} className={cn(
+                "flex gap-4 max-w-[85%]",
+                msg.role === 'user' ? "ml-auto flex-row-reverse" : ""
+              )}>
+                 <div className={cn(
+                   "h-8 w-8 rounded flex items-center justify-center shrink-0 border",
+                   msg.role === 'user' ? "bg-accent border-border" : "bg-primary/10 border-primary/20"
+                 )}>
+                   {msg.role === 'user' ? <History className="h-4 w-4" /> : <Terminal className="h-4 w-4 text-primary" />}
+                 </div>
+                 <div className={cn(
+                   "p-4 rounded-lg border",
+                   msg.role === 'user' 
+                    ? "bg-primary text-white border-primary" 
+                    : "bg-background border-border"
+                 )}>
+                   <div className="text-[10px] font-bold uppercase tracking-widest mb-1 opacity-50">
+                     {msg.role === 'user' ? 'Operator' : 'SRE_COPILOT'}
+                   </div>
+                   <div className={cn(
+                     "text-sm leading-relaxed whitespace-pre-wrap font-mono",
+                     msg.role === 'assistant' ? "text-foreground" : "text-white"
+                   )}>
+                     {msg.content}
+                   </div>
+                 </div>
+              </div>
+            ))}
+
+            {isLoading && (
+              <div className="flex gap-4 max-w-[85%]">
+                 <div className="h-8 w-8 rounded bg-primary/10 border border-primary/20 flex items-center justify-center animate-pulse">
+                   <Terminal className="h-4 w-4 text-primary" />
+                 </div>
+                 <div className="bg-background border border-border p-4 rounded-lg flex items-center gap-3">
+                    <LoaderDots />
+                    <span className="text-xs font-mono text-muted-foreground uppercase">Running reasoning chain...</span>
+                 </div>
+              </div>
+            )}
+          </div>
+
+          {/* Prompt Entry */}
+          <div className="p-4 bg-accent/20 border-t border-border">
+             <div className="relative">
+                <textarea
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSend())}
+                  rows={2}
+                  className="w-full bg-card border border-border rounded-lg pl-4 pr-12 py-3 text-sm focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all resize-none shadow-inner"
+                  placeholder="Ask a technical question... (e.g. 'Summarize S1 incidents from the last 2 hours')"
+                />
+                <button 
+                  onClick={handleSend}
+                  disabled={!input.trim() || isLoading}
+                  className="absolute right-3 bottom-3 p-2 bg-primary text-white rounded hover:bg-blue-600 disabled:opacity-50 transition-all shadow-lg shadow-blue-500/20"
+                >
+                  <Send className="h-4 w-4" />
+                </button>
+             </div>
+             <div className="mt-2 flex items-center gap-4">
+                <div className="text-[10px] text-muted-foreground flex items-center gap-1">
+                   <AlertCircle className="h-3 w-3" /> Shift + Enter for new line
+                </div>
+                <div className="text-[10px] text-muted-foreground flex items-center gap-1">
+                   <Copy className="h-3 w-3" /> Ctrl + V to paste logs
+                </div>
+             </div>
+          </div>
+        </div>
       </div>
     </div>
   )
 }
+
+const LoaderDots = () => (
+  <div className="flex gap-1">
+     {[0, 1, 2].map(i => (
+       <div key={i} className="h-1 w-1 bg-primary rounded-full animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+     ))}
+  </div>
+)
 
 export default AiChatPage

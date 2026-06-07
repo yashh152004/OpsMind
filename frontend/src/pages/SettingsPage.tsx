@@ -1,101 +1,124 @@
 import React from 'react'
 import { 
-  Settings as SettingsIcon, 
   User, 
   Bell, 
   Shield, 
-  Key, 
   Globe, 
-  Moon,
-  Github,
   Slack,
-  Webhook
+  Webhook,
+  Database,
+  Lock,
+  ChevronRight,
+  ExternalLink,
+  Save
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
 
 const SettingsPage: React.FC = () => {
   return (
-    <div className="max-w-4xl mx-auto space-y-10 animate-fade-in pb-20">
+    <div className="max-w-4xl mx-auto space-y-12 pb-20 page-transition">
       <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold font-outfit">Platform Settings</h1>
-        <p className="text-muted-foreground">Configure your OpsMind environment and team preferences.</p>
+        <h1 className="text-2xl font-bold font-outfit">Console Configuration</h1>
+        <p className="text-muted-foreground text-sm font-medium">Manage your organization's cluster, integrations, and SRE identities.</p>
       </div>
 
-      <div className="grid gap-10">
-        {/* Profile Section */}
-        <section className="space-y-6">
-          <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-primary">
-            <User className="h-4 w-4" /> Account Information
+      <div className="grid gap-12">
+        {/* Profile Card */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-primary">
+            <User className="h-3.5 w-3.5" /> Identity & Profile
           </div>
-          <div className="glass-card p-8">
+          <div className="enterprise-card p-6">
             <div className="flex items-center gap-8">
-              <div className="h-24 w-24 rounded-2xl bg-primary/20 border border-primary/30 flex items-center justify-center text-3xl font-bold text-primary shadow-2xl">
+              <div className="h-20 w-20 rounded bg-accent border border-border flex items-center justify-center text-2xl font-bold text-primary group cursor-pointer hover:border-primary transition-colors">
                 YK
               </div>
-              <div className="flex-1 space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+              <div className="flex-1">
+                <div className="grid grid-cols-2 gap-8">
                    <div className="space-y-1">
-                      <div className="text-[10px] uppercase font-bold text-muted-foreground">Full Name</div>
-                      <div className="font-bold text-lg">Yash Kumar</div>
+                      <div className="text-[9px] uppercase font-bold text-muted-foreground">Operator Name</div>
+                      <div className="font-bold">Yash Kumar</div>
                    </div>
                    <div className="space-y-1">
-                      <div className="text-[10px] uppercase font-bold text-muted-foreground">Role</div>
-                      <div className="font-bold text-lg">Lead SRE Engineer</div>
+                      <div className="text-[9px] uppercase font-bold text-muted-foreground">Assigned Role</div>
+                      <div className="font-bold flex items-center gap-2">
+                         Cluster Admin <span className="status-badge badge-info">Level 4</span>
+                      </div>
                    </div>
                 </div>
-                <button className="text-sm font-bold text-primary hover:underline">Edit Profile Artifacts</button>
+                <div className="mt-4 flex gap-4">
+                   <button className="text-xs font-bold text-primary hover:underline">Change Key</button>
+                   <button className="text-xs font-bold text-muted-foreground hover:text-foreground transition-colors">Audit Logs</button>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Notifications */}
-        <section className="space-y-6">
-          <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-orange-500">
-            <Bell className="h-4 w-4" /> Alert Routing
+        {/* Operational Integrations */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-orange-500">
+            <Bell className="h-3.5 w-3.5" /> Signal Sink Routing
           </div>
-          <div className="glass-card divide-y divide-white/5">
+          <div className="enterprise-card divide-y divide-border overflow-hidden">
              {[
-               { icon: Slack, name: "Slack Integration", desc: "Route S1/S2 incidents to #ops-war-room", connected: true },
-               { icon: Webhook, name: "PagerDuty Sync", desc: "Automated escalation for nighttime criticals", connected: true },
-               { icon: Globe, name: "Webhooks", desc: "Send raw alert data to custom endpoints", connected: false },
+               { icon: Slack, name: "Slack Integration", desc: "Route S1/S2 incidents to #noc-war-room", connected: true },
+               { icon: Webhook, name: "PagerDuty Gateway", desc: "Automated escalation on P1 threshold", connected: true },
+               { icon: Globe, name: "Internal Webhooks", desc: "Push raw telemetry to custom gRPC sink", connected: false },
              ].map(item => (
-               <div key={item.name} className="p-6 flex items-center justify-between group">
+               <div key={item.name} className="p-5 flex items-center justify-between hover:bg-accent/10 transition-colors">
                   <div className="flex items-center gap-4">
-                     <div className="h-10 w-10 rounded-lg bg-white/5 flex items-center justify-center text-muted-foreground group-hover:text-foreground transition-colors">
+                     <div className="h-10 w-10 rounded bg-accent border border-border flex items-center justify-center text-muted-foreground">
                         <item.icon className="h-5 w-5" />
                      </div>
                      <div>
-                        <div className="font-bold">{item.name}</div>
-                        <div className="text-xs text-muted-foreground">{item.desc}</div>
+                        <div className="text-sm font-bold">{item.name}</div>
+                        <div className="text-[10px] text-muted-foreground font-medium">{item.desc}</div>
                      </div>
                   </div>
                   <div className="flex items-center gap-4">
-                    <div className={cn("text-[10px] font-bold px-2 py-0.5 rounded", item.connected ? "bg-emerald-500/10 text-emerald-500" : "bg-white/5 text-muted-foreground")}>
-                       {item.connected ? "CONNECTED" : "DISCONNECTED"}
+                    <div className={cn(
+                       "status-badge",
+                       item.connected ? "badge-success" : "bg-accent text-muted-foreground border-border"
+                    )}>
+                       {item.connected ? "ACTIVE" : "DISABLED"}
                     </div>
-                    <button className="text-xs font-bold text-primary hover:underline">Configure</button>
+                    <button className="btn-ghost p-1.5"><ChevronRight className="h-4 w-4" /></button>
                   </div>
                </div>
              ))}
           </div>
         </section>
 
-        {/* Security */}
-        <section className="space-y-6">
-          <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-purple-500">
-            <Shield className="h-4 w-4" /> Security & Keys
+        {/* Security & Access */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-purple-500">
+            <Shield className="h-3.5 w-3.5" /> Security Subsystem
           </div>
-          <div className="glass-card p-8 space-y-6">
+          <div className="enterprise-card p-6 space-y-8">
              <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                   <div className="font-bold">API Access Tokens</div>
-                   <button className="btn-primary py-1.5 px-4 text-xs">Generate New Key</button>
+                   <div className="space-y-0.5">
+                      <div className="text-sm font-bold">API Access Key</div>
+                      <div className="text-[10px] text-muted-foreground">Used for programmatic access to the OpsMind CLI.</div>
+                   </div>
+                   <button className="btn-secondary h-8 text-[10px] font-bold px-3">Rotate Key</button>
                 </div>
-                <div className="p-3 bg-white/5 border border-white/10 rounded-xl font-mono text-xs flex items-center justify-between">
-                   <span>ops_live_tk_**************************421a</span>
-                   <span className="text-muted-foreground cursor-pointer hover:text-white">Copy</span>
+                <div className="p-3 bg-background border border-border rounded font-mono text-[11px] flex items-center justify-between group">
+                   <span className="text-primary truncate mr-4">ops_live_********************************421a</span>
+                   <button className="text-[10px] font-bold text-muted-foreground hover:text-primary uppercase tracking-widest transition-colors opacity-0 group-hover:opacity-100">Reveal Key</button>
                 </div>
+             </div>
+
+             <div className="pt-6 border-t border-border flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                   <Lock className="h-4 w-4 text-muted-foreground" />
+                   <span className="text-[11px] font-medium text-muted-foreground">Node encryption: AES-256-GCM enforced.</span>
+                </div>
+                <button className="btn-primary h-9 px-6 text-xs">
+                  <Save className="h-3.5 w-3.5 mr-2" />
+                  Commit Changes
+                </button>
              </div>
           </div>
         </section>

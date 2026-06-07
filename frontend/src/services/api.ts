@@ -253,6 +253,16 @@ class ApiClient {
     return response.data
   }
 
+  async getAnalyticsTrends() {
+    const response = await this.client.get('/analytics/trends')
+    return response.data
+  }
+
+  async getAiInsights() {
+    const response = await this.client.get('/ai/insights')
+    return response.data
+  }
+
   async getIncidentMetrics(organizationId: string, timeRange?: string) {
     const response = await this.client.get('/analytics/incidents/metrics', {
       params: { organizationId, timeRange },

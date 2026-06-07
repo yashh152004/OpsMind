@@ -6,101 +6,96 @@ import {
   ShieldAlert,
   ArrowRight,
   RefreshCcw,
-  CheckCircle2
+  CheckCircle2,
+  AlertTriangle
 } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import { apiClient } from '@/services/api'
 import { cn } from '@/utils/cn'
 
-const insights = [
-  {
-    type: "Critical",
-    title: "Predictive Capacity Exhaustion",
-    desc: "Storage volume 'prod-data-01' is projected to reach 95% capacity in 4.2 hours based on current write trends.",
-    impact: "Potential data loss or service unavailability for Payment API.",
-    recommendation: "Increase volume size to 2TB or purge logs older than 7 days.",
-    status: "Active",
-    color: "text-red-500",
-    bg: "bg-red-500/10"
-  },
-  {
-    type: "Warning",
-    title: "Anomaly: CPU Pattern Shift",
-    desc: "Auth-Worker service is exhibiting unusual CPU spikes not correlated with request traffic (Cyclical every 12min).",
-    impact: "Degraded performance for login requests during spikes.",
-    recommendation: "Investigate cron jobs or GC behavior in Auth-Worker build #42.",
-    status: "Investigating",
-    color: "text-orange-500",
-    bg: "bg-orange-500/10"
-  },
-  {
-    type: "Optimization",
-    title: "Underutilized Infrastructure",
-    desc: "3 staging nodes in 'us-west-2' have had < 5% CPU usage for 14 consecutive days.",
-    impact: "Estimated wasted spend: $420 / month.",
-    recommendation: "Consolidate workloads and decommission unused instances.",
-    status: "Pending Action",
-    color: "text-blue-500",
-    bg: "bg-blue-500/10"
-  }
-]
-
 const AiInsightsPage: React.FC = () => {
+  const { data: insights, isLoading } = useQuery({
+    queryKey: ['ai-insights'],
+    queryFn: () => apiClient.getAiInsights()
+  })
+
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-8 pb-12 page-transition">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold font-outfit flex items-center gap-3">
-             <Sparkles className="h-8 w-8 text-purple-500" />
-             AI Intelligence Insights
+          <h1 className="text-2xl font-bold font-outfit flex items-center gap-2">
+             <Sparkles className="h-6 w-6 text-primary fill-primary/20" />
+             Autonomous Intelligence Engine
           </h1>
-          <p className="text-muted-foreground mt-1">Autonomous risk detection and infrastructure optimizations powered by OpsMind AI.</p>
+          <p className="text-muted-foreground text-sm font-medium">Predictive risk assessment and infrastructure auto-scaling recommendations.</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-xl hover:bg-purple-500/20 transition-all font-bold text-sm">
-           <RefreshCcw className="h-4 w-4" />
-           Force Re-scan
+        <button className="btn-secondary h-9 text-xs">
+           <RefreshCcw className="h-3.5 w-3.5 mr-2" />
+           Sync Reasoning Engine
         </button>
       </div>
 
       <div className="grid gap-6">
-        {insights.map((insight) => (
-          <div key={insight.title} className="glass-card overflow-hidden group">
-            <div className="p-8">
-              <div className="flex flex-col md:flex-row gap-6">
-                <div className={cn("h-16 w-16 rounded-2xl shrink-0 flex items-center justify-center", insight.bg, insight.color)}>
-                  <BrainCircuit className="h-8 w-8" />
+        {isLoading ? (
+           Array(3).fill(0).map((_, i) => (
+             <div key={i} className="h-48 enterprise-card skeleton" />
+           ))
+        ) : !insights || insights.length === 0 ? (
+           <div className="enterprise-card p-20 text-center">
+              <CheckCircle2 className="h-12 w-12 text-emerald-500 mx-auto mb-4" />
+              <h3 className="font-bold text-lg">Infrastructure is Stable</h3>
+              <p className="text-sm text-muted-foreground">AI has not detected any anomalous patterns or impending risks in the current telemetry window.</p>
+           </div>
+        ) : insights.map((insight: any) => (
+          <div key={insight.title} className="enterprise-card overflow-hidden group">
+            <div className="p-6">
+              <div className="flex flex-col md:flex-row gap-8">
+                <div className={cn(
+                  "h-14 w-14 rounded bg-accent border border-border shrink-0 flex items-center justify-center transition-colors",
+                  insight.type === 'Critical' ? "text-destructive border-destructive/20 bg-destructive/5" : "text-primary"
+                )}>
+                  <BrainCircuit className="h-7 w-7" />
                 </div>
                 
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className={cn("text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded border", insight.color.replace('text-', 'border-').replace('500', '500/30'))}>
+                <div className="flex-1 space-y-4">
+                  <div className="flex items-center gap-3">
+                    <span className={cn(
+                      "status-badge",
+                      insight.type === 'Critical' ? "badge-critical" : 
+                      insight.type === 'Warning' ? "badge-warning" : "badge-info"
+                    )}>
                       {insight.type}
                     </span>
-                    <h3 className="text-xl font-bold font-outfit">{insight.title}</h3>
+                    <h3 className="text-lg font-bold font-outfit">{insight.title}</h3>
                   </div>
-                  <p className="text-muted-foreground leading-relaxed">{insight.desc}</p>
                   
-                  <div className="mt-6 grid md:grid-cols-2 gap-8">
-                    <div className="p-4 rounded-xl bg-white/5 border border-white/5">
-                      <div className="text-[10px] font-bold text-muted-foreground uppercase mb-2 flex items-center gap-1">
-                        <ShieldAlert className="h-3 w-3" /> Potential Impact
+                  <p className="text-sm text-muted-foreground leading-relaxed max-w-3xl">
+                    {insight.desc}
+                  </p>
+                  
+                  <div className="grid md:grid-cols-2 gap-6 pt-2">
+                    <div className="p-4 rounded border border-border bg-accent/20">
+                      <div className="text-[9px] font-bold text-muted-foreground uppercase mb-2 flex items-center gap-1.5">
+                        <ShieldAlert className="h-3 w-3" /> Impact Analysis
                       </div>
-                      <p className="text-sm font-medium">{insight.impact}</p>
+                      <p className="text-xs font-bold text-foreground/80 leading-relaxed">{insight.impact}</p>
                     </div>
-                    <div className="p-4 rounded-xl bg-primary/5 border border-primary/20">
-                      <div className="text-[10px] font-bold text-primary uppercase mb-2 flex items-center gap-1">
-                        <Zap className="h-3 w-3" /> Recommended Action
+                    <div className="p-4 rounded border border-primary/20 bg-primary/5">
+                      <div className="text-[9px] font-bold text-primary uppercase mb-2 flex items-center gap-1.5">
+                        <Zap className="h-3 w-3" /> Autonomous Recommendation
                       </div>
-                      <p className="text-sm font-bold text-foreground/90">{insight.recommendation}</p>
+                      <p className="text-xs font-bold text-foreground leading-relaxed italic">"{insight.recommendation}"</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="md:w-48 text-right flex flex-col justify-between">
-                   <div className="flex items-center justify-end gap-2 text-sm">
-                      <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                      <span className="font-bold">{insight.status}</span>
+                <div className="md:w-56 flex flex-col justify-between items-end">
+                   <div className="flex items-center gap-2 text-[10px] font-bold tracking-widest text-muted-foreground">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      STATUS: {insight.status}
                    </div>
-                   <button className="flex items-center justify-end gap-2 text-primary font-bold group-hover:translate-x-1 transition-transform">
-                     Execute recommendation <ArrowRight className="h-4 w-4" />
+                   <button className="btn-primary w-full h-9 text-xs mt-4 md:mt-0">
+                     Execute Remediation <ArrowRight className="h-3 w-3 ml-2" />
                    </button>
                 </div>
               </div>
@@ -109,20 +104,22 @@ const AiInsightsPage: React.FC = () => {
         ))}
       </div>
 
-      <div className="glass-card p-10 bg-gradient-to-br from-purple-600/5 to-blue-600/5 border-t-4 border-purple-500">
-        <div className="flex items-center gap-6">
-          <div className="h-20 w-20 rounded-full bg-purple-500/20 flex items-center justify-center border-4 border-purple-500/30">
-             <CheckCircle2 className="h-10 w-10 text-purple-500" />
+      {/* Autopilot Status Panel */}
+      <div className="enterprise-card p-6 bg-accent/20 border-t-2 border-t-primary">
+        <div className="flex flex-col md:flex-row items-center gap-6">
+          <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center text-primary ring-4 ring-primary/5">
+             <CheckCircle2 className="h-7 w-7" />
           </div>
-          <div>
-            <h3 className="text-2xl font-bold font-outfit mb-2">Automated Resolutions Active</h3>
-            <p className="text-muted-foreground max-w-2xl leading-relaxed">
-              Your "Autopilot" mode is enabled. OpsMind AI has already resolved 12 minor anomalies in the last 24 hours without requiring SRE intervention.
+          <div className="flex-1 text-center md:text-left">
+            <h3 className="text-lg font-bold">Autopilot Mode: Active</h3>
+            <p className="text-xs text-muted-foreground font-medium mt-1">
+              OpsMind AI is authorized to execute non-destructive remediations. 12 automated actions taken in the last 24h.
             </p>
           </div>
-          <button className="ml-auto btn-primary whitespace-nowrap">
-            View Autopilot Logs
-          </button>
+          <div className="flex gap-2">
+            <button className="btn-secondary h-9 text-xs">View Action Log</button>
+            <button className="btn-primary h-9 text-xs">Configure Rules</button>
+          </div>
         </div>
       </div>
     </div>
