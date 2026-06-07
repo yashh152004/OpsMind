@@ -14,10 +14,17 @@ public class DataSeeder implements CommandLineRunner {
 
     private final IncidentRepository incidentRepository;
     private final AlertRepository alertRepository;
+    private final InfrastructureRepository infrastructureRepository;
+    private final SecurityFindingRepository securityFindingRepository;
 
-    public DataSeeder(IncidentRepository incidentRepository, AlertRepository alertRepository) {
+    public DataSeeder(IncidentRepository incidentRepository, 
+                      AlertRepository alertRepository,
+                      InfrastructureRepository infrastructureRepository,
+                      SecurityFindingRepository securityFindingRepository) {
         this.incidentRepository = incidentRepository;
         this.alertRepository = alertRepository;
+        this.infrastructureRepository = infrastructureRepository;
+        this.securityFindingRepository = securityFindingRepository;
     }
 
     @Override
@@ -25,6 +32,17 @@ public class DataSeeder implements CommandLineRunner {
         if (incidentRepository.count() == 0) {
             seedInitialData();
         }
+        if (infrastructureRepository.count() == 0) {
+            seedInfrastructure();
+        }
+    }
+
+    private void seedInfrastructure() {
+        infrastructureRepository.save(InfrastructureAsset.builder().name("production-db-cluster").type("DATABASE").provider("AWS").region("us-east-1").status("HEALTHY").healthScore(99.4).build());
+        infrastructureRepository.save(InfrastructureAsset.builder().name("auth-service-pod-x42").type("SERVICE").provider("K8S").region("cluster-dev").status("WARNING").healthScore(62.0).build());
+        infrastructureRepository.save(InfrastructureAsset.builder().name("s3-static-assets").type("STORAGE").provider("AWS").region("us-west-2").status("HEALTHY").healthScore(100.0).build());
+        
+        securityFindingRepository.save(SecurityFinding.builder().title("Unencrypted EBS Volume").severity("HIGH").category("COMPLIANCE").status("OPEN").resourceId("vol-0a12b").build());
     }
 
     private void seedInitialData() {

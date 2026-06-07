@@ -14,6 +14,8 @@ import AiChatPage from '@/pages/AiChatPage'
 import AnalyticsPage from '@/pages/AnalyticsPage'
 import AiInsightsPage from '@/pages/AiInsightsPage'
 import IntegrationsPage from '@/pages/IntegrationsPage'
+import InfrastructurePage from '@/pages/InfrastructurePage'
+import SecurityPage from '@/pages/SecurityPage'
 import SetupWizard from '@/pages/SetupWizard'
 
 // Layouts
@@ -78,7 +80,9 @@ const App: React.FC = () => {
             <Route path="/ai-chat" element={<AiChatPage />} />
             <Route path="/analytics" element={<AnalyticsPage />} />
             <Route path="/ai-insights" element={<AiInsightsPage />} />
-            <Route path="/infrastructure" element={<IntegrationsPage />} />
+            <Route path="/integrations" element={<IntegrationsPage />} />
+            <Route path="/infrastructure" element={<InfrastructurePage />} />
+            <Route path="/security" element={<SecurityPage />} />
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Route>
 

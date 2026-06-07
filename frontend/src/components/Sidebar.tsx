@@ -27,6 +27,7 @@ const navigation = [
   { group: "System", items: [
     { name: 'Infrastructure', href: '/infrastructure', icon: Terminal },
     { name: 'Security Scan', href: '/security', icon: ShieldCheck },
+    { name: 'Integrations', href: '/integrations', icon: Layers },
     { name: 'Settings', href: '/settings', icon: Settings },
   ]}
 ]

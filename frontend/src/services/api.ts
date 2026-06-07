@@ -263,6 +263,21 @@ class ApiClient {
     return response.data
   }
 
+  async globalSearch(query: string) {
+    const response = await this.client.get('/search/global', { params: { q: query } })
+    return response.data
+  }
+
+  async getInfrastructureAssets() {
+    const response = await this.client.get('/infrastructure/assets')
+    return response.data
+  }
+
+  async getSecurityFindings() {
+    const response = await this.client.get('/security/findings')
+    return response.data
+  }
+
   async triggerSimulation(type: string) {
     const response = await this.client.post('/simulator/trigger', { type })
     return response.data
