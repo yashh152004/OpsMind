@@ -25,5 +25,6 @@ jwt:
 
 gemini:
   api:
-    key: ${GEMINI_API_KEY}
-    url: https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent
+    key: ${GEMINI_API_KEY:AQ.Ab8RN6J5dcoJpkWwkC1YKiWiaxbY_M3CAdj3ssVMfGAAK8_-hQ}
+    url: https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent
+    model-name: gemini-1.5-flash

@@ -23,6 +23,7 @@ public class Alert {
 
     private String source;
     private String message;
+    private String severity; // CRITICAL, WARNING, INFO
     
     @Column(nullable = false)
     private String status; // TRIGGERED, ACKNOWLEDGED, RESOLVED

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/services/api'
 import { 
@@ -9,122 +9,132 @@ import {
   Activity,
   ArrowRight,
   Filter,
-  Layers,
-  Database
+  Download,
+  AlertTriangle,
+  Database,
+  Search,
+  CheckCircle2,
+  Trash2
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
+import { exportToCSV } from '@/utils/export'
 
 const AlertsPage: React.FC = () => {
-  const { data: alerts, isLoading } = useQuery({
+  const [searchTerm, setSearchTerm] = useState('')
+  const { data: alerts, isLoading, refetch } = useQuery({
     queryKey: ['alerts'],
     queryFn: () => apiClient.getAlerts('default'),
-    refetchInterval: 10000 // Real-time feed simulation
+    refetchInterval: 10000 
   })
 
+  const filteredAlerts = alerts?.filter((a: any) => 
+    a.alertName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    a.message.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
+  const handleExport = () => {
+    if (filteredAlerts) exportToCSV(filteredAlerts, 'OpsMind_AlertStream')
+  }
+
   return (
-    <div className="space-y-6 page-transition">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold font-outfit">Operational Signal Stream</h1>
-          <p className="text-muted-foreground text-sm font-medium">Monitoring raw events and high-cardinality signals.</p>
+    <div className="space-y-4 page-transition pb-20">
+      {/* Search & Control Strip */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex-1 max-w-xl relative group">
+           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+           <input 
+             type="text" 
+             placeholder="Search alert stream..."
+             className="input-field pl-10 h-10 w-full"
+             value={searchTerm}
+             onChange={(e) => setSearchTerm(e.target.value)}
+           />
         </div>
         <div className="flex items-center gap-2">
-          <div className="h-9 px-3 bg-card border border-border rounded-md flex items-center gap-2 text-xs font-bold text-muted-foreground">
-             <Filter className="h-3.5 w-3.5" />
-             Source: All
-          </div>
-          <button className="btn-secondary h-9 text-xs">
-            <BellOff className="h-3.5 w-3.5 mr-1" />
-            Silence Node
+          <button className="btn-secondary h-10 text-xs gap-2" onClick={handleExport}>
+             <Download className="h-4 w-4" /> Export
+          </button>
+          <button className="btn-secondary h-10 text-xs gap-2 text-destructive hover:bg-destructive/10">
+             <BellOff className="h-4 w-4" /> Silence Stream
           </button>
         </div>
       </div>
 
-      <div className="grid gap-3">
-        {isLoading ? (
-          Array(6).fill(0).map((_, i) => (
-            <div key={i} className="h-20 bg-card border border-border rounded-lg skeleton" />
-          ))
-        ) : !alerts || alerts.length === 0 ? (
-           <div className="enterprise-card p-20 flex flex-col items-center justify-center text-center space-y-4">
-              <div className="h-16 w-16 bg-accent rounded-full flex items-center justify-center border border-border">
-                <BellOff className="h-8 w-8 text-muted-foreground" />
-              </div>
-              <div className="max-w-xs">
-                <h3 className="font-bold text-lg">No Active Signal</h3>
-                <p className="text-sm text-muted-foreground">The event stream is currently clear. All infrastructure sensors are reporting healthy heartbeats.</p>
-              </div>
+      {/* Alert Metadata Summary */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+         {[
+           { label: 'Triggered', value: alerts?.filter((a:any) => a.status === 'TRIGGERED').length || 0, color: 'text-red-500' },
+           { label: 'Active Sinks', value: '14', color: 'text-blue-500' },
+           { label: 'Signal Noise', value: '4%', color: 'text-muted-foreground' },
+           { label: 'Engine Health', value: '100%', color: 'text-emerald-500' }
+         ].map(stat => (
+           <div key={stat.label} className="enterprise-card p-3 flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase text-muted-foreground">{stat.label}</span>
+              <span className={cn("text-sm font-bold font-mono", stat.color)}>{stat.value}</span>
            </div>
-        ) : alerts.map((alert: any) => (
-          <div 
-            key={alert.id} 
-            className={cn(
-              "enterprise-card p-4 flex items-center gap-6 group hover:border-primary transition-all cursor-pointer",
-              alert.status === 'TRIGGERED' ? "border-l-4 border-l-destructive shadow-sm" : "border-l-4 border-l-emerald-500"
-            )}
-          >
-            <div className={cn(
-              "h-10 w-10 border rounded flex items-center justify-center shrink-0",
-              alert.status === 'TRIGGERED' ? "bg-destructive/10 text-destructive border-destructive/20" : "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
-            )}>
-              {alert.status === 'TRIGGERED' ? <ShieldAlert className="h-5 w-5" /> : <Activity className="h-5 w-5" />}
-            </div>
-            
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-3 mb-1">
-                <h3 className="font-bold text-sm truncate">{alert.alertName}</h3>
-                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest bg-accent px-1.5 py-0.5 rounded border border-border">
-                  {alert.source}
-                </span>
-              </div>
-              <p className="text-muted-foreground text-[10px] font-mono truncate uppercase flex items-center gap-2">
-                 {alert.message}
-              </p>
-            </div>
-
-            <div className="hidden lg:grid grid-cols-2 gap-8 px-6 border-x border-border">
-               <div>
-                  <div className="text-[9px] font-bold text-muted-foreground uppercase tracking-tighter mb-1">Subsystem</div>
-                  <div className="text-[10px] font-mono flex items-center gap-1.5">
-                    <Layers className="h-3 w-3" /> US-EAST-NODE-42
-                  </div>
-               </div>
-               <div>
-                  <div className="text-[9px] font-bold text-muted-foreground uppercase tracking-tighter mb-1">Payload</div>
-                  <div className="text-[10px] font-mono flex items-center gap-1.5">
-                    <Database className="h-3 w-3" /> INT_64_TRACE
-                  </div>
-               </div>
-            </div>
-
-            <div className="hidden xl:flex flex-col items-end gap-1 w-24">
-              <div className="text-[9px] font-bold text-muted-foreground uppercase">Timestamp</div>
-              <div className="text-[11px] font-mono">{new Date(alert.timestamp).toLocaleTimeString()}</div>
-            </div>
-
-            <div className="flex items-center gap-3">
-               <button className="h-8 w-8 rounded bg-accent border border-border flex items-center justify-center hover:bg-primary/20 hover:text-primary transition-colors text-muted-foreground">
-                  <ArrowRight className="h-4 w-4" />
-               </button>
-            </div>
-          </div>
-        ))}
+         ))}
       </div>
 
-      {/* Integration Panel */}
-      <div className="p-8 rounded-lg bg-accent/40 border border-border mt-12 flex flex-col md:flex-row items-center justify-between gap-8 group">
-        <div className="flex items-center gap-6">
-          <div className="h-14 w-14 rounded bg-primary/10 border border-primary/20 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-            <Terminal className="h-7 w-7" />
-          </div>
-          <div>
-            <h3 className="text-lg font-bold">Signal Sources</h3>
-            <p className="text-muted-foreground text-xs font-medium max-w-sm">Establish new data sinks for Prometheus, CloudWatch, or custom gRPC listeners.</p>
-          </div>
+      {/* Main Stream surface */}
+      <div className="enterprise-card overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead className="bg-accent/40 border-b border-border">
+              <tr className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                <th className="px-5 py-3">Source</th>
+                <th className="px-5 py-3">Alert Payload</th>
+                <th className="px-5 py-3">Monitor ID</th>
+                <th className="px-5 py-3">Status</th>
+                <th className="px-5 py-3">Timestamp</th>
+                <th className="px-5 py-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {isLoading ? (
+                Array(6).fill(0).map((_, i) => (
+                  <tr key={i}><td colSpan={6} className="px-5 py-4"><div className="h-10 skeleton" /></td></tr>
+                ))
+              ) : filteredAlerts?.map((alert: any) => (
+                <tr key={alert.id} className="group hover:bg-accent/10 transition-colors">
+                  <td className="px-5 py-4">
+                    <div className="flex items-center gap-3">
+                       <div className={cn(
+                         "h-8 w-8 rounded flex items-center justify-center shrink-0 border",
+                         alert.status === 'TRIGGERED' ? "bg-red-500/10 text-red-500 border-red-500/20 shadow-[0_0_12px_rgba(239,68,68,0.1)]" : "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                       )}>
+                         {alert.status === 'TRIGGERED' ? <ShieldAlert className="h-4 w-4" /> : <Activity className="h-4 w-4" />}
+                       </div>
+                       <span className="text-xs font-bold">{alert.source}</span>
+                    </div>
+                  </td>
+                  <td className="px-5 py-4">
+                    <div className="text-sm font-bold leading-none">{alert.alertName}</div>
+                    <div className="text-[10px] text-muted-foreground mt-1.5 font-mono line-clamp-1">{alert.message}</div>
+                  </td>
+                  <td className="px-5 py-4">
+                    <code className="text-[10px] bg-accent/40 px-1.5 py-0.5 rounded text-primary">MON-8B2-X</code>
+                  </td>
+                  <td className="px-5 py-4">
+                    <span className={cn(
+                      "status-badge",
+                      alert.status === 'TRIGGERED' ? "badge-critical" : "badge-success"
+                    )}>{alert.status}</span>
+                  </td>
+                  <td className="px-5 py-4 text-[10px] font-mono text-muted-foreground">
+                    {new Date(alert.timestamp).toLocaleTimeString()}
+                  </td>
+                  <td className="px-5 py-4 text-right">
+                    <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                       <button title="Acknowledge" className="btn-ghost p-1.5 text-emerald-500 hover:bg-emerald-500/10"><CheckCircle2 className="h-4 w-4" /></button>
+                       <button title="Delete Signal" className="btn-ghost p-1.5 text-destructive hover:bg-destructive/10"><Trash2 className="h-4 w-4" /></button>
+                       <button title="View Detail" className="btn-ghost p-1.5"><ArrowRight className="h-4 w-4" /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-        <button className="btn-primary h-10 px-6 text-sm">
-          Provision Connector
-        </button>
       </div>
     </div>
   )

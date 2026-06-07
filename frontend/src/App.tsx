@@ -14,6 +14,7 @@ import AiChatPage from '@/pages/AiChatPage'
 import AnalyticsPage from '@/pages/AnalyticsPage'
 import AiInsightsPage from '@/pages/AiInsightsPage'
 import IntegrationsPage from '@/pages/IntegrationsPage'
+import SetupWizard from '@/pages/SetupWizard'
 
 // Layouts
 import AuthLayout from '@/layouts/AuthLayout'
@@ -59,6 +60,7 @@ const App: React.FC = () => {
           <Route element={<AuthLayout />}>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/onboarding" element={<SetupWizard />} />
           </Route>
 
           {/* Protected Routes */}

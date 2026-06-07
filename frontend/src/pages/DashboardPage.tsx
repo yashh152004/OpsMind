@@ -21,12 +21,14 @@ import {
   Zap,
   ShieldCheck,
   Search,
-  ExternalLink
+  ExternalLink,
+  AlertCircle
 } from 'lucide-react'
 import { useAuth } from '@/hooks'
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/services/api'
 import { cn } from '@/utils/cn'
+import { toast } from 'sonner'
 
 const DashboardPage: React.FC = () => {
   const { user } = useAuth()
@@ -81,16 +83,27 @@ const DashboardPage: React.FC = () => {
           <h1 className="text-3xl font-bold font-outfit">Platform Overview</h1>
           <p className="text-muted-foreground text-sm">Real-time operational health and incident intelligence.</p>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="flex -space-x-2 mr-4">
-             {[1,2,3].map(i => (
-               <div key={i} className="h-8 w-8 rounded-full border-2 border-background bg-accent flex items-center justify-center text-[10px] font-bold">
-                 {String.fromCharCode(64+i)}
-               </div>
+        <div className="flex items-center gap-3">
+          <div className="flex gap-1.5 p-1 bg-accent/20 border border-border rounded-lg mr-4">
+             {[
+               { icon: Activity, type: "cpu_spike", title: "CPU Spike" },
+               { icon: AlertCircle, type: "database_crash", title: "DB Crash" },
+               { icon: Zap, type: "api_latency", title: "Latency" }
+             ].map(sim => (
+               <button 
+                 key={sim.type}
+                 onClick={async () => {
+                   await apiClient.triggerSimulation(sim.type);
+                   toast.success(`Simulation: ${sim.title} injected.`);
+                 }}
+                 className="p-1.5 hover:bg-primary/20 hover:text-primary rounded text-muted-foreground transition-all"
+                 title={`Simulate ${sim.title}`}
+               >
+                 <sim.icon className="h-4 w-4" />
+               </button>
              ))}
-             <div className="h-8 w-12 rounded-full border-2 border-background bg-primary/20 text-primary text-[10px] font-bold flex items-center justify-center">
-               +12
-             </div>
+             <span className="w-px bg-border mx-1" />
+             <div className="px-2 py-1 text-[9px] font-bold text-muted-foreground uppercase flex items-center">Lab Mode</div>
           </div>
           <button className="btn-secondary h-9 text-xs">Configure Board</button>
           <button className="btn-primary h-9 text-xs">Track Incident</button>
