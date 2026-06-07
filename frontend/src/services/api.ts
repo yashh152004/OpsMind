@@ -263,6 +263,11 @@ class ApiClient {
     return response.data
   }
 
+  async triggerSimulation(type: string) {
+    const response = await this.client.post('/simulator/trigger', { type })
+    return response.data
+  }
+
   async getIncidentMetrics(organizationId: string, timeRange?: string) {
     const response = await this.client.get('/analytics/incidents/metrics', {
       params: { organizationId, timeRange },
