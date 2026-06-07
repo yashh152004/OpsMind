@@ -246,8 +246,13 @@ class ApiClient {
   }
 
   /**
-   * Analytics Endpoints
+   * Analytics & Summary Endpoints
    */
+  async getDashboardStats() {
+    const response = await this.client.get('/summary/stats')
+    return response.data
+  }
+
   async getIncidentMetrics(organizationId: string, timeRange?: string) {
     const response = await this.client.get('/analytics/incidents/metrics', {
       params: { organizationId, timeRange },
