@@ -29,9 +29,9 @@ const IncidentsPage: React.FC = () => {
 
   // Local filtering for smooth UX
   const filteredIncidents = incidents?.filter((i: any) => 
-    i.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    i.serviceName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    i.severity.toLowerCase().includes(searchTerm.toLowerCase())
+    (i.title?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    (i.serviceName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    (i.severity?.toLowerCase() || '').includes(searchTerm.toLowerCase())
   )
 
   const handleExport = () => {

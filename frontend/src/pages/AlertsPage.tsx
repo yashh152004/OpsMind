@@ -28,8 +28,8 @@ const AlertsPage: React.FC = () => {
   })
 
   const filteredAlerts = alerts?.filter((a: any) => 
-    a.alertName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    a.message.toLowerCase().includes(searchTerm.toLowerCase())
+    (a.alertName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+    (a.message?.toLowerCase() || '').includes(searchTerm.toLowerCase())
   )
 
   const handleExport = () => {

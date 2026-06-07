@@ -8,8 +8,9 @@ import {
   Settings, 
   MessageSquareCode,
   Activity,
-  Terminal,
-  ShieldCheck
+  ShieldCheck,
+  Layers,
+  Terminal
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
 
