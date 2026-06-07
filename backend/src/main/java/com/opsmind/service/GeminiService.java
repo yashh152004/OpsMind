@@ -30,10 +30,19 @@ public class GeminiService {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
+            // Industry-standard SRE Copilot System Prompt
+            String systemPrompt = """
+                You are the OpsMind AI Copilot, a specialized SRE and Observability expert. 
+                Your goal is to help DevOps teams troubleshoot incidents, analyze logs, and optimize infrastructure.
+                Be concise, technical, and focus on root cause analysis.
+                If asked about incidents, use the context of a modern cloud-native stack (K8s, AWS, MySQL).
+                
+                User Message: """;
+
             // Structure for Gemini API using DTO
             GeminiRequest requestBody = new GeminiRequest(
                     List.of(new GeminiRequest.Content(
-                            List.of(new GeminiRequest.Part(message))
+                            List.of(new GeminiRequest.Part(systemPrompt + message))
                     ))
             );
 
