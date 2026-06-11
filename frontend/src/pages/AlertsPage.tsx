@@ -14,8 +14,10 @@ import {
   Database,
   Search,
   CheckCircle2,
-  Trash2
+  Trash2,
+  BrainCircuit
 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { cn } from '@/utils/cn'
 import { exportToCSV } from '@/utils/export'
 import { useAlertStream } from '@/hooks/useAlertStream'
@@ -23,6 +25,7 @@ import { toast } from 'sonner'
 
 const AlertsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('')
+  const navigate = useNavigate()
   const { data: alerts, isLoading, refetch } = useQuery({
     queryKey: ['alerts'],
     queryFn: () => apiClient.getAlerts('default'),
@@ -152,25 +155,29 @@ const AlertsPage: React.FC = () => {
                   </td>
                   <td className="px-5 py-4 text-right">
                     <div className="flex items-center justify-end gap-1.5 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                       <button 
+                         className="btn-ghost p-2 text-primary hover:bg-primary/10 rounded-full" 
+                         title="AI Insight"
+                         onClick={(e) => {
+                           e.stopPropagation();
+                           navigate('/ai-chat', { state: { initialMessage: `/rca alert ${alert.id} from ${alert.source}` } });
+                         }}
+                       >
+                         <BrainCircuit className="h-4 w-4" />
+                       </button>
                        {alert.status === 'TRIGGERED' && (
                          <button 
                           title="Acknowledge" 
                           className="btn-ghost p-2 text-emerald-500 hover:bg-emerald-500/10 rounded-full"
-                          onClick={() => handleAcknowledge(alert.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAcknowledge(alert.id);
+                          }}
                          >
                            <CheckCircle2 className="h-4 w-4" />
                          </button>
                        )}
-                       {alert.status !== 'RESOLVED' && (
-                        <button 
-                          title="Resolve Signal" 
-                          className="btn-ghost p-2 text-blue-500 hover:bg-blue-500/10 rounded-full"
-                          onClick={() => handleResolve(alert.id)}
-                        >
-                          <CheckCircle2 className="h-4 w-4" />
-                        </button>
-                       )}
-                       <button title="View Detail" className="btn-ghost p-2 rounded-full border border-transparent hover:border-border"><ArrowRight className="h-4 w-4" /></button>
+                       <button title="View Detail" className="btn-ghost p-2 rounded-full hidden sm:inline-flex border border-transparent hover:border-border"><ArrowRight className="h-4 w-4" /></button>
                     </div>
                   </td>
                 </tr>

@@ -29,29 +29,30 @@ const InfrastructurePage: React.FC = () => {
           <h1 className="text-2xl font-bold font-outfit">Resource Topology</h1>
           <p className="text-muted-foreground text-sm font-medium">Monitoring distributed infrastructure assets and service health.</p>
         </div>
-        <div className="flex items-center gap-2">
-           <button className="btn-secondary h-9 text-xs">Map View</button>
-           <button className="btn-primary h-9 text-xs">Inventory Scan</button>
+        <div className="flex items-center gap-2 w-full md:w-auto">
+           <button className="btn-secondary h-10 text-xs flex-1 md:flex-none justify-center">Map View</button>
+           <button className="btn-primary h-10 text-xs flex-1 md:flex-none justify-center">Inventory Scan</button>
         </div>
       </div>
 
-      {/* Resource KPIs */}
-      <div className="grid gap-6 md:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
          {[
            { label: 'Cloud Resources', val: assets?.length || 0, icon: Layers, color: 'text-blue-500' },
            { label: 'Uptime (Global)', val: '99.98%', icon: Activity, color: 'text-emerald-500' },
            { label: 'Degraded Nodes', val: assets?.filter((a:any) => a.status !== 'HEALTHY').length || 0, icon: Server, color: 'text-orange-500' },
            { label: 'Kms Encryption', val: 'ENABLED', icon: ShieldCheck, color: 'text-purple-500' },
          ].map(stat => (
-           <div key={stat.label} className="enterprise-card p-5">
-              <div className="flex items-center justify-between mb-3">
-                 <div className={cn("p-1.5 rounded-md bg-accent/40 border border-border", stat.color)}>
+           <div key={stat.label} className="enterprise-card p-4 sm:p-5 flex flex-row sm:flex-col items-center sm:items-start justify-between sm:justify-start gap-4">
+              <div className="flex items-center justify-between w-full sm:mb-3 order-2 sm:order-none">
+                 <div className={cn("p-1.5 rounded-md bg-accent/40 border border-border hidden sm:block", stat.color)}>
                     <stat.icon className="h-4 w-4" />
                  </div>
-                 <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
+                 <ArrowUpRight className="h-4 w-4 text-muted-foreground ml-auto" />
               </div>
-              <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{stat.label}</div>
-              <div className="text-xl font-bold mt-1 font-mono">{stat.val}</div>
+              <div className="order-1 sm:order-none">
+                <div className="text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{stat.label}</div>
+                <div className="text-lg sm:text-xl font-bold mt-0.5 sm:mt-1 font-mono tracking-tight">{stat.val}</div>
+              </div>
            </div>
          ))}
       </div>
@@ -72,9 +73,9 @@ const InfrastructurePage: React.FC = () => {
           <thead className="bg-accent/40 border-b border-border">
             <tr className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
               <th className="px-6 py-4">Asset Name</th>
-              <th className="px-6 py-4">Type</th>
-              <th className="px-6 py-4">Provider / Region</th>
-              <th className="px-6 py-4">Health Index</th>
+              <th className="px-6 py-4 hidden sm:table-cell">Type</th>
+              <th className="px-6 py-4 hidden lg:table-cell">Provider / Region</th>
+              <th className="px-6 py-4 hidden md:table-cell">Health Index</th>
               <th className="px-6 py-4">Status</th>
               <th className="px-6 py-4"></th>
             </tr>
@@ -92,31 +93,31 @@ const InfrastructurePage: React.FC = () => {
                       <span className="text-sm font-bold">{asset.name}</span>
                    </div>
                 </td>
-                <td className="px-6 py-4">
-                   <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest bg-accent px-1.5 py-0.5 rounded border border-border">
-                     {asset.type}
-                   </span>
-                </td>
-                <td className="px-6 py-4">
-                   <div className="text-xs font-medium">{asset.provider} / {asset.region}</div>
-                </td>
-                <td className="px-6 py-4">
-                   <div className="flex items-center gap-2">
-                      <div className="h-1.5 flex-1 bg-accent rounded-full overflow-hidden">
-                         <div 
-                           className={cn("h-full", asset.healthScore > 90 ? "bg-emerald-500" : "bg-orange-500")} 
-                           style={{ width: `${asset.healthScore}%` }} 
-                         />
-                      </div>
-                      <span className="text-[10px] font-bold font-mono">{asset.healthScore}%</span>
-                   </div>
-                </td>
-                <td className="px-6 py-4">
-                   <span className={cn(
-                     "status-badge",
-                     asset.status === 'HEALTHY' ? "badge-success" : "badge-warning"
-                   )}>{asset.status}</span>
-                </td>
+                 <td className="px-6 py-4 hidden sm:table-cell">
+                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest bg-accent px-1.5 py-0.5 rounded border border-border">
+                      {asset.type}
+                    </span>
+                 </td>
+                 <td className="px-6 py-4 hidden lg:table-cell">
+                    <div className="text-xs font-medium">{asset.provider} / {asset.region}</div>
+                 </td>
+                 <td className="px-6 py-4 hidden md:table-cell">
+                    <div className="flex items-center gap-2 min-w-[100px]">
+                       <div className="h-1.5 flex-1 bg-accent rounded-full overflow-hidden">
+                          <div 
+                            className={cn("h-full", asset.healthScore > 90 ? "bg-emerald-500" : "bg-orange-500")} 
+                            style={{ width: `${asset.healthScore}%` }} 
+                          />
+                       </div>
+                       <span className="text-[10px] font-bold font-mono">{asset.healthScore}%</span>
+                    </div>
+                 </td>
+                 <td className="px-6 py-4">
+                    <span className={cn(
+                      "status-badge",
+                      asset.status === 'HEALTHY' ? "badge-success" : "badge-warning"
+                    )}>{asset.status}</span>
+                 </td>
                 <td className="px-6 py-4 text-right">
                    <button className="btn-ghost p-1.5"><ExternalLink className="h-4 w-4" /></button>
                 </td>

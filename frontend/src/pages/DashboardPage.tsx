@@ -78,13 +78,13 @@ const DashboardPage: React.FC = () => {
   return (
     <div className="space-y-8 pb-12">
       {/* Header Section */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold font-outfit">Platform Overview</h1>
-          <p className="text-muted-foreground text-sm">Real-time operational health and incident intelligence.</p>
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div className="text-center lg:text-left">
+          <h1 className="text-3xl md:text-4xl font-bold font-outfit tracking-tight">Platform Overview</h1>
+          <p className="text-muted-foreground text-sm font-medium mt-1">Real-time operational health and incident intelligence.</p>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="flex gap-1.5 p-1 bg-accent/20 border border-border rounded-lg mr-4">
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
+          <div className="flex w-full sm:w-auto gap-1 p-1 bg-accent/20 border border-border rounded-lg justify-center sm:justify-start">
              {[
                { icon: Activity, type: "cpu_spike", title: "CPU Spike" },
                { icon: AlertCircle, type: "database_crash", title: "DB Crash" },
@@ -96,17 +96,19 @@ const DashboardPage: React.FC = () => {
                    await apiClient.triggerSimulation(sim.type);
                    toast.success(`Simulation: ${sim.title} injected.`);
                  }}
-                 className="p-1.5 hover:bg-primary/20 hover:text-primary rounded text-muted-foreground transition-all"
+                 className="p-2 hover:bg-primary/20 hover:text-primary rounded-md text-muted-foreground transition-all flex-1 sm:flex-none justify-center"
                  title={`Simulate ${sim.title}`}
                >
                  <sim.icon className="h-4 w-4" />
                </button>
              ))}
-             <span className="w-px bg-border mx-1" />
-             <div className="px-2 py-1 text-[9px] font-bold text-muted-foreground uppercase flex items-center">Lab Mode</div>
+             <span className="w-px bg-border mx-1 hidden sm:block" />
+             <div className="px-2 py-1 text-[9px] font-bold text-muted-foreground uppercase flex items-center hidden sm:flex">Lab</div>
           </div>
-          <button className="btn-secondary h-9 text-xs">Configure Board</button>
-          <button className="btn-primary h-9 text-xs">Track Incident</button>
+          <div className="flex gap-2 w-full sm:w-auto">
+            <button className="btn-secondary h-10 text-xs flex-1 sm:flex-none justify-center">Board</button>
+            <button className="btn-primary h-10 text-xs flex-1 sm:flex-none justify-center shadow-lg shadow-primary/20">Track Incident</button>
+          </div>
         </div>
       </div>
 
