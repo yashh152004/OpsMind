@@ -9,6 +9,6 @@ import lombok.Data;
 @Data
 public class AiConfig {
     private String key;
-    private String url;
-    private String modelName = "gemini-1.5-flash-latest"; // Using latest stable flash model
+    private String url = "https://generativelanguage.googleapis.com/v1/models/{model}:generateContent";
+    private String modelName = "gemini-1.5-flash-latest";
 }

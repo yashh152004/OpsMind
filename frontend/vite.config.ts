@@ -46,5 +46,6 @@ export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify('1.0.0'),
     __API_URL__: JSON.stringify(process.env.VITE_API_URL || 'http://localhost:8080/api'),
+    global: 'window',
   },
 })

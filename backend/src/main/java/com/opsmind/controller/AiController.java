@@ -17,24 +17,43 @@ public class AiController {
     }
 
     @PostMapping("/chat")
-    public ResponseEntity<Map<String, String>> chat(@RequestBody Map<String, String> request) {
+    public ResponseEntity<Map<String, Object>> chat(@RequestBody Map<String, String> request) {
         String userMessage = request.get("message");
         if (userMessage == null || userMessage.trim().isEmpty()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Message cannot be empty"));
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", "Message cannot be empty"
+            ));
         }
         
         String response;
-        if (userMessage.startsWith("/rca ")) {
-            try {
+        try {
+            if (userMessage.startsWith("/rca ")) {
                 Long id = Long.parseLong(userMessage.substring(5).trim());
                 response = geminiService.performRCA(id);
-            } catch (Exception e) {
-                response = "Invalid Incident ID for RCA. Usage: /rca <id>";
+            } else {
+                response = geminiService.generateChatResponse(userMessage);
             }
-        } else {
-            response = geminiService.generateChatResponse(userMessage);
+
+            if (response.startsWith("GEMINI_FALLBACK_SIGNAL")) {
+                 return ResponseEntity.status(503).body(Map.of(
+                    "success", false,
+                    "message", "AI service temporarily unavailable",
+                    "details", response
+                ));
+            }
+
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "response", response
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of(
+                "success", false,
+                "message", "An Internal error occurred while processing AI request",
+                "error", e.getMessage()
+            ));
         }
-        return ResponseEntity.ok(Map.of("response", response));
     }
 
     @GetMapping("/health")

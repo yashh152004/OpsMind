@@ -53,21 +53,32 @@ public class GeminiService {
         Map<String, Object> health = new HashMap<>();
         long start = System.currentTimeMillis();
         try {
-            logger.info("Executing AI Health Check on model: {}", aiConfig.getModelName());
+            String model = aiConfig.getModelName();
+            boolean hasKey = aiConfig.getKey() != null && !aiConfig.getKey().trim().isEmpty() && !aiConfig.getKey().contains("YourRealKey");
+            
+            health.put("provider", "Gemini");
+            health.put("model", model);
+            health.put("apiKeyLoaded", hasKey);
+
+            if (!hasKey) {
+                health.put("status", "DOWN");
+                health.put("message", "API Key missing or invalid");
+                return health;
+            }
+
+            // Perform shallow ping
             String response = generateChatResponse("ping");
             long latency = System.currentTimeMillis() - start;
             
-            boolean isHealthy = response != null && !response.contains("FALLBACK");
+            boolean isHealthy = response != null && !response.contains("GEMINI_FALLBACK_SIGNAL");
             health.put("status", isHealthy ? "UP" : "DEGRADED");
-            health.put("model", aiConfig.getModelName());
             health.put("latency", latency + "ms");
-            health.put("apiStatus", "CONNECTED");
-            health.put("availability", isHealthy ? 1.0 : 0.0);
+            health.put("message", isHealthy ? "AI Subsystem operational" : "AI Service in fallback mode");
+            
         } catch (Exception e) {
             health.put("status", "DOWN");
             health.put("error", e.getMessage());
-            health.put("apiStatus", "UNREACHABLE");
-            health.put("availability", 0.0);
+            health.put("message", "AI subsystem communication failure");
         }
         return health;
     }
@@ -135,14 +146,15 @@ public class GeminiService {
         String context = getSystemContext();
         String systemPrompt = 
             "You are OpsMind SRE Copilot, a senior SRE AI. Analyze telemetry and provide expert insights.\n\n" +
+            "CRITICAL: Always return your response in plain text for the user, but be extremely technical and precise.\n\n" +
             context + "\n\n" +
             "USER_REQUEST: " + message;
             
-        int maxRetries = 3;
+        int maxRetries = 2;
         int attempt = 0;
         Exception lastException = null;
 
-        while (attempt < maxRetries) {
+        while (attempt <= maxRetries) {
             try {
                 HttpHeaders headers = new HttpHeaders();
                 headers.setContentType(MediaType.APPLICATION_JSON);
@@ -154,43 +166,79 @@ public class GeminiService {
                 );
 
                 HttpEntity<GeminiRequest> entity = new HttpEntity<>(requestBody, headers);
-                String baseUrl = aiConfig.getUrl();
-                if (baseUrl.contains("{model}")) {
-                    baseUrl = baseUrl.replace("{model}", aiConfig.getModelName());
+                
+                // Construct URL correctly
+                String model = aiConfig.getModelName();
+                if (model == null || model.isEmpty()) model = "gemini-1.5-flash";
+                
+                // Use stable v1 endpoint instead of v1beta unless specified
+                String urlTemplate = aiConfig.getUrl();
+                if (urlTemplate == null || urlTemplate.isEmpty()) {
+                    urlTemplate = "https://generativelanguage.googleapis.com/v1/models/{model}:generateContent";
                 }
                 
+                String baseUrl = urlTemplate.replace("{model}", model);
                 String fullUrl = baseUrl + "?key=" + aiConfig.getKey();
-                logger.debug("Calling Gemini API (Attempt {}): {}", attempt + 1, baseUrl);
+                
+                logger.info("Executing AI Request [Attempt {}] to model: {} | URL: {}", attempt + 1, model, baseUrl);
                 
                 String response = restTemplate.postForObject(fullUrl, entity, String.class);
-                if (response == null) throw new RuntimeException("Empty response");
+                
+                if (response == null) {
+                    throw new RuntimeException("API returned empty response");
+                }
                 
                 JsonNode root = objectMapper.readTree(response);
                 JsonNode candidates = root.path("candidates");
                 
                 if (candidates.isArray() && candidates.size() > 0) {
-                    return candidates.get(0)
-                            .path("content")
-                            .path("parts")
-                            .get(0)
-                            .path("text")
-                            .asText();
+                    JsonNode firstCandidate = candidates.get(0);
+                    JsonNode textNode = firstCandidate.path("content").path("parts").get(0).path("text");
+                    
+                    if (textNode.isMissingNode()) {
+                        String finishReason = firstCandidate.path("finishReason").asText();
+                        throw new RuntimeException("AI stopped unexpectedly. Reason: " + finishReason);
+                    }
+                    
+                    return textNode.asText();
                 } else {
-                    throw new RuntimeException("No candidates: " + response);
+                    JsonNode errorNode = root.path("error");
+                    if (!errorNode.isMissingNode()) {
+                        String errorMsg = errorNode.path("message").asText();
+                        int errorCode = errorNode.path("code").asInt();
+                        throw new RuntimeException("Gemini API Error [" + errorCode + "]: " + errorMsg);
+                    }
+                    throw new RuntimeException("No candidates found in AI response. Payload: " + response);
                 }
             } catch (Exception e) {
                 attempt++;
                 lastException = e;
-                logger.warn("AI Attempt {} failed: {}", attempt, e.getMessage());
-                if (attempt < maxRetries) {
-                    try { Thread.sleep(500 * attempt); } catch (InterruptedException ignored) {}
+                logger.error("AI SUBSYSTEM FAILURE [Attempt {}]: {}", attempt, e.getMessage());
+                
+                // Specific handling for common errors
+                if (e.getMessage().contains("404")) {
+                    logger.error("CRITICAL: Gemini Model Not Found. Model used: {}", aiConfig.getModelName());
+                    break; // Don't retry on 404
+                }
+                if (e.getMessage().contains("401") || e.getMessage().contains("403")) {
+                    logger.error("CRITICAL: Gemini Authentication Failed. Check API Key.");
+                    break; // Don't retry on Auth failure
+                }
+                
+                if (attempt <= maxRetries) {
+                    try { Thread.sleep(1000 * attempt); } catch (InterruptedException ignored) {}
                 }
             }
         }
 
-        logger.error("AI Communication Exhausted: {}", lastException != null ? lastException.getMessage() : "Unknown");
-        return "FALLBACK [GEMINI-OFFLINE]: Reasoning engine unreachable.\n\n" +
-               "DIAGNOSTIC: " + (lastException != null ? lastException.getMessage() : "Unknown") + "\n" +
-               "SYSTEM_ADVICE: Check active incidents manually.";
+        // Final Fallback
+        String diagnostic = lastException != null ? lastException.getMessage() : "Unknown Connectivity Error";
+        logger.error("GEMINI-API-CONNECT FAILURE: Exhausted all retries. Diagnostic: {}", diagnostic);
+        
+        return "GEMINI_FALLBACK_SIGNAL\n" +
+               "Error: Service Temporarily Unavailable\n" +
+               "Subsystem: GEMINI-API-CONNECT\n" +
+               "Diagnostic: " + diagnostic + "\n\n" +
+               "The AI engine is currently unreachable. Please verify your Gemini API key and internet connectivity.";
     }
 }
