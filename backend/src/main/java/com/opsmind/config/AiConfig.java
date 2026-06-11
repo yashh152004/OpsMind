@@ -10,5 +10,5 @@ import lombok.Data;
 public class AiConfig {
     private String key;
     private String url;
-    private String modelName = "gemini-1.5-flash"; // Default stable model
+    private String modelName = "gemini-1.5-flash-latest"; // Using latest stable flash model
 }

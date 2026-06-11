@@ -17,10 +17,14 @@ public class SimulatorController {
 
     private final IncidentRepository incidentRepository;
     private final AlertRepository alertRepository;
+    private final org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
 
-    public SimulatorController(IncidentRepository incidentRepository, AlertRepository alertRepository) {
+    public SimulatorController(IncidentRepository incidentRepository, 
+                               AlertRepository alertRepository,
+                               org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate) {
         this.incidentRepository = incidentRepository;
         this.alertRepository = alertRepository;
+        this.messagingTemplate = messagingTemplate;
     }
 
     @PostMapping("/trigger")

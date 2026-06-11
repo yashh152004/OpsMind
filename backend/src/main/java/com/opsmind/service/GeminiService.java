@@ -4,6 +4,7 @@ import com.opsmind.config.AiConfig;
 import com.opsmind.dto.GeminiRequest;
 import com.opsmind.repository.AlertRepository;
 import com.opsmind.repository.IncidentRepository;
+import com.opsmind.repository.InfrastructureRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -14,7 +15,9 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,76 +31,137 @@ public class GeminiService {
     private final IncidentRepository incidentRepository;
     private final AlertRepository alertRepository;
 
+    private final InfrastructureRepository infrastructureRepository;
+
     public GeminiService(AiConfig aiConfig, RestTemplate restTemplate, ObjectMapper objectMapper, 
-                         IncidentRepository incidentRepository, AlertRepository alertRepository) {
+                         IncidentRepository incidentRepository, AlertRepository alertRepository,
+                         InfrastructureRepository infrastructureRepository) {
         this.aiConfig = aiConfig;
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
         this.incidentRepository = incidentRepository;
         this.alertRepository = alertRepository;
+        this.infrastructureRepository = infrastructureRepository;
     }
 
     /**
-     * AI Health Check: Verifies API connectivity and model availability.
+     * AI Health Check: Verifies API connectivity and model availability with detailed metrics.
      */
-    public boolean checkHealth() {
+    public Map<String, Object> getDetailedHealth() {
+        Map<String, Object> health = new HashMap<>();
+        long start = System.currentTimeMillis();
         try {
             logger.info("Executing AI Health Check on model: {}", aiConfig.getModelName());
-            String response = generateChatResponse("health_check_ping");
-            return response != null && !response.contains("ERROR");
+            String response = generateChatResponse("ping");
+            long latency = System.currentTimeMillis() - start;
+            
+            boolean isHealthy = response != null && !response.contains("FALLBACK");
+            health.put("status", isHealthy ? "UP" : "DEGRADED");
+            health.put("model", aiConfig.getModelName());
+            health.put("latency", latency + "ms");
+            health.put("apiStatus", "CONNECTED");
+            health.put("availability", isHealthy ? 1.0 : 0.0);
         } catch (Exception e) {
-            return false;
+            health.put("status", "DOWN");
+            health.put("error", e.getMessage());
+            health.put("apiStatus", "UNREACHABLE");
+            health.put("availability", 0.0);
         }
+        return health;
+    }
+
+    public boolean checkHealth() {
+        return "UP".equals(getDetailedHealth().get("status"));
     }
 
     private String getSystemContext() {
         try {
-            String incidents = incidentRepository.findAll().stream()
-                    .limit(5)
-                    .map(i -> String.format("[%s] %s (Status: %s)", 
-                            i.getSeverity(), i.getTitle(), i.getStatus()))
-                    .collect(Collectors.joining("\\n"));
+            if (incidentRepository == null || alertRepository == null) {
+                return "CONTEXT_UNAVAILABLE: Repositories not initialized.";
+            }
 
-            return String.format("SYSTEM_CONTEXT: Current active incidents: %s", incidents);
+            String incidents = incidentRepository.findAll().stream()
+                    .filter(i -> !"RESOLVED".equals(i.getStatus()))
+                    .map(i -> String.format("[%s] %s on %s (Status: %s)", 
+                            i.getSeverity(), i.getTitle(), i.getServiceName(), i.getStatus()))
+                    .collect(Collectors.joining("; "));
+
+            String alerts = alertRepository.findAll().stream()
+                    .filter(a -> !"RESOLVED".equals(a.getStatus()))
+                    .limit(10)
+                    .map(a -> String.format("%s: %s (%s)", a.getSeverity(), a.getAlertName(), a.getSource()))
+                    .collect(Collectors.joining("; "));
+
+            String infra = "Infrastructure Assets: " + infrastructureRepository.count() + " active nodes.";
+
+            return String.format("--- SYSTEM_TELEMETRY ---\nACTIVE_INCIDENTS: %s\nTRIGGERED_ALERTS: %s\nPLATFORM_STATE: All subsystems operational.\n-------------------------", 
+                incidents.isEmpty() ? "None" : incidents,
+                alerts.isEmpty() ? "None" : alerts);
         } catch (Exception e) {
-            return "CONTEXT_UNAVAILABLE";
+            return "CONTEXT_UNAVAILABLE: Telemetry collection failed.";
         }
     }
 
     public String generateChatResponse(String message) {
-        try {
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-
-            String context = getSystemContext();
-            String systemPrompt = "You are OpsMind SRE Assistant. Use this context: " + context + ". \\n\\nUser: " + message;
-
-            GeminiRequest requestBody = new GeminiRequest(
-                    List.of(new GeminiRequest.Content(
-                            List.of(new GeminiRequest.Part(systemPrompt))
-                    ))
-            );
-
-            HttpEntity<GeminiRequest> entity = new HttpEntity<>(requestBody, headers);
+        String context = getSystemContext();
+        String systemPrompt = 
+            "You are OpsMind SRE Copilot, a senior SRE AI. Analyze telemetry and provide expert insights.\n\n" +
+            context + "\n\n" +
+            "USER_REQUEST: " + message;
             
-            // Build absolute URL from config
-            String fullUrl = aiConfig.getUrl() + "?key=" + aiConfig.getKey();
-            
-            logger.info("Calling Gemini API: {}", aiConfig.getUrl());
-            String response = restTemplate.postForObject(fullUrl, entity, String.class);
-            JsonNode root = objectMapper.readTree(response);
-            
-            return root.path("candidates")
-                    .get(0)
-                    .path("content")
-                    .path("parts")
-                    .get(0)
-                    .path("text")
-                    .asText();
+        int maxRetries = 3;
+        int attempt = 0;
+        Exception lastException = null;
 
-        } catch (Exception e) {
-            logger.error("AI Communication Failure: {}", e.getMessage());
-            return "ERROR [AI_CORE_404]: Reasoning engine unreachable. Verify API URL: " + aiConfig.getUrl();
+        while (attempt < maxRetries) {
+            try {
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+
+                GeminiRequest requestBody = new GeminiRequest(
+                        List.of(new GeminiRequest.Content(
+                                List.of(new GeminiRequest.Part(systemPrompt))
+                        ))
+                );
+
+                HttpEntity<GeminiRequest> entity = new HttpEntity<>(requestBody, headers);
+                String baseUrl = aiConfig.getUrl();
+                if (baseUrl.contains("{model}")) {
+                    baseUrl = baseUrl.replace("{model}", aiConfig.getModelName());
+                }
+                
+                String fullUrl = baseUrl + "?key=" + aiConfig.getKey();
+                logger.debug("Calling Gemini API (Attempt {}): {}", attempt + 1, baseUrl);
+                
+                String response = restTemplate.postForObject(fullUrl, entity, String.class);
+                if (response == null) throw new RuntimeException("Empty response");
+                
+                JsonNode root = objectMapper.readTree(response);
+                JsonNode candidates = root.path("candidates");
+                
+                if (candidates.isArray() && candidates.size() > 0) {
+                    return candidates.get(0)
+                            .path("content")
+                            .path("parts")
+                            .get(0)
+                            .path("text")
+                            .asText();
+                } else {
+                    throw new RuntimeException("No candidates: " + response);
+                }
+            } catch (Exception e) {
+                attempt++;
+                lastException = e;
+                logger.warn("AI Attempt {} failed: {}", attempt, e.getMessage());
+                if (attempt < maxRetries) {
+                    try { Thread.sleep(500 * attempt); } catch (InterruptedException ignored) {}
+                }
+            }
         }
+
+        logger.error("AI Communication Exhausted: {}", lastException != null ? lastException.getMessage() : "Unknown");
+        return "FALLBACK [GEMINI-OFFLINE]: Reasoning engine unreachable.\n\n" +
+               "DIAGNOSTIC: " + (lastException != null ? lastException.getMessage() : "Unknown") + "\n" +
+               "SYSTEM_ADVICE: Check active incidents manually.";
     }
 }

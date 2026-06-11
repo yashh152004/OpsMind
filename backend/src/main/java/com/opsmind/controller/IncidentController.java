@@ -33,18 +33,34 @@ public class IncidentController {
         return ResponseEntity.ok(incidentRepository.save(incident));
     }
 
-    @PostMapping("/{id}/resolve")
-    public ResponseEntity<Incident> resolveIncident(@PathVariable Long id) {
+    @PutMapping("/{id}/status")
+    public ResponseEntity<Incident> updateStatus(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        String newStatus = body.get("status");
         return incidentRepository.findById(id).map(incident -> {
-            incident.setStatus("RESOLVED");
+            incident.setStatus(newStatus);
+            if (body.containsKey("resolution")) {
+                incident.setResolution(body.get("resolution"));
+            }
             return ResponseEntity.ok(incidentRepository.save(incident));
         }).orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/{id}/acknowledge")
-    public ResponseEntity<Incident> acknowledgeIncident(@PathVariable Long id) {
+    @PostMapping("/{id}/assign")
+    public ResponseEntity<Incident> assignIncident(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        String userId = body.get("userId");
         return incidentRepository.findById(id).map(incident -> {
-            incident.setStatus("INVESTIGATING");
+            incident.setAssignedTo(userId);
+            return ResponseEntity.ok(incidentRepository.save(incident));
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/{id}/resolve")
+    public ResponseEntity<Incident> resolveIncident(@PathVariable Long id, @RequestBody(required = false) Map<String, String> body) {
+        return incidentRepository.findById(id).map(incident -> {
+            incident.setStatus("RESOLVED");
+            if (body != null && body.containsKey("resolution")) {
+                incident.setResolution(body.get("resolution"));
+            }
             return ResponseEntity.ok(incidentRepository.save(incident));
         }).orElse(ResponseEntity.notFound().build());
     }

@@ -28,14 +28,26 @@ public class Incident {
     private String severity; // P1, P2, P3, P4
 
     @Column(nullable = false)
-    private String status; // OPEN, INVESTIGATING, RESOLVED
+    private String status; // OPEN, INVESTIGATING, IDENTIFIED, MITIGATING, RESOLVED, CLOSED
 
     private String serviceName;
     
+    private String assignedTo;
+    
+    private String resolution;
+    
+    private LocalDateTime detectedAt;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
     
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 }

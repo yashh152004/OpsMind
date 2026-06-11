@@ -13,7 +13,8 @@ import {
   ChevronRight,
   Download,
   Terminal,
-  Activity
+  Activity,
+  CheckCircle2
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import { exportToCSV } from '@/utils/export'
@@ -21,18 +22,44 @@ import { exportToCSV } from '@/utils/export'
 const IncidentsPage: React.FC = () => {
   const [page, setPage] = useState(0)
   const [searchTerm, setSearchTerm] = useState('')
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [newIncident, setNewIncident] = useState({ title: '', severity: 'P2', serviceName: '', description: '' })
+  const [activeTab, setActiveTab] = useState('ALL')
+  const tabs = ['ALL', 'OPEN', 'INVESTIGATING', 'IDENTIFIED', 'MITIGATING', 'RESOLVED', 'CLOSED']
 
-  const { data: incidents, isLoading, isError } = useQuery({
-    queryKey: ['incidents', page, searchTerm],
+  const { data: incidents, isLoading, isError, refetch } = useQuery({
+    queryKey: ['incidents', page, searchTerm, activeTab],
     queryFn: () => apiClient.getIncidents('default'),
   })
 
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      await apiClient.createIncident('default', { ...newIncident, status: 'OPEN' })
+      setIsCreateModalOpen(false)
+      setNewIncident({ title: '', severity: 'P2', serviceName: '', description: '' })
+      refetch()
+    } catch (err) {
+      console.error('Failed to create incident', err)
+    }
+  }
+
+  const handleResolve = async (id: string) => {
+    try {
+      await apiClient.resolveIncident(id, 'Resolved via SRE Management Console')
+      refetch()
+    } catch (err) {
+      console.error('Failed to resolve', err)
+    }
+  }
+
   // Local filtering for smooth UX
-  const filteredIncidents = incidents?.filter((i: any) => 
-    (i.title?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-    (i.serviceName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-    (i.severity?.toLowerCase() || '').includes(searchTerm.toLowerCase())
-  )
+  const filteredIncidents = incidents?.filter((i: any) => {
+    const matchesSearch = (i.title?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+                          (i.serviceName?.toLowerCase() || '').includes(searchTerm.toLowerCase())
+    const matchesTab = activeTab === 'ALL' || i.status === activeTab
+    return matchesSearch && matchesTab
+  })
 
   const handleExport = () => {
     if (filteredIncidents) {
@@ -53,11 +80,92 @@ const IncidentsPage: React.FC = () => {
             <Download className="h-3.5 w-3.5 mr-1" />
             Export Log
           </button>
-          <button className="btn-primary h-9 text-xs">
+          <button className="btn-primary h-9 text-xs" onClick={() => setIsCreateModalOpen(true)}>
             <Plus className="h-3.5 w-3.5 mr-1" />
             Declare Incident
           </button>
         </div>
+      </div>
+
+      {/* Declare Incident Modal */}
+      {isCreateModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
+          <div className="enterprise-card max-w-lg w-full p-6 shadow-2xl animate-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold mb-4">Declare New Incident</h3>
+            <form onSubmit={handleCreate} className="space-y-4">
+               <div>
+                 <label className="text-xs font-bold text-muted-foreground uppercase">Title</label>
+                 <input 
+                  required
+                  placeholder="e.g. Cache layer pod eviction"
+                  className="input-field mt-1" 
+                  value={newIncident.title}
+                  onChange={e => setNewIncident({...newIncident, title: e.target.value})}
+                 />
+               </div>
+               <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-bold text-muted-foreground uppercase">Severity</label>
+                    <select 
+                      className="input-field mt-1"
+                      value={newIncident.severity}
+                      onChange={e => setNewIncident({...newIncident, severity: e.target.value})}
+                    >
+                       <option value="P1">P1 - Critical</option>
+                       <option value="P2">P2 - Warning</option>
+                       <option value="P3">P3 - Notice</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-muted-foreground uppercase">Service</label>
+                    <input 
+                      required
+                      placeholder="Service Name"
+                      className="input-field mt-1"
+                      value={newIncident.serviceName}
+                      onChange={e => setNewIncident({...newIncident, serviceName: e.target.value})}
+                    />
+                  </div>
+               </div>
+               <div>
+                 <label className="text-xs font-bold text-muted-foreground uppercase">Description</label>
+                 <textarea 
+                  required
+                  placeholder="Technical details..."
+                  className="input-field mt-1 h-24"
+                  value={newIncident.description}
+                  onChange={e => setNewIncident({...newIncident, description: e.target.value})}
+                 />
+               </div>
+               <div className="flex gap-3 justify-end pt-2">
+                  <button type="button" className="btn-ghost" onClick={() => setIsCreateModalOpen(false)}>Cancel</button>
+                  <button type="submit" className="btn-primary">Initialize Incident</button>
+               </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Status Filter Tabs */}
+      <div className="flex items-center border-b border-border mb-4 overflow-x-auto no-scrollbar">
+        {tabs.map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={cn(
+              "px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all relative whitespace-nowrap",
+              activeTab === tab ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            {tab}
+            {activeTab === tab && (
+              <span className="absolute -top-1 -right-1 flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+              </span>
+            )}
+          </button>
+        ))}
       </div>
 
       {/* Control Bar */}
@@ -149,8 +257,16 @@ const IncidentsPage: React.FC = () => {
                 </td>
                 <td className="px-6 py-4 text-right">
                   <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {incident.status !== 'RESOLVED' && (
+                      <button 
+                        className="btn-ghost text-emerald-500 hover:bg-emerald-500/10" 
+                        title="Resolve Incident"
+                        onClick={() => handleResolve(incident.id)}
+                      >
+                        <CheckCircle2 className="h-4 w-4" />
+                      </button>
+                    )}
                     <button className="btn-ghost" title="View Trace"><ExternalLink className="h-4 w-4" /></button>
-                    <button className="btn-ghost" title="Options"><MoreVertical className="h-4 w-4" /></button>
                   </div>
                 </td>
               </tr>

@@ -32,6 +32,24 @@ const AlertsPage: React.FC = () => {
     (a.message?.toLowerCase() || '').includes(searchTerm.toLowerCase())
   )
 
+  const handleAcknowledge = async (id: string) => {
+    try {
+      await apiClient.acknowledgeAlert(id)
+      refetch()
+    } catch (err) {
+      console.error('Failed to acknowledge', err)
+    }
+  }
+
+  const handleResolve = async (id: string) => {
+    try {
+      await apiClient.resolveAlert(id)
+      refetch()
+    } catch (err) {
+      console.error('Failed to resolve', err)
+    }
+  }
+
   const handleExport = () => {
     if (filteredAlerts) exportToCSV(filteredAlerts, 'OpsMind_AlertStream')
   }
@@ -125,8 +143,24 @@ const AlertsPage: React.FC = () => {
                   </td>
                   <td className="px-5 py-4 text-right">
                     <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                       <button title="Acknowledge" className="btn-ghost p-1.5 text-emerald-500 hover:bg-emerald-500/10"><CheckCircle2 className="h-4 w-4" /></button>
-                       <button title="Delete Signal" className="btn-ghost p-1.5 text-destructive hover:bg-destructive/10"><Trash2 className="h-4 w-4" /></button>
+                       {alert.status === 'TRIGGERED' && (
+                         <button 
+                          title="Acknowledge" 
+                          className="btn-ghost p-1.5 text-emerald-500 hover:bg-emerald-500/10"
+                          onClick={() => handleAcknowledge(alert.id)}
+                         >
+                           <CheckCircle2 className="h-4 w-4" />
+                         </button>
+                       )}
+                       {alert.status !== 'RESOLVED' && (
+                        <button 
+                          title="Resolve Signal" 
+                          className="btn-ghost p-1.5 text-blue-500 hover:bg-blue-500/10"
+                          onClick={() => handleResolve(alert.id)}
+                        >
+                          <CheckCircle2 className="h-4 w-4" />
+                        </button>
+                       )}
                        <button title="View Detail" className="btn-ghost p-1.5"><ArrowRight className="h-4 w-4" /></button>
                     </div>
                   </td>

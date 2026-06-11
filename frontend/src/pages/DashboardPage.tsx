@@ -247,12 +247,10 @@ const DashboardPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {[
-                  { id: 1, type: 'Critical', context: 'Memory Leak - auth-api pod', conf: '92%', status: 'PREDICTED' },
-                  { id: 2, type: 'Warning', context: 'Spike in Database IOPS', conf: '84%', status: 'ANALYZING' },
-                  { id: 3, type: 'Notice', context: 'High cache miss rate', conf: '76%', status: 'IGNORED' }
-                ].map(item => (
-                  <tr key={item.id} className="text-sm hover:bg-accent/10">
+                {(stats?.riskProfiles || [
+                  { id: 1, type: 'Notice', context: 'Baseline stability - Analyzing patterns', conf: '98%', status: 'STABLE' }
+                ]).map((item: any, idx: number) => (
+                  <tr key={item.id || idx} className="text-sm hover:bg-accent/10">
                     <td className="py-4">
                        <span className={cn(
                          "status-badge",

@@ -25,4 +25,9 @@ public class AiController {
         String response = geminiService.generateChatResponse(userMessage);
         return ResponseEntity.ok(Map.of("response", response));
     }
+
+    @GetMapping("/health")
+    public ResponseEntity<Map<String, Object>> health() {
+        return ResponseEntity.ok(geminiService.getDetailedHealth());
+    }
 }
