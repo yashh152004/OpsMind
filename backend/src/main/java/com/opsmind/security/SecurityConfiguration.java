@@ -45,6 +45,14 @@ public class SecurityConfiguration {
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests((authorize) ->
                         authorize.requestMatchers("/auth/**").permitAll()
+                                .requestMatchers("/ai/**").permitAll()
+                                .requestMatchers("/summary/**").permitAll()
+                                .requestMatchers("/incidents/**").permitAll()
+                                .requestMatchers("/alerts/**").permitAll()
+                                .requestMatchers("/analytics/**").permitAll()
+                                .requestMatchers("/infrastructure/**").permitAll()
+                                .requestMatchers("/security/**").permitAll()
+                                .requestMatchers("/search/**").permitAll()
                                 .anyRequest().authenticated()
                 ).sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)

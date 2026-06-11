@@ -32,19 +32,19 @@ const AnalyticsPage: React.FC = () => {
   return (
     <div className="space-y-8 pb-12 page-transition">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold font-outfit">Performance Reporting</h1>
+        <div className="text-center md:text-left">
+          <h1 className="text-2xl md:text-3xl font-bold font-outfit">Performance Reporting</h1>
           <p className="text-muted-foreground text-sm font-medium">Historical efficacy and SLA fulfillment metrics.</p>
         </div>
-        <button className="btn-secondary h-9 text-xs">
+        <button className="btn-secondary h-10 w-full md:w-auto text-xs flex justify-center bg-card shadow-sm border-border active:scale-95 transition-transform">
            <Download className="h-4 w-4 mr-1.5" />
            Generate PDF Report
         </button>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid gap-6 md:grid-cols-3">
-        <div className="enterprise-card p-6 border-l-4 border-l-blue-500">
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="enterprise-card p-6 border-l-4 border-l-blue-500 hover:bg-blue-500/[0.02] transition-colors">
           <div className="flex items-center gap-3 mb-4 text-blue-500">
             <Target className="h-4 w-4" />
             <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Compliance SLA</span>
@@ -52,7 +52,7 @@ const AnalyticsPage: React.FC = () => {
           <div className="text-3xl font-bold font-mono">99.94%</div>
           <div className="text-[10px] text-muted-foreground mt-2 font-bold uppercase tracking-tighter">Objective: 99.95% | Delta: -0.01%</div>
         </div>
-        <div className="enterprise-card p-6 border-l-4 border-l-purple-500">
+        <div className="enterprise-card p-6 border-l-4 border-l-purple-500 hover:bg-purple-500/[0.02] transition-colors">
           <div className="flex items-center gap-3 mb-4 text-purple-500">
             <History className="h-4 w-4" />
             <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Avg. MTTR Time</span>
@@ -60,7 +60,7 @@ const AnalyticsPage: React.FC = () => {
           <div className="text-3xl font-bold font-mono">24m 12s</div>
           <div className="text-[10px] text-emerald-500 mt-2 font-bold uppercase tracking-tighter">↓ 15.2% Efficiency gain</div>
         </div>
-        <div className="enterprise-card p-6 border-l-4 border-l-emerald-500">
+        <div className="enterprise-card p-6 border-l-4 border-l-emerald-500 sm:col-span-2 lg:col-span-1 hover:bg-emerald-500/[0.02] transition-colors">
           <div className="flex items-center gap-3 mb-4 text-emerald-500">
             <Trophy className="h-4 w-4" />
             <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Incident Avoidance</span>

@@ -1,10 +1,25 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Search, Bell, HelpCircle, ChevronDown, Command, Loader2, AlertCircle, Terminal, Cpu } from 'lucide-react'
+import { 
+  Search, 
+  Bell, 
+  HelpCircle, 
+  ChevronDown, 
+  Command, 
+  Loader2, 
+  AlertCircle, 
+  Terminal, 
+  Cpu,
+  Menu
+} from 'lucide-react'
 import { useAuth } from '@/hooks'
 import { apiClient } from '@/services/api'
 import { useNavigate } from 'react-router-dom'
 
-const Header: React.FC = () => {
+interface HeaderProps {
+  onToggleSidebar: () => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
   const { user } = useAuth()
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
@@ -44,9 +59,17 @@ const Header: React.FC = () => {
   }, [query])
 
   return (
-    <header className="h-16 border-b border-border bg-card flex items-center justify-between px-8 sticky top-0 z-[100]">
+    <header className="h-16 border-b border-border bg-card flex items-center justify-between px-4 md:px-8 sticky top-0 z-[100]">
+      {/* Mobile Toggle */}
+      <button 
+        onClick={onToggleSidebar}
+        className="lg:hidden mr-4 text-muted-foreground hover:text-foreground p-2 hover:bg-accent rounded-md transition-colors"
+      >
+        <Menu className="h-5 w-5" />
+      </button>
+
       {/* Global Search Interface */}
-      <div className="flex-1 max-w-md relative" ref={searchRef}>
+      <div className="flex-1 max-w-md relative hidden sm:block" ref={searchRef}>
         <div className="relative group">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
             {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
@@ -59,9 +82,9 @@ const Header: React.FC = () => {
             className="w-full bg-accent/40 border border-border rounded-md pl-10 pr-12 py-1.5 text-sm focus:bg-background transition-all focus:ring-1 focus:ring-primary focus:border-primary outline-none"
             placeholder="Search across cluster... (Cmd + K)"
           />
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none hidden md:flex">
              <kbd className="h-5 px-1.5 bg-background border border-border rounded text-[10px] flex items-center gap-1 text-muted-foreground">
-               <Command className="h-2.5 w-2.5" /> K
+                <Command className="h-2.5 w-2.5" /> K
              </kbd>
           </div>
         </div>
@@ -102,22 +125,22 @@ const Header: React.FC = () => {
         )}
       </div>
 
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-3 md:gap-6 ml-auto">
         <button className="text-muted-foreground hover:text-foreground transition-colors relative">
           <Bell className="h-5 w-5" />
           <span className="absolute -top-1 -right-1 h-2 w-2 bg-primary rounded-full border-2 border-card" />
         </button>
-        <button className="text-muted-foreground hover:text-foreground transition-colors">
+        <button className="text-muted-foreground hover:text-foreground transition-colors hidden sm:block">
           <HelpCircle className="h-5 w-5" />
         </button>
         
-        <div className="h-6 w-px bg-border mx-2" />
+        <div className="h-6 w-px bg-border mx-2 hidden sm:block" />
 
         <button className="flex items-center gap-3 group">
-          <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xs">
+          <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xs shadow-md shadow-primary/20 transition-transform group-hover:scale-110">
             {user?.firstName?.[0] || 'U'}
           </div>
-          <div className="hidden md:block text-left">
+          <div className="hidden lg:block text-left">
             <div className="text-xs font-bold leading-none">{user?.firstName}</div>
             <div className="text-[10px] text-muted-foreground mt-1 uppercase font-bold tracking-tighter">SRE_ADMIN</div>
           </div>

@@ -14,8 +14,11 @@ import {
   Download,
   Terminal,
   Activity,
-  CheckCircle2
+  CheckCircle2,
+  BrainCircuit,
+  Unplug
 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { cn } from '@/utils/cn'
 import { exportToCSV } from '@/utils/export'
 
@@ -25,6 +28,7 @@ const IncidentsPage: React.FC = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [newIncident, setNewIncident] = useState({ title: '', severity: 'P2', serviceName: '', description: '' })
   const [activeTab, setActiveTab] = useState('ALL')
+  const navigate = useNavigate()
   const tabs = ['ALL', 'OPEN', 'INVESTIGATING', 'IDENTIFIED', 'MITIGATING', 'RESOLVED', 'CLOSED']
 
   const { data: incidents, isLoading, isError, refetch } = useQuery({
@@ -199,10 +203,10 @@ const IncidentsPage: React.FC = () => {
             <tr>
               <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">IDENTIFIER</th>
               <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">INCIDENT PROFILE</th>
-              <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">SEVERITY</th>
+              <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hidden lg:table-cell">SEVERITY</th>
               <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">STATUS</th>
-              <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">SERVICE</th>
-              <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">DETECTED</th>
+              <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hidden xl:table-cell">SERVICE</th>
+              <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hidden sm:table-cell">DETECTED</th>
               <th className="px-6 py-4"></th>
             </tr>
           </thead>
@@ -224,7 +228,7 @@ const IncidentsPage: React.FC = () => {
                   <div className="font-bold text-sm leading-none">{incident.title}</div>
                   <div className="text-[10px] text-muted-foreground mt-1.5 font-medium line-clamp-1">{incident.description}</div>
                 </td>
-                <td className="px-6 py-4">
+                <td className="px-6 py-4 hidden lg:table-cell">
                   <span className={cn(
                     "status-badge",
                     incident.severity === 'P1' ? "badge-critical" :
@@ -243,30 +247,43 @@ const IncidentsPage: React.FC = () => {
                     <span className="text-xs font-bold text-foreground/80">{incident.status}</span>
                   </div>
                 </td>
-                <td className="px-6 py-4">
+                <td className="px-6 py-4 hidden xl:table-cell">
                    <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
                       <Terminal className="h-3 w-3" />
                       {incident.serviceName}
                    </div>
                 </td>
-                <td className="px-6 py-4 text-xs font-mono text-muted-foreground">
+                <td className="px-6 py-4 text-xs font-mono text-muted-foreground hidden sm:table-cell">
                   <div className="flex items-center gap-2">
                     <Clock className="h-3 w-3" />
                     {new Date(incident.createdAt).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
                   </div>
                 </td>
                 <td className="px-6 py-4 text-right">
-                  <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center justify-end gap-1 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button 
+                      className="btn-ghost text-primary hover:bg-primary/10" 
+                      title="AI Reasoninig (RCA)"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate('/ai-chat', { state: { initialMessage: `/rca ${incident.id}` } });
+                      }}
+                    >
+                      <BrainCircuit className="h-4 w-4" />
+                    </button>
                     {incident.status !== 'RESOLVED' && (
                       <button 
                         className="btn-ghost text-emerald-500 hover:bg-emerald-500/10" 
                         title="Resolve Incident"
-                        onClick={() => handleResolve(incident.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleResolve(incident.id)
+                        }}
                       >
                         <CheckCircle2 className="h-4 w-4" />
                       </button>
                     )}
-                    <button className="btn-ghost" title="View Trace"><ExternalLink className="h-4 w-4" /></button>
+                    <button className="btn-ghost hidden sm:inline-flex" title="View Trace"><ExternalLink className="h-4 w-4" /></button>
                   </div>
                 </td>
               </tr>

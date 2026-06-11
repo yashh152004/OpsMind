@@ -171,74 +171,65 @@ public class GeminiService {
                 String model = aiConfig.getModelName();
                 if (model == null || model.isEmpty()) model = "gemini-1.5-flash";
                 
-                // Use stable v1 endpoint instead of v1beta unless specified
                 String urlTemplate = aiConfig.getUrl();
                 if (urlTemplate == null || urlTemplate.isEmpty()) {
                     urlTemplate = "https://generativelanguage.googleapis.com/v1/models/{model}:generateContent";
                 }
                 
                 String baseUrl = urlTemplate.replace("{model}", model);
-                String fullUrl = baseUrl + "?key=" + aiConfig.getKey();
+                String fullUrl = baseUrl + "?key=" + aiConfig.getKey().trim();
                 
-                logger.info("Executing AI Request [Attempt {}] to model: {} | URL: {}", attempt + 1, model, baseUrl);
+                logger.info("Executing AI Request [Attempt {}] | Model: {} | URL: {}", 
+                    attempt + 1, model, baseUrl);
                 
                 String response = restTemplate.postForObject(fullUrl, entity, String.class);
                 
-                if (response == null) {
-                    throw new RuntimeException("API returned empty response");
-                }
+                if (response == null) throw new RuntimeException("API returned empty response");
                 
                 JsonNode root = objectMapper.readTree(response);
                 JsonNode candidates = root.path("candidates");
                 
                 if (candidates.isArray() && candidates.size() > 0) {
-                    JsonNode firstCandidate = candidates.get(0);
-                    JsonNode textNode = firstCandidate.path("content").path("parts").get(0).path("text");
-                    
+                    JsonNode textNode = candidates.get(0).path("content").path("parts").get(0).path("text");
                     if (textNode.isMissingNode()) {
-                        String finishReason = firstCandidate.path("finishReason").asText();
-                        throw new RuntimeException("AI stopped unexpectedly. Reason: " + finishReason);
+                        throw new RuntimeException("Candidate return but content is missing. Safety filter might be active.");
                     }
-                    
                     return textNode.asText();
                 } else {
-                    JsonNode errorNode = root.path("error");
-                    if (!errorNode.isMissingNode()) {
-                        String errorMsg = errorNode.path("message").asText();
-                        int errorCode = errorNode.path("code").asInt();
-                        throw new RuntimeException("Gemini API Error [" + errorCode + "]: " + errorMsg);
+                    JsonNode error = root.path("error");
+                    if (!error.isMissingNode()) {
+                        return "GEMINI_ERROR: " + error.path("message").asText() + " (Code: " + error.path("code").asText() + ")";
                     }
-                    throw new RuntimeException("No candidates found in AI response. Payload: " + response);
+                    throw new RuntimeException("No candidates in response: " + response);
+                }
+            } catch (org.springframework.web.client.HttpStatusCodeException e) {
+                lastException = e;
+                String errorBody = e.getResponseBodyAsString();
+                logger.error("AI SUBSYSTEM HTTP FAILURE [{}]: {}", e.getStatusCode(), errorBody);
+                
+                if (e.getStatusCode().value() == 404) {
+                    return "GEMINI_FALLBACK_SIGNAL\nError: Model Not Found (404)\nDiagnostic: The model " + aiConfig.getModelName() + " was not found at the specified endpoint.";
+                }
+                if (e.getStatusCode().value() == 403 || e.getStatusCode().value() == 401) {
+                    return "GEMINI_FALLBACK_SIGNAL\nError: Authentication Failed (403)\nDiagnostic: The API key provided is invalid for this endpoint.";
+                }
+                
+                attempt++;
+                if (attempt <= maxRetries) {
+                    try { Thread.sleep(1000); } catch (InterruptedException ignored) {}
                 }
             } catch (Exception e) {
-                attempt++;
                 lastException = e;
-                logger.error("AI SUBSYSTEM FAILURE [Attempt {}]: {}", attempt, e.getMessage());
-                
-                // Specific handling for common errors
-                if (e.getMessage().contains("404")) {
-                    logger.error("CRITICAL: Gemini Model Not Found. Model used: {}", aiConfig.getModelName());
-                    break; // Don't retry on 404
-                }
-                if (e.getMessage().contains("401") || e.getMessage().contains("403")) {
-                    logger.error("CRITICAL: Gemini Authentication Failed. Check API Key.");
-                    break; // Don't retry on Auth failure
-                }
-                
+                logger.error("AI SUBSYSTEM UNKNOWN FAILURE: {}", e.getMessage());
+                attempt++;
                 if (attempt <= maxRetries) {
-                    try { Thread.sleep(1000 * attempt); } catch (InterruptedException ignored) {}
+                    try { Thread.sleep(1000); } catch (InterruptedException ignored) {}
                 }
             }
         }
 
-        // Final Fallback
-        String diagnostic = lastException != null ? lastException.getMessage() : "Unknown Connectivity Error";
-        logger.error("GEMINI-API-CONNECT FAILURE: Exhausted all retries. Diagnostic: {}", diagnostic);
-        
         return "GEMINI_FALLBACK_SIGNAL\n" +
-               "Error: Service Temporarily Unavailable\n" +
-               "Subsystem: GEMINI-API-CONNECT\n" +
-               "Diagnostic: " + diagnostic + "\n\n" +
-               "The AI engine is currently unreachable. Please verify your Gemini API key and internet connectivity.";
+               "Error: Service Unreachable\n" +
+               "Diagnostic: " + (lastException != null ? lastException.getMessage() : "Unknown Connection Failure");
     }
 }

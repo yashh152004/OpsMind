@@ -11,6 +11,7 @@ import {
   PlusCircle
 } from 'lucide-react'
 import { apiClient } from '@/services/api'
+import { useLocation } from 'react-router-dom'
 import { cn } from '@/utils/cn'
 
 interface Message {
@@ -20,10 +21,24 @@ interface Message {
 }
 
 const AiChatPage: React.FC = () => {
+  const location = useLocation()
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
+
+  // Handle auto-triggering a message from navigation state (like RCA)
+  useEffect(() => {
+    const state = location.state as { initialMessage?: string }
+    if (state?.initialMessage) {
+        setInput(state.initialMessage)
+        // We delay slightly to ensure the component is fully ready
+        setTimeout(() => {
+            const sendBtn = document.getElementById('ai-send-btn')
+            sendBtn?.click()
+        }, 100)
+    }
+  }, [location.state])
 
   useEffect(() => {
     scrollRef.current?.scrollTo(0, scrollRef.current.scrollHeight)
@@ -50,10 +65,18 @@ const AiChatPage: React.FC = () => {
         timestamp: new Date()
       }
       setMessages(prev => [...prev, assistantMessage])
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Chat error:', error);
+      
+      // Extract specific error message from structured backend response
+      const serverMessage = error.response?.data?.message || error.response?.data?.details;
+      const displayContent = serverMessage 
+        ? `SUBSYSTEM_ERROR: ${serverMessage}\n\n${error.response?.data?.details || ''}` 
+        : "CRITICAL FAILURE: AI subsystem is offline. Verify backend connectivity and Gemini API configurations.";
+
       const errorMessage: Message = {
         role: 'assistant',
-        content: "CRITICAL FAILURE: AI endpoint unreachable. Check system logs for subsystem ID: 'GEMINI-API-CONNECT'.",
+        content: displayContent,
         timestamp: new Date()
       }
       setMessages(prev => [...prev, errorMessage])
@@ -180,6 +203,7 @@ const AiChatPage: React.FC = () => {
                   placeholder="Ask a technical question... (e.g. 'Summarize S1 incidents from the last 2 hours')"
                 />
                 <button 
+                  id="ai-send-btn"
                   onClick={handleSend}
                   disabled={!input.trim() || isLoading}
                   className="absolute right-3 bottom-3 p-2 bg-primary text-white rounded hover:bg-blue-600 disabled:opacity-50 transition-all shadow-lg shadow-blue-500/20"

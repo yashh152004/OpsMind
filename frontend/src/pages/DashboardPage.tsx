@@ -233,10 +233,10 @@ const DashboardPage: React.FC = () => {
               <Zap className="h-4 w-4 fill-primary" />
               <span className="text-sm font-bold uppercase tracking-widest text-[#2563EB]">AI Risk Detection System</span>
            </div>
-           <button className="text-xs text-primary font-bold hover:underline">Full Log Report</button>
+           <button className="text-xs text-primary font-bold hover:underline">Analysis Report</button>
         </div>
-        <div className="p-6">
-           <table className="w-full text-left">
+        <div className="p-6 overflow-x-auto">
+           <table className="w-full text-left min-w-[600px]">
               <thead>
                 <tr className="text-[10px] text-muted-foreground uppercase tracking-widest">
                   <th className="pb-4">Risk Profile</th>
@@ -248,20 +248,22 @@ const DashboardPage: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-border">
                 {(stats?.riskProfiles || [
-                  { id: 1, type: 'Notice', context: 'Baseline stability - Analyzing patterns', conf: '98%', status: 'STABLE' }
+                  { id: 1, type: 'Notice', context: 'Baseline stability - Analyzing patterns', conf: '98%', status: 'STABLE' },
+                  { id: 2, type: 'Warning', context: 'Memory pressure detected in US-EAST-1B', conf: '84%', status: 'MONITORING' }
                 ]).map((item: any, idx: number) => (
-                  <tr key={item.id || idx} className="text-sm hover:bg-accent/10">
+                  <tr key={item.id || idx} className="text-sm hover:bg-accent/10 transition-colors">
                     <td className="py-4">
                        <span className={cn(
                          "status-badge",
-                         item.type === 'Critical' ? "badge-critical" : "badge-warning"
+                         item.type === 'Critical' ? "badge-critical" : 
+                         item.type === 'Warning' ? "badge-warning" : "badge-info"
                        )}>{item.type}</span>
                     </td>
                     <td className="py-4 font-mono text-xs">{item.context}</td>
                     <td className="py-4 font-bold">{item.conf}</td>
                     <td className="py-4 font-bold text-[10px] text-muted-foreground">{item.status}</td>
                     <td className="py-4 text-right">
-                       <button className="text-primary hover:text-blue-400 transition-colors">
+                       <button className="text-primary hover:text-blue-400 transition-all p-1 hover:bg-primary/10 rounded">
                          <ExternalLink className="h-4 w-4" />
                        </button>
                     </td>

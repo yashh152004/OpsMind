@@ -66,7 +66,7 @@ const AlertsPage: React.FC = () => {
     <div className="space-y-4 page-transition pb-20">
       {/* Search & Control Strip */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex-1 max-w-xl relative group">
+        <div className="flex-1 w-full relative group">
            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
            <input 
              type="text" 
@@ -76,12 +76,12 @@ const AlertsPage: React.FC = () => {
              onChange={(e) => setSearchTerm(e.target.value)}
            />
         </div>
-        <div className="flex items-center gap-2">
-          <button className="btn-secondary h-10 text-xs gap-2" onClick={handleExport}>
-             <Download className="h-4 w-4" /> Export
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          <button className="btn-secondary h-10 text-xs gap-2 flex-1 md:flex-none justify-center" onClick={handleExport}>
+             <Download className="h-4 w-4" /> <span className="hidden sm:inline">Export</span>
           </button>
-          <button className="btn-secondary h-10 text-xs gap-2 text-destructive hover:bg-destructive/10">
-             <BellOff className="h-4 w-4" /> Silence Stream
+          <button className="btn-secondary h-10 text-xs gap-2 text-destructive hover:bg-destructive/10 flex-1 md:flex-none justify-center border-destructive/20 bg-destructive/5 font-bold">
+             <BellOff className="h-4 w-4" /> <span className="hidden sm:inline">Silence Stream</span>
           </button>
         </div>
       </div>
@@ -110,9 +110,9 @@ const AlertsPage: React.FC = () => {
               <tr className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                 <th className="px-5 py-3">Source</th>
                 <th className="px-5 py-3">Alert Payload</th>
-                <th className="px-5 py-3">Monitor ID</th>
-                <th className="px-5 py-3">Status</th>
-                <th className="px-5 py-3">Timestamp</th>
+                <th className="px-5 py-3 hidden xl:table-cell">Monitor ID</th>
+                <th className="px-5 py-3 hidden sm:table-cell">Status</th>
+                <th className="px-5 py-3 hidden lg:table-cell">Timestamp</th>
                 <th className="px-5 py-3 text-right">Actions</th>
               </tr>
             </thead>
@@ -138,24 +138,24 @@ const AlertsPage: React.FC = () => {
                     <div className="text-sm font-bold leading-none">{alert.alertName}</div>
                     <div className="text-[10px] text-muted-foreground mt-1.5 font-mono line-clamp-1">{alert.message}</div>
                   </td>
-                  <td className="px-5 py-4">
-                    <code className="text-[10px] bg-accent/40 px-1.5 py-0.5 rounded text-primary">MON-8B2-X</code>
+                  <td className="px-5 py-4 hidden xl:table-cell">
+                    <code className="text-[10px] bg-accent/40 px-1.5 py-0.5 rounded text-primary border border-primary/20">MON-8B2-X</code>
                   </td>
-                  <td className="px-5 py-4">
+                  <td className="px-5 py-4 hidden sm:table-cell">
                     <span className={cn(
                       "status-badge",
                       alert.status === 'TRIGGERED' ? "badge-critical" : "badge-success"
                     )}>{alert.status}</span>
                   </td>
-                  <td className="px-5 py-4 text-[10px] font-mono text-muted-foreground">
+                  <td className="px-5 py-4 text-[10px] font-mono text-muted-foreground hidden lg:table-cell">
                     {new Date(alert.timestamp).toLocaleTimeString()}
                   </td>
                   <td className="px-5 py-4 text-right">
-                    <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center justify-end gap-1.5 sm:opacity-0 group-hover:opacity-100 transition-opacity">
                        {alert.status === 'TRIGGERED' && (
                          <button 
                           title="Acknowledge" 
-                          className="btn-ghost p-1.5 text-emerald-500 hover:bg-emerald-500/10"
+                          className="btn-ghost p-2 text-emerald-500 hover:bg-emerald-500/10 rounded-full"
                           onClick={() => handleAcknowledge(alert.id)}
                          >
                            <CheckCircle2 className="h-4 w-4" />
@@ -164,13 +164,13 @@ const AlertsPage: React.FC = () => {
                        {alert.status !== 'RESOLVED' && (
                         <button 
                           title="Resolve Signal" 
-                          className="btn-ghost p-1.5 text-blue-500 hover:bg-blue-500/10"
+                          className="btn-ghost p-2 text-blue-500 hover:bg-blue-500/10 rounded-full"
                           onClick={() => handleResolve(alert.id)}
                         >
                           <CheckCircle2 className="h-4 w-4" />
                         </button>
                        )}
-                       <button title="View Detail" className="btn-ghost p-1.5"><ArrowRight className="h-4 w-4" /></button>
+                       <button title="View Detail" className="btn-ghost p-2 rounded-full border border-transparent hover:border-border"><ArrowRight className="h-4 w-4" /></button>
                     </div>
                   </td>
                 </tr>

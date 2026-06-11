@@ -15,7 +15,12 @@ public class GeminiRequest {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class Content {
+        private String role = "user";
         private List<Part> parts;
+
+        public Content(List<Part> parts) {
+            this.parts = parts;
+        }
     }
 
     @Data
