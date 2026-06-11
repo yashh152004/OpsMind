@@ -18,13 +18,21 @@ import {
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import { exportToCSV } from '@/utils/export'
+import { useAlertStream } from '@/hooks/useAlertStream'
+import { toast } from 'sonner'
 
 const AlertsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const { data: alerts, isLoading, refetch } = useQuery({
     queryKey: ['alerts'],
     queryFn: () => apiClient.getAlerts('default'),
-    refetchInterval: 10000 
+  })
+
+  const { isConnected } = useAlertStream((newAlert) => {
+    toast.error(`New Alert: ${newAlert.alertName}`, {
+      description: newAlert.message,
+    })
+    refetch()
   })
 
   const filteredAlerts = alerts?.filter((a: any) => 
@@ -79,12 +87,13 @@ const AlertsPage: React.FC = () => {
       </div>
 
       {/* Alert Metadata Summary */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
          {[
            { label: 'Triggered', value: alerts?.filter((a:any) => a.status === 'TRIGGERED').length || 0, color: 'text-red-500' },
            { label: 'Active Sinks', value: '14', color: 'text-blue-500' },
            { label: 'Signal Noise', value: '4%', color: 'text-muted-foreground' },
-           { label: 'Engine Health', value: '100%', color: 'text-emerald-500' }
+           { label: 'Engine Health', value: '100%', color: 'text-emerald-500' },
+           { label: 'Live Connection', value: isConnected ? 'CONNECTED' : 'RECONNECTING', color: isConnected ? 'text-emerald-500' : 'text-orange-500' }
          ].map(stat => (
            <div key={stat.label} className="enterprise-card p-3 flex items-center justify-between">
               <span className="text-[10px] font-bold uppercase text-muted-foreground">{stat.label}</span>

@@ -22,7 +22,18 @@ public class AiController {
         if (userMessage == null || userMessage.trim().isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Message cannot be empty"));
         }
-        String response = geminiService.generateChatResponse(userMessage);
+        
+        String response;
+        if (userMessage.startsWith("/rca ")) {
+            try {
+                Long id = Long.parseLong(userMessage.substring(5).trim());
+                response = geminiService.performRCA(id);
+            } catch (Exception e) {
+                response = "Invalid Incident ID for RCA. Usage: /rca <id>";
+            }
+        } else {
+            response = geminiService.generateChatResponse(userMessage);
+        }
         return ResponseEntity.ok(Map.of("response", response));
     }
 

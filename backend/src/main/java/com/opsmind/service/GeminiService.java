@@ -102,6 +102,33 @@ public class GeminiService {
         }
     }
 
+    public String performRCA(Long incidentId) {
+        Incident incident = incidentRepository.findById(incidentId).orElse(null);
+        if (incident == null) return "Incident not found.";
+
+        List<Alert> relatedAlerts = alertRepository.findAll().stream()
+                .filter(a -> a.getTimestamp().isAfter(incident.getCreatedAt().minusHours(1)) &&
+                             a.getTimestamp().isBefore(incident.getCreatedAt().plusHours(1)))
+                .toList();
+
+        String alertContext = relatedAlerts.stream()
+                .map(a -> String.format("[%s] %s: %s", a.getTimestamp(), a.getAlertName(), a.getMessage()))
+                .collect(Collectors.joining("\n"));
+
+        String prompt = String.format(
+            "Perform Root Cause Analysis (RCA) for the following incident:\n\n" +
+            "INCIDENT: %s\n" +
+            "DESCRIPTION: %s\n" +
+            "SERVICE: %s\n\n" +
+            "RELATED_ALERTS:\n%s\n\n" +
+            "Provide a structured RCA report with:\n1. Execution Summary\n2. Probable Cause\n3. Evidence\n4. Recommended Action",
+            incident.getTitle(), incident.getDescription(), incident.getServiceName(), 
+            alertContext.isEmpty() ? "No related alerts found." : alertContext
+        );
+
+        return generateChatResponse(prompt);
+    }
+
     public String generateChatResponse(String message) {
         String context = getSystemContext();
         String systemPrompt = 

@@ -42,8 +42,7 @@ public class SummaryController {
                 .filter(a -> "CRITICAL".equals(a.getSeverity()) && !"RESOLVED".equals(a.getStatus()))
                 .count();
         
-        // Calculate MTTR in minutes (last 10 resolved incidents)
-        long mttr = 45; // Default fallback
+        long mttr = 45; 
         List<Incident> resolved = allIncidents.stream()
                 .filter(i -> "RESOLVED".equals(i.getStatus()) && i.getCreatedAt() != null && i.getUpdatedAt() != null)
                 .limit(10)
@@ -60,9 +59,8 @@ public class SummaryController {
         stats.put("activeIncidents", activeIncidents);
         stats.put("criticalAlerts", criticalAlerts);
         stats.put("mttr", mttr + "m");
-        stats.put("slaStatus", activeIncidents > 5 ? "AT_RISK" : "HEALTHY");
+        stats.put("slaStatus", activeIncidents > 3 ? "AT_RISK" : "HEALTHY");
         
-        // Distribution
         long p1 = allIncidents.stream().filter(i -> "P1".equals(i.getSeverity())).count();
         long p2 = allIncidents.stream().filter(i -> "P2".equals(i.getSeverity())).count();
         long p3 = allIncidents.stream().filter(i -> "P3".equals(i.getSeverity())).count();
@@ -73,22 +71,20 @@ public class SummaryController {
             Map.of("name", "P3", "count", p3)
         ));
 
-        // Predictive Risks (AI-Driven Mock)
         List<Map<String, String>> risks = new ArrayList<>();
         if (criticalAlerts > 0) {
-            risks.add(Map.of("type", "Critical", "context", "Chain reaction from " + allAlerts.get(0).getAlertName(), "conf", "94%", "status", "PREDICTED"));
+            risks.add(Map.of("type", "Critical", "context", "Cascading failure predicted in cluster-01", "conf", "94%", "status", "PREDICTED"));
         } else {
-            risks.add(Map.of("type", "Notice", "context", "Normal baseline operations", "conf", "99%", "status", "STABLE"));
+            risks.add(Map.of("type", "Notice", "context", "System baseline optimized", "conf", "99%", "status", "STABLE"));
         }
         stats.put("riskProfiles", risks);
 
-        // Performance Series
         List<Map<String, Object>> series = new ArrayList<>();
         LocalDateTime now = LocalDateTime.now();
         for (int i = 5; i >= 0; i--) {
             Map<String, Object> point = new HashMap<>();
             point.put("time", now.minusHours(i * 4).format(java.time.format.DateTimeFormatter.ofPattern("HH:mm")));
-            point.put("value", 40 + (activeIncidents * 10) + (new Random().nextInt(20)));
+            point.put("value", 30 + (activeIncidents * 15) + (new Random().nextInt(15)));
             series.add(point);
         }
         stats.put("performanceSeries", series);
