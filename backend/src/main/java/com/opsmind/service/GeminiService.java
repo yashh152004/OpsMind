@@ -2,6 +2,8 @@ package com.opsmind.service;
 
 import com.opsmind.config.AiConfig;
 import com.opsmind.dto.GeminiRequest;
+import com.opsmind.model.Alert;
+import com.opsmind.model.Incident;
 import com.opsmind.repository.AlertRepository;
 import com.opsmind.repository.IncidentRepository;
 import com.opsmind.repository.InfrastructureRepository;
