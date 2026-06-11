@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import SockJS from 'sockjs-client'
-import { Client } from '@stomp/stompjs'
+import { Client, IMessage } from '@stomp/stompjs'
 
 const WS_URL = import.meta.env.VITE_WS_URL || 'http://localhost:8080/api/ws-alerts'
 
@@ -11,7 +11,7 @@ export const useAlertStream = (onAlertReceived: (alert: any) => void) => {
     const socket = new SockJS(WS_URL)
     const stompClient = new Client({
       webSocketFactory: () => socket,
-      debug: (str) => console.log('STOMP: ' + str),
+      debug: (str: string) => console.log('STOMP: ' + str),
       reconnectDelay: 5000,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
@@ -19,7 +19,7 @@ export const useAlertStream = (onAlertReceived: (alert: any) => void) => {
 
     stompClient.onConnect = () => {
       setIsConnected(true)
-      stompClient.subscribe('/topic/alerts', (message) => {
+      stompClient.subscribe('/topic/alerts', (message: IMessage) => {
         if (message.body) {
           const alert = JSON.parse(message.body)
           onAlertReceived(alert)
