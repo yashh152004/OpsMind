@@ -6,8 +6,8 @@ services:
     image: mysql:8.0
     container_name: opsmind-mysql
     environment:
-      MYSQL_DATABASE: opsmind
-      MYSQL_ROOT_PASSWORD: ***SCRUBBED_DB_PASSWORD***
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-opsmind}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
     ports:
       - "3306:3306"
     volumes:
