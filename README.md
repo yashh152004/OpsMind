@@ -272,7 +272,7 @@ MIT License - See LICENSE file
 - 📖 **Docs**: Check `docs/` and README files
 - 🐛 **Issues**: GitHub Issues for bugs
 - 💬 **Discussions**: GitHub Discussions for questions
-- 📧 **Email**: [support email]
+- 📧 **Email**: yashwardhankumar15@gmail.com
 
 ---
 
