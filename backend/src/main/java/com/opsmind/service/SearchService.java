@@ -24,28 +24,41 @@ public class SearchService {
         this.infrastructureRepository = infrastructureRepository;
     }
 
-    public Map<String, List<?>> search(String query) {
+    public List<SearchResultDTO> search(String query) {
         String lowerQuery = query.toLowerCase();
-        Map<String, List<?>> results = new HashMap<>();
+        List<SearchResultDTO> results = new ArrayList<>();
 
         // 1. Search Incidents
-        results.put("incidents", incidentRepository.findAll().stream()
-                .filter(i -> i.getTitle().toLowerCase().contains(lowerQuery) || 
-                             i.getServiceName().toLowerCase().contains(lowerQuery))
-                .limit(5).toList());
+        incidentRepository.findAll().stream()
+                .filter(i -> i.getTitle().toLowerCase().contains(lowerQuery))
+                .limit(3)
+                .forEach(i -> results.add(new SearchResultDTO("INCIDENT", i.getTitle(), "ID: #" + i.getId() + " | " + i.getServiceName())));
 
         // 2. Search Alerts
-        results.put("alerts", alertRepository.findAll().stream()
-                .filter(a -> a.getAlertName().toLowerCase().contains(lowerQuery) || 
-                             a.getMessage().toLowerCase().contains(lowerQuery))
-                .limit(5).toList());
+        alertRepository.findAll().stream()
+                .filter(a -> a.getAlertName().toLowerCase().contains(lowerQuery) || a.getMessage().toLowerCase().contains(lowerQuery))
+                .limit(3)
+                .forEach(a -> results.add(new SearchResultDTO("ALERT", a.getAlertName(), a.getSource())));
 
         // 3. Search Infrastructure
-        results.put("infrastructure", infrastructureRepository.findAll().stream()
-                .filter(n -> n.getName().toLowerCase().contains(lowerQuery) || 
-                             n.getType().toLowerCase().contains(lowerQuery))
-                .limit(5).toList());
+        infrastructureRepository.findAll().stream()
+                .filter(n -> n.getName().toLowerCase().contains(lowerQuery))
+                .limit(3)
+                .forEach(n -> results.add(new SearchResultDTO("INFRASTRUCTURE", n.getName(), n.getType() + " | " + n.getStatus())));
 
         return results;
     }
+
+    public static class SearchResultDTO {
+        public String type;
+        public String title;
+        public String subtitle;
+
+        public SearchResultDTO(String type, String title, String subtitle) {
+            this.type = type;
+            this.title = title;
+            this.subtitle = subtitle;
+        }
+    }
+
 }

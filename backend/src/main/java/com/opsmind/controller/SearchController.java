@@ -18,9 +18,9 @@ public class SearchController {
     }
 
     @GetMapping
-    public ResponseEntity<Map<String, List<?>>> globalSearch(@RequestParam String q) {
+    public ResponseEntity<List<SearchService.SearchResultDTO>> globalSearch(@RequestParam String q) {
         if (q == null || q.trim().length() < 2) {
-            return ResponseEntity.ok(Map.of());
+            return ResponseEntity.ok(List.of());
         }
         return ResponseEntity.ok(searchService.search(q));
     }

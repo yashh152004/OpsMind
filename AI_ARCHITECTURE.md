@@ -1,29 +1,32 @@
 # AI_ARCHITECTURE.md
 
-## 🏗️ Native OpsMind SRE Intelligence Architecture
+## 🏗️ Distributed Enterprise Intelligence Architecture
 
-### 1. Overview
-The OpsMind AI has been transformed from a generic LLM proxy into a deterministic **Domain Reasoning Engine (DRE)**. This architecture ensures 100% data privacy and zero latency by processing SRE logic directly within the Spring Boot application context.
+### 1. Architectural Overview
+OpsMind V2 utilizes a **Dual-Service AI Architecture**. This decouples core business logic and data persistence (Java/Spring Boot) from experimental reasoning and machine learning (Python/FastAPI).
 
-### 2. Multi-Layer Intelligence Model
+```mermaid
+graph TD
+    A[React Frontend] --> B[Spring Boot System of Record]
+    B --> C[(MySQL Database)]
+    B <--> D[Python AI Microservice]
+    D --> E[FAISS Vector Store]
+    D --> F[ML Models]
+    D --> G[Reasoning Engine]
+```
 
-| Layer | Component | Responsibility |
+### 2. Service Responsibilities
+
+| Service | Technology | Primary Role |
 | :--- | :--- | :--- |
-| **Layer 1** | **Operational Intelligence** | Ingests raw Alert, Incident, and Infrastructure telemetry via JPA repositories. |
-| **Layer 2** | **Correlation Engine** | Groups telemetry signals by `serviceName`, `source`, and `timestamp` to identify clusters of failure. |
-| **Layer 3** | **Deduction Engine** | Applies SRE heuristics (e.g., Latency + CPU Spikes = Thread Starvation) to determine Root Cause. |
-| **Layer 4** | **Recommendation Engine** | Generates deterministic recovery steps (Scaling, Configuration tuning, Patching) based on findings. |
-| **Layer 5** | **Presentation Layer** | Formats findings into structured, technical reports for the SRE operator. |
+| **System of Record** | Spring Boot 3.5 | Security, User Management, Telemetry Ingestion, Search Orchestration. |
+| **Intelligence Engine**| Python / FastAPI | Intent Classification, RAG, Root Cause Correlation, Anomaly Scoring. |
 
-### 3. Reasoning Data Flow
-1. **Query**: User asks "Why is the checkout service failing?"
-2. **Scan**: Engine queries `IncidentRepository` and `AlertRepository` for "checkout-service" signals in the last 60 minutes.
-3. **Cross-Reference**: Engine queries `InfrastructureRepository` for heath status of nodes linked to the service.
-4. **Synthesis**: Engine correlates "Database Latency" alerts with "Primary DB" infrastructure degradation.
-5. **Report**: Generates RCA report with specific evidence and pool-size recommendations.
+### 3. Reasoning Pipeline
+1. **Request**: User Query + Telemetry Context dispatched from Spring Boot.
+2. **Intent Analysis**: Python engine uses semantic pattern matching to categorize query (RCA, Lookup, Prediction).
+3. **Data Synthesis**: Correlates risk scores with alert clusters to identify "Suspected Culprits."
+4. **Report Generation**: Synthesizes a technical investigation report with actionable recommendations.
 
-### 4. Benefits
-- **Deterministic**: Same telemetry always produces the same (correct) conclusion.
-- **Privacy**: No platform data ever leaves the local environment.
-- **Speed**: Conclusion generated in milliseconds without network hops.
-- **Cost**: Zero API token costs.
+### 4. Innovation: Intent-Aware RAG
+Instead of a simple vector search, OpsMind V2 uses **Scoped Retrieval**. It only searches the relevant domain (e.g. searching "InfrastructureAsset" only when intent is `INFRA_ANALYSIS`), significantly reducing "hallucinations" and increasing diagnostic precision.
