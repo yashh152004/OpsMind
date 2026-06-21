@@ -2,8 +2,10 @@ package com.opsmind.controller;
 
 import com.opsmind.model.Alert;
 import com.opsmind.model.Incident;
+import com.opsmind.model.SystemMetric;
 import com.opsmind.repository.AlertRepository;
 import com.opsmind.repository.IncidentRepository;
+import com.opsmind.repository.SystemMetricRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -92,8 +94,5 @@ public class SummaryController {
 
         return ResponseEntity.ok(stats);
     }
-
-        
-        return ResponseEntity.ok(stats);
-    }
 }
+
