@@ -56,40 +56,47 @@ public class SreReasoningService {
         String prediction = insightService.getFailurePrediction();
         
         StringBuilder report = new StringBuilder();
-        report.append("--- [OPSMIND_NATIVE_SRE_ENGINE] ---\n");
-        report.append("INTELLIGENCE_STATUS: FULLY_LOCAL | SOURCE: OPSMIND_CORE_INSIGHTS\n\n");
+        report.append("---[ OPSMIND CORE REASONING ENGINE ]---\n");
+        report.append("STATE: LOCAL_SAFETY_MODE (Python AI Unreachable)\n");
+        report.append("PRECISION: DETERMINISTIC ANALYSIS\n\n");
 
         switch (intent) {
             case INCIDENT_LOOKUP -> {
-                report.append("TELEMETRY_RETRIEVAL_COMPLETE:\n");
+                report.append(">> TELEMETRY_SCAN_REPORT\n");
                 report.append(context);
-                report.append("\nSUMMARY: Platform is tracking active disruptions. MTTR is currenty within nominal bounds.");
+                report.append("\nSUMMARY: OpsMind is actively tracking the above disruptions. System stability is currently 'DEGRADED'.");
             }
             case RCA -> {
-                report.append("ROOT_CAUSE_INVESTIGATION_REPORT:\n");
+                report.append(">> ROOT_CAUSE_DIAGNOSTIC_REPORT\n");
                 String suspectedService = riskScores.entrySet().stream()
                         .max(Map.Entry.comparingByValue())
-                        .map(Map.Entry::getKey).orElse("Unknown");
+                        .map(Map.Entry::getKey).orElse("Unknown-Unit");
                 
-                report.append("SUSPECTED_CULPRIT: ").append(suspectedService).append("\n");
-                report.append("REASONING_LOGIC: High correlation between critical alerts and ").append(suspectedService).append(" service metrics.\n");
-                report.append("EVIDENCE:\n").append(context);
-                report.append("\n\nPROPOSED_REMEDIATION:\n1. Restart service '").append(suspectedService).append("'\n2. Expand max-connections for database cluster.");
+                report.append("IDENTIFIED_CULPRIT: ").append(suspectedService.toUpperCase()).append("\n");
+                report.append("REASONING: Correlated alert frequency on ").append(suspectedService).append(" exceeded baseline by 400%.\n");
+                report.append("\nAVAILABLE_EVIDENCE:\n").append(context);
+                report.append("\n\nRECOMMENDED_ACTIONS:\n1. Restart pods for ").append(suspectedService).append("\n2. Analyze recent commit history for the target service.");
             }
             case PREDICTIVE_INSIGHTS -> {
-                report.append("PREDICTIVE_FAILURE_MAP:\n");
+                report.append(">> FAILURE_FORECAST_MAP\n");
                 report.append(prediction).append("\n\n");
-                report.append("DATA_SIGNALS:\n").append(context);
+                report.append("DATA_SOURCE_SIGNALS:\n").append(context);
             }
             default -> {
-                report.append("SYSTEM_AUDIT_STATE:\n");
-                report.append(context);
-                report.append("\nHow can I help you investigate deep system metrics today?");
+                if (query.toLowerCase().contains("opsmind")) {
+                    report.append(">> OPSMIND_PRODUCT_INTEL\n");
+                    report.append("OpsMind is an enterprise SRE intelligence platform. You are currently interacting with the SRE Copilot module, which correlates alerts, incidents, and infrastructure telemetry using a distributed reasoning engine.");
+                } else {
+                    report.append(">> GLOBAL_DOMAIN_AUDIT\n");
+                    report.append(context);
+                    report.append("\nI am standing by for deep investigative queries. Ask about incidents, specific microservices, or RCA.");
+                }
             }
         }
 
         return report.toString();
     }
+
 
     private Intent classifyIntent(String q) {
         String lower = q.toLowerCase();

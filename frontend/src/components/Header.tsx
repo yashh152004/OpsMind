@@ -22,11 +22,16 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
   const { user } = useAuth()
   const navigate = useNavigate()
+  
+  // Search State
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<any[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [showResults, setShowResults] = useState(false)
   const searchRef = useRef<HTMLDivElement>(null)
+
+  // Notification State
+  const [unreadCount, setUnreadCount] = useState(0)
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -46,6 +51,8 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
         try {
           const data = await apiClient.globalSearch(query)
           setResults(data)
+        } catch (e) {
+          console.error("Search failed")
         } finally {
           setIsSearching(false)
         }
@@ -54,9 +61,22 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
         setShowResults(false)
       }
     }, 300)
-
     return () => clearTimeout(delayDebounceFn)
   }, [query])
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const data = await apiClient.getNotifications()
+        setUnreadCount(data.length)
+      } catch (e) {
+        console.error("Failed to fetch notifications")
+      }
+    }
+    fetchNotifications()
+    const interval = setInterval(fetchNotifications, 30000)
+    return () => clearInterval(interval)
+  }, [])
 
   return (
     <header className="h-16 border-b border-border bg-card flex items-center justify-between px-4 md:px-8 sticky top-0 z-[100]">
@@ -80,7 +100,7 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => query.length > 2 && setShowResults(true)}
             className="w-full bg-accent/40 border border-border rounded-md pl-10 pr-12 py-1.5 text-sm focus:bg-background transition-all focus:ring-1 focus:ring-primary focus:border-primary outline-none"
-            placeholder="Search across cluster... (Cmd + K)"
+            placeholder="Search cluster... (Cmd + K)"
           />
           <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none hidden md:flex">
              <kbd className="h-5 px-1.5 bg-background border border-border rounded text-[10px] flex items-center gap-1 text-muted-foreground">
@@ -89,11 +109,10 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
           </div>
         </div>
 
-        {/* Global Results Drawer */}
         {showResults && (
            <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-lg shadow-2xl max-h-[400px] overflow-y-auto z-[200] animate-in fade-in slide-in-from-top-2">
               {results.length === 0 ? (
-                <div className="p-8 text-center text-xs text-muted-foreground">No entities matching "{query}" found in current context.</div>
+                <div className="p-8 text-center text-xs text-muted-foreground">No matches for "{query}"</div>
               ) : (
                 <div className="p-2 space-y-1">
                    {results.map((item, i) => (
@@ -126,9 +145,13 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
       </div>
 
       <div className="flex items-center gap-3 md:gap-6 ml-auto">
-        <button className="text-muted-foreground hover:text-foreground transition-colors relative">
+        <button className="text-muted-foreground hover:text-foreground transition-colors relative" onClick={() => navigate('/alerts')}>
           <Bell className="h-5 w-5" />
-          <span className="absolute -top-1 -right-1 h-2 w-2 bg-primary rounded-full border-2 border-card" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 h-4 w-4 bg-primary text-[10px] text-white flex items-center justify-center rounded-full border-2 border-card font-bold animate-in zoom-in">
+              {unreadCount}
+            </span>
+          )}
         </button>
         <button className="text-muted-foreground hover:text-foreground transition-colors hidden sm:block">
           <HelpCircle className="h-5 w-5" />
@@ -150,5 +173,6 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
     </header>
   )
 }
+
 
 export default Header
