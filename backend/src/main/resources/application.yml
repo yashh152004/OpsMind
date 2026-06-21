@@ -4,7 +4,7 @@ spring:
   datasource:
     url: ${DB_URL:jdbc:mysql://localhost:3306/opsmind?createDatabaseIfNotExist=true}
     username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD}
+    password: ${DB_PASSWORD:}
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
@@ -19,12 +19,14 @@ server:
   servlet:
     context-path: /api
 
-jwt:
-  secret: ${JWT_SECRET}
-  expiration: 86400000 # 24 hours
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.springframework.web: DEBUG
+    com.opsmind: DEBUG
 
-gemini:
-  api:
-    key: ${GEMINI_API_KEY}
-    model-name: gemini-1.5-flash
-    url: https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent
+# OpsMind Platform Configuration
+# Internal Reasoning Engine does not require external API keys.
+jwt:
+  secret: ${JWT_SECRET:amV3dC1zZWNyZXQta2V5LWRldmVsb3BtZW50LXVzZS1vbmx5LW1ha2UtaXQtbG9uZy1lbm91Z2gtZm9yLWgyNTY=}
+  expiration: 86400000 # 24 hours

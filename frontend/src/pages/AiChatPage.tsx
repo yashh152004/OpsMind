@@ -68,11 +68,12 @@ const AiChatPage: React.FC = () => {
     } catch (error: any) {
       console.error('Chat error:', error);
       
-      // Extract specific error message from structured backend response
-      const serverMessage = error.response?.data?.message || error.response?.data?.details;
-      const displayContent = serverMessage 
-        ? `SUBSYSTEM_ERROR: ${serverMessage}\n\n${error.response?.data?.details || ''}` 
-        : "CRITICAL FAILURE: AI subsystem is offline. Verify backend connectivity and Gemini API configurations.";
+      const serverMessage = error.response?.data?.message || error.message;
+      const displayContent = `CRITICAL_FAILURE: Connection to backend failed.\n\n` +
+        `Error: ${serverMessage}\n` +
+        `Status: ${error.response?.status || 'Network Error'}\n` +
+        `URL: ${error.config?.url || 'Unknown'}\n\n` +
+        `Please verify that the backend is running on http://localhost:8080 and that CORS is allowed.`;
 
       const errorMessage: Message = {
         role: 'assistant',

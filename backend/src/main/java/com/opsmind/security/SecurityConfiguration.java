@@ -44,15 +44,12 @@ public class SecurityConfiguration {
         http.csrf(csrf -> csrf.disable())
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests((authorize) ->
-                        authorize.requestMatchers("/auth/**").permitAll()
-                                .requestMatchers("/ai/**").permitAll()
-                                .requestMatchers("/summary/**").permitAll()
-                                .requestMatchers("/incidents/**").permitAll()
-                                .requestMatchers("/alerts/**").permitAll()
-                                .requestMatchers("/analytics/**").permitAll()
-                                .requestMatchers("/infrastructure/**").permitAll()
-                                .requestMatchers("/security/**").permitAll()
-                                .requestMatchers("/search/**").permitAll()
+                        authorize
+                                .requestMatchers(org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/auth/**")).permitAll()
+                                .requestMatchers(org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/ai/**")).permitAll()
+                                .requestMatchers(org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/system/**")).permitAll()
+                                .requestMatchers(org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/simulator/**")).permitAll()
+                                .requestMatchers(org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/error")).permitAll()
                                 .anyRequest().authenticated()
                 ).sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -66,9 +63,10 @@ public class SecurityConfiguration {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
+        // Allow all origins for local development to eliminate CORS as a failure point
+        configuration.setAllowedOriginPatterns(List.of("*"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

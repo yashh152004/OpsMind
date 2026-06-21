@@ -1,19 +1,24 @@
 package com.opsmind.controller;
 
-import com.opsmind.service.GeminiService;
+import com.opsmind.service.SreReasoningService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+/**
+ * OpsMind AI Reasoning Controller
+ * Re-architected to use internally developed Domain Reasoning Engine.
+ * No external LLM dependencies.
+ */
 @RestController
 @RequestMapping("/ai")
 public class AiController {
 
-    private final GeminiService geminiService;
+    private final SreReasoningService sreReasoningService;
 
-    public AiController(GeminiService geminiService) {
-        this.geminiService = geminiService;
+    public AiController(SreReasoningService sreReasoningService) {
+        this.sreReasoningService = sreReasoningService;
     }
 
     @PostMapping("/chat")
@@ -22,35 +27,23 @@ public class AiController {
         if (userMessage == null || userMessage.trim().isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of(
                 "success", false,
-                "message", "Message cannot be empty"
+                "message", "Query cannot be empty"
             ));
         }
         
-        String response;
         try {
-            if (userMessage.startsWith("/rca ")) {
-                Long id = Long.parseLong(userMessage.substring(5).trim());
-                response = geminiService.performRCA(id);
-            } else {
-                response = geminiService.generateChatResponse(userMessage);
-            }
-
-            if (response.startsWith("GEMINI_FALLBACK_SIGNAL")) {
-                 return ResponseEntity.status(503).body(Map.of(
-                    "success", false,
-                    "message", "AI service temporarily unavailable",
-                    "details", response
-                ));
-            }
+            // Processing via Native Domain Reasoning Engine
+            String response = sreReasoningService.investigate(userMessage);
 
             return ResponseEntity.ok(Map.of(
                 "success", true,
-                "response", response
+                "response", response,
+                "engine", "OpsMind-Native-SRE-Reasoning-v1"
             ));
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of(
                 "success", false,
-                "message", "An Internal error occurred while processing AI request",
+                "message", "An Internal error occurred within the Native Reasoning Engine",
                 "error", e.getMessage()
             ));
         }
@@ -58,6 +51,11 @@ public class AiController {
 
     @GetMapping("/health")
     public ResponseEntity<Map<String, Object>> health() {
-        return ResponseEntity.ok(geminiService.getDetailedHealth());
+        return ResponseEntity.ok(Map.of(
+            "status", "UP",
+            "engine", "Native-SRE-Engine",
+            "intelligence_type", "Domain-Specific-Deterministic-Reasoning"
+        ));
     }
 }
+
