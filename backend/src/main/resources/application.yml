@@ -25,8 +25,13 @@ logging:
     org.springframework.web: DEBUG
     com.opsmind: DEBUG
 
-# OpsMind Platform Configuration
-# Internal Reasoning Engine does not require external API keys.
+# OpsMind AI V2 - Enterprise Intelligence Configuration
+gemini:
+  api:
+    key: ${GEMINI_API_KEY:YOUR_GEMINI_API_KEY}
+    model-name: gemini-1.5-flash
+    url: https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent
+
 jwt:
   secret: ${JWT_SECRET:amV3dC1zZWNyZXQta2V5LWRldmVsb3BtZW50LXVzZS1vbmx5LW1ha2UtaXQtbG9uZy1lbm91Z2gtZm9yLWgyNTY=}
   expiration: 86400000 # 24 hours
