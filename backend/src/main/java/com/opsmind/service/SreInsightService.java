@@ -18,24 +18,29 @@ public class SreInsightService {
     private final AlertRepository alertRepository;
     private final IncidentRepository incidentRepository;
     private final InfrastructureRepository infrastructureRepository;
+    private final SystemMetricRepository metricRepository;
+    private final LogRepository logRepository;
 
     public SreInsightService(AlertRepository alertRepository, 
                              IncidentRepository incidentRepository,
-                             InfrastructureRepository infrastructureRepository) {
+                             InfrastructureRepository infrastructureRepository,
+                             SystemMetricRepository metricRepository,
+                             LogRepository logRepository) {
         this.alertRepository = alertRepository;
         this.incidentRepository = incidentRepository;
         this.infrastructureRepository = infrastructureRepository;
+        this.metricRepository = metricRepository;
+        this.logRepository = logRepository;
     }
 
     /**
-     * Simulation of Isolation Forest/Anomaly Detection for alerts.
+     * Anomaly Detection: Groups alerts that share high-frequency signatures.
      */
     public List<Alert> detectAnomalousClusters() {
         List<Alert> recentAlerts = alertRepository.findAll().stream()
                 .filter(a -> a.getTimestamp() != null && a.getTimestamp().isAfter(LocalDateTime.now().minusHours(4)))
                 .toList();
 
-        // Correlation Logic: Find sources with > 3 alerts in 4 hours
         Map<String, Long> groups = recentAlerts.stream()
                 .collect(Collectors.groupingBy(Alert::getSource, Collectors.counting()));
 
@@ -45,43 +50,45 @@ public class SreInsightService {
     }
 
     /**
-     * Calculates Service Risk Score (0-100)
-     * High = 100 (Unstable), Low = 0 (Stable)
+     * Calculates Real-Time Risk Score (0-100) using Live Telemetry.
      */
     public Map<String, Double> calculateRiskScores() {
-        List<Incident> activeIncidents = incidentRepository.findAll().stream()
-                .filter(i -> !"RESOLVED".equals(i.getStatus()))
-                .toList();
-        
-        List<Alert> criticalAlerts = alertRepository.findAll().stream()
-                .filter(a -> !"RESOLVED".equals(a.getStatus()))
-                .toList();
-
-        Set<String> services = new HashSet<>();
-        activeIncidents.forEach(i -> services.add(i.getServiceName()));
-        criticalAlerts.forEach(a -> services.add(a.getSource()));
-
         Map<String, Double> scores = new HashMap<>();
-        for (String service : services) {
-            double score = 0;
-            // Weighted scoring logic
-            score += activeIncidents.stream().filter(i -> i.getServiceName().equalsIgnoreCase(service)).count() * 25.0;
-            score += criticalAlerts.stream().filter(a -> a.getSource().equalsIgnoreCase(service)).count() * 5.0;
-            
-            scores.put(service, Math.min(score, 100.0));
-        }
+        
+        // 1. Analyze Core System Metrics (Local Host)
+        double cpuRisk = calculateMetricDeviation("CPU_USAGE");
+        double memRisk = calculateMetricDeviation("MEMORY_USAGE");
+        long errorLogCount = logRepository.findByLevelOrderByTimestampDesc("ERROR").stream()
+                .filter(l -> l.getTimestamp().isAfter(LocalDateTime.now().minusHours(1)))
+                .count();
+
+        double localHostScore = (cpuRisk * 0.4) + (memRisk * 0.4) + (Math.min(errorLogCount * 15, 20));
+        scores.put("Local-Machine", Math.min(localHostScore, 100.0));
+
+        // 2. Correlation with existing incidents
+        incidentRepository.findAll().stream()
+                .filter(i -> !"RESOLVED".equals(i.getStatus()))
+                .forEach(i -> {
+                    scores.put(i.getServiceName(), scores.getOrDefault(i.getServiceName(), 20.0) + 30.0);
+                });
+        
         return scores;
     }
 
-    public String getFailurePrediction() {
-        Map<String, Double> risks = calculateRiskScores();
-        Optional<Map.Entry<String, Double>> highestRisk = risks.entrySet().stream()
-                .max(Map.Entry.comparingByValue());
+    private double calculateMetricDeviation(String metricName) {
+        List<SystemMetric> history = metricRepository.findTop50ByMetricNameOrderByTimestampDesc(metricName);
+        if (history.size() < 5) return 0.0;
+        double mean = history.stream().mapToDouble(SystemMetric::getMetricValue).average().orElse(0.0);
+        double latest = history.get(0).getMetricValue();
+        return Math.min(Math.abs(latest - mean) * 2, 100.0);
+    }
 
-        if (highestRisk.isPresent() && highestRisk.get().getValue() > 50) {
-            return " [PREDICTION] " + highestRisk.get().getKey() + " has a " + highestRisk.get().getValue() + 
-                   "% probability of critical failure within the next 2 hours based on alert trajectory.";
-        }
-        return " [STABLE] No imminent failures predicted based on isolation forest trend analysis.";
+    public String getFailurePrediction() {
+        Map<String, Double> risk = calculateRiskScores();
+        double maxRisk = risk.values().stream().max(Double::compare).orElse(0.0);
+        
+        if (maxRisk > 80.0) return "CRITICAL: High probability of service failure. Resource saturation or error clustering detected on Local-Machine.";
+        if (maxRisk > 50.0) return "WARNING: System stability is degrading. Increasing trend in error logs detected.";
+        return "STABLE: System operating within normal operational parameters.";
     }
 }

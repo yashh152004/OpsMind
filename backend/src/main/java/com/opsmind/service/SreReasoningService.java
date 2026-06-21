@@ -14,16 +14,23 @@ public class SreReasoningService {
     private final SreInsightService insightService;
     private final PythonAiClient pythonAiClient;
 
+    private final SystemMetricRepository metricRepository;
+    private final LogRepository logRepository;
+
     public SreReasoningService(IncidentRepository incidentRepository,
                                 AlertRepository alertRepository,
                                 InfrastructureRepository infrastructureRepository,
                                 SreInsightService insightService,
-                                PythonAiClient pythonAiClient) {
+                                PythonAiClient pythonAiClient,
+                                SystemMetricRepository metricRepository,
+                                LogRepository logRepository) {
         this.incidentRepository = incidentRepository;
         this.alertRepository = alertRepository;
         this.infrastructureRepository = infrastructureRepository;
         this.insightService = insightService;
         this.pythonAiClient = pythonAiClient;
+        this.metricRepository = metricRepository;
+        this.logRepository = logRepository;
     }
 
     public enum Intent {
@@ -37,6 +44,8 @@ public class SreReasoningService {
         context.put("alerts", alertRepository.findAll());
         context.put("infrastructure", infrastructureRepository.findAll());
         context.put("risk_scores", insightService.calculateRiskScores());
+        context.put("latest_metrics", metricRepository.findTop50ByMetricNameOrderByTimestampDesc("CPU_USAGE"));
+        context.put("latest_logs", logRepository.findTop100ByOrderByTimestampDesc());
         
         // Delegating to specialized Python AI Engine
         Map<String, Object> aiResult = pythonAiClient.getIntelligence(query, context);
