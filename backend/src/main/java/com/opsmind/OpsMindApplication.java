@@ -5,6 +5,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
+@EnableScheduling
 public class OpsMindApplication {
     public static void main(String[] args) {
         // Load .env file from the project root or current directory
