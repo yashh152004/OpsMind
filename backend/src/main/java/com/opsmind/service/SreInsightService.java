@@ -32,7 +32,7 @@ public class SreInsightService {
      */
     public List<Alert> detectAnomalousClusters() {
         List<Alert> recentAlerts = alertRepository.findAll().stream()
-                .filter(a -> a.getCreatedAt() != null && a.getCreatedAt().isAfter(LocalDateTime.now().minusHours(4)))
+                .filter(a -> a.getTimestamp() != null && a.getTimestamp().isAfter(LocalDateTime.now().minusHours(4)))
                 .toList();
 
         // Correlation Logic: Find sources with > 3 alerts in 4 hours
