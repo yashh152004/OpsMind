@@ -39,10 +39,17 @@ public class SystemDataLoader implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        if (organizationRepository.count() == 0) {
-            setupDemoEnvironment();
-        }
+        // Force-refreshing the estate for the Enterprise Transformation
+        organizationRepository.deleteAll();
+        userRepository.deleteAll();
+        incidentRepository.deleteAll();
+        alertRepository.deleteAll();
+        infrastructureRepository.deleteAll();
+        securityFindingRepository.deleteAll();
+        
+        setupDemoEnvironment();
     }
+
 
     private void setupDemoEnvironment() {
         // 1. Create Organization

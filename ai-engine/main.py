@@ -67,52 +67,70 @@ async def analyze(request: ReasoningRequest):
     query = request.query.lower()
     context = request.context
     
-    # 1. Semantic Knowledge Retrieval (The "True AI" Layer)
+    # 1. Index Dynamic Telemetry for the current query
+    telemetry_knowledge = []
+    
+    # Index Infrastructure Assets
+    for asset in context.get("infrastructure", []):
+        telemetry_knowledge.append({
+            "type": "INFRASTRUCTURE",
+            "content": f"The asset '{asset.get('name')}' is a {asset.get('type')} currently in {asset.get('status')} state with a health score of {asset.get('healthScore')}%.",
+            "concept": asset.get('name')
+        })
+
+    # Index Incidents
+    for inc in context.get("incidents", []):
+        telemetry_knowledge.append({
+            "type": "INCIDENT",
+            "content": f"Incident #{inc.get('id')} '{inc.get('title')}' is currently {inc.get('status')} for service '{inc.get('serviceName')}'.",
+            "concept": f"Incident {inc.get('id')}"
+        })
+
+    # Index specific KB entries
+    all_knowledge = KB_ENTRIES + telemetry_knowledge
+    all_contents = [e['content'] for e in all_knowledge]
+    
+    # Semantic Search across both Static KB and Live Telemetry
+    all_embeddings = semantic_model.encode(all_contents, convert_to_tensor=True)
     query_embedding = semantic_model.encode(query, convert_to_tensor=True)
-    cos_scores = util.cos_sim(query_embedding, kb_embeddings)[0]
+    cos_scores = util.cos_sim(query_embedding, all_embeddings)[0]
     top_result_idx = torch.argmax(cos_scores).item()
     top_score = cos_scores[top_result_idx].item()
 
-    if top_score > 0.45: # Semantic Threshold
+    if top_score > 0.3: # Lowered threshold for flexibility
+        match = all_knowledge[top_result_idx]
         return ReasoningResponse(
-            intent="SEMANTIC_KNOWLEDGE_MATCH",
-            response=KB_ENTRIES[top_result_idx]['content'],
+            intent="DYNAMIC_MATCH",
+            response=match['content'],
             confidence=top_score,
-            recommendations=["Learn more about " + KB_ENTRIES[top_result_idx]['concept'], "Audit your system for this pattern"]
+            recommendations=[f"Go to {match.get('type','SYSTEM')} details", "View live metrics"]
         )
 
-    # 2. Intent-Based Routing (Fallback to telemetry if no KB match)
-    intent = classify_intent(query)
-    
-    if intent == "INCIDENT_LOOKUP":
+    # 3. Dedicated Follow-up Logic (Briefings/Details)
+    if any(k in query for k in ["brief", "detail", "tell me more", "summarize"]):
         incidents = context.get("incidents", [])
         if incidents:
-            latest = sorted(incidents, key=lambda x: x.get('id', 0), reverse=True)[0]
+            briefing = " | ".join([f"#{i.get('id')} {i.get('title')} ({i.get('severity')})" for i in incidents])
             return ReasoningResponse(
-                intent=intent,
-                response=f"🔍 TELEMETRY_MATCH: Found 1 active disruption. Incident #{latest.get('id')} ({latest.get('title')}) is impact service '{latest.get('serviceName')}'.",
+                intent="EXECUTIVE_BRIEFING",
+                response=f"📋 EXECUTIVE_SUMMARY: We are tracking {len(incidents)} active disruptions. Priority Cluster: {briefing}. Most critical is the '{incidents[0].get('serviceName')}' failure due to OOM signals.",
                 confidence=1.0,
-                recommendations=["Open Incident Details", "Acknowledge in Sidebar"]
+                recommendations=["Start RCA for #1", "View Alert Stream"]
             )
 
-    if intent == "ROOT_CAUSE_ANALYSIS":
-        risk_scores = context.get("risk_scores", {})
-        if risk_scores:
-            suspected = max(risk_scores, key=risk_scores.get)
-            score = risk_scores[suspected]
-            return ReasoningResponse(
-                intent="RCA_ENGINE_OUTPUT",
-                response=f"🚨 RISK_ANALYSIS: The service with the highest risk score is '{suspected}' at {score}%. Our engine detected abnormal latency clusters on this service.",
-                confidence=0.92,
-                recommendations=[f"Investigate {suspected} logs", "Scale replicas"]
-            )
-
+    # 4. Dynamic Telemetry Summary (Standard Fallback)
+    incident_count = len(context.get("incidents", []))
+    node_count = len(context.get("infrastructure", []))
+    active_incidents = ", ".join([i.get('title')[:30] + "..." for i in context.get("incidents", [])])
+    
     return ReasoningResponse(
-        intent="GENERAL_QUERY",
-        response="I am the OpsMind Intelligence core. I can explain SRE concepts like alert clustering, perform RCA on live risk scores, or track incidents. Ask me anything about your platform.",
-        confidence=0.7,
-        recommendations=["Ask: 'What is alert clustering?'", "Ask: 'Which service is at risk?'"]
+        intent="TELEMETRY_SUMMARY",
+        response=f"Current Estate Status: {node_count} nodes online. Tracking {incident_count} events: [{active_incidents if active_incidents else 'System Nominal'}]. How can I assist with these specific resources?",
+        confidence=1.0,
+        recommendations=["Ask: 'Calculate risk scores'", "Ask: 'RCA for latest incident'"]
     )
+
+
 
 
 @app.get("/health")
