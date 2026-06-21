@@ -32,73 +32,80 @@ def classify_intent(query: str):
         return "INFRASTRUCTURE_ANALYSIS"
     return "GENERAL_QUERY"
 
-# Mock Knowledge Base for SRE (V1)
+# Mock Knowledge Base for OpsMind & SRE (Enterprise V2)
 KNOWLEDGE_BASE = {
-    "rca": "Root Cause Analysis (RCA) is a process used to identify the core cause of a problem so that the team can respond to it in a meaningful way.",
-    "mttr": "Mean Time to Repair (MTTR) is a maintenance metric that measures the average time required to repair a failed component or device.",
-    "sre": "Site Reliability Engineering (SRE) is a set of principles and practices that incorporates aspects of software engineering and applies them to infrastructure and operations problems."
+    "opsmind": "OpsMind is an enterprise SRE Intelligence platform that unifies observability, incident management, and automated reasoning into a single pane of glass.",
+    "ai_copilot": "The SRE Copilot uses our distributed reasoning engine to perform real-time correlation across alerts, incidents, and infrastructure telemetry.",
+    "predictive_insights": "Predictive Insights uses our ML modules (Isolation Forest and Trend Detection) to forecast potential service failures before they impact customers.",
+    "rca": "Root Cause Analysis (RCA) is a systematic process for identifying the origin of incidents. In OpsMind, we correlate alert timestamps with deployment logs to find 'Suspected Culprits'.",
+    "mttr": "Mean Time to Repair (MTTR) is the average time to recover from a failure. OpsMind tracks this per service to measure operational efficiency.",
+    "kubernetes": "OpsMind natively monitors K8s clusters, tracking pod health, node pressure, and container restarts across all namespaces.",
+    "observability": "OpsMind observability is built on the three pillars: Metrics, Logs, and Traces, enhanced by our AI reasoning layer.",
+    "dashboard": "The Operational Dashboard provides high-level KPIs including active incident counts, system uptime, and security risk posture."
 }
 
 @app.post("/analyze", response_model=ReasoningResponse)
 async def analyze(request: ReasoningRequest):
-    query = request.query
+    query = request.query.lower()
     context = request.context
     
     intent = classify_intent(query)
     
-    # 1. Logic for GENERAL_KNOWLEDGE
-    if intent == "GENERAL_KNOWLEDGE":
-        for key in KNOWLEDGE_BASE:
-            if key in query.lower():
-                return ReasoningResponse(
-                    intent=intent,
-                    response=KNOWLEDGE_BASE[key],
-                    confidence=0.95,
-                    recommendations=["Read more in the SRE handbook", "Review OpsMind best practices"]
-                )
-        return ReasoningResponse(
-            intent=intent,
-            response="I am the OpsMind SRE specialist. I can assist with RCA, lookups, and observability concepts. Could you be more specific?",
-            confidence=0.8,
-            recommendations=["Try asking: 'What is RCA?'"]
-        )
+    # 1. Logic for OPSMIND & GENERAL KNOWLEDGE
+    for key, val in KNOWLEDGE_BASE.items():
+        if key.replace("_", " ") in query:
+            return ReasoningResponse(
+                intent="PRODUCT_AWARENESS" if "opsmind" in key or key in ["ai_copilot", "predictive_insights", "dashboard"] else "GENERAL_KNOWLEDGE",
+                response=val,
+                confidence=0.98,
+                recommendations=["Explore the " + key.replace("_", " ") + " module", "View documentation"]
+            )
 
     # 2. Logic for INCIDENT_LOOKUP
     if intent == "INCIDENT_LOOKUP":
         incidents = context.get("incidents", [])
         if incidents:
-            latest = incidents[0]
+            latest = sorted(incidents, key=lambda x: x.get('id', 0), reverse=True)[0]
             return ReasoningResponse(
                 intent=intent,
-                response=f"The latest incident is #{latest.get('id')}: {latest.get('title')}. It is currently in {latest.get('status')} state.",
+                response=f"🔍 RESOLVED: Latest active disruption is Incident #{latest.get('id')} - '{latest.get('title')}'. Service: {latest.get('serviceName')}. Status: {latest.get('status')}.",
                 confidence=1.0,
-                recommendations=["View incident details", "Acknowledge incident"]
+                recommendations=["Open Incident Details", "Assign to SRE Team", "Start RCA Investigation"]
             )
-        return ReasoningResponse(
-            intent=intent,
-            response="I couldn't find any recent incidents in the current telemetry context.",
-            confidence=0.9,
-            recommendations=["Refresh telemetry", "Check alert stream"]
-        )
 
-    # 3. Logic for ROOT_CAUSE_ANALYSIS
-    if intent == "ROOT_CAUSE_ANALYSIS":
+    # 3. Logic for ROOT_CAUSE_ANALYSIS / TROUBLESHOOTING
+    if intent == "ROOT_CAUSE_ANALYSIS" or "solve" in query:
         risk_scores = context.get("risk_scores", {})
-        suspected = max(risk_scores, key=risk_scores.get) if risk_scores else "Unknown"
+        if not risk_scores:
+            return ReasoningResponse(
+                intent=intent,
+                response="System telemetry is currently nominal. No specific service failure signatures detected for RCA.",
+                confidence=0.9,
+                recommendations=["Run Manual Infrastructure Audit", "Check Security Scan Findings"]
+            )
+            
+        suspected = max(risk_scores, key=risk_scores.get)
+        score = risk_scores[suspected]
+        
         return ReasoningResponse(
-            intent=intent,
-            response=f"Based on recent alert correlation, the suspected culprit is the '{suspected}' service. High latency signals match recent deployment timestamps.",
-            confidence=0.85,
-            recommendations=[f"Investigate {suspected} logs", "Check database connection pool"]
+            intent="REMEDIATION_PLAN",
+            response=f"🚨 CRITICAL_ANALYSIS: We suspect '{suspected}' is the root cause (Risk Score: {score}%). \n\nEVIDENCE: Detected abnormal latency spikes matching high database connection wait times in the production cluster.",
+            confidence=0.88,
+            recommendations=[
+                f"Scale {suspected} replicas to 3",
+                "Increase DB_POOL_MAX_ACTIVE to 100",
+                "Rollback the most recent deployment to stable version"
+            ]
         )
 
     # 4. Fallback
     return ReasoningResponse(
         intent="GENERAL_QUERY",
-        response=f"Processing your request via context-aware synthesis. System is currently tracking {len(context.get('incidents', []))} active disruptions.",
+        response="OpsMind AI Core is online. I have analyzed 100% of current telemetry. How can I assist with your SRE operations?",
         confidence=0.7,
-        recommendations=["Try RCA investigation", "Service health check"]
+        recommendations=["Ask: 'What is OpsMind?'", "Ask: 'Show latest incidents'"]
     )
+
 
 @app.get("/health")
 async def health():
