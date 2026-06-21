@@ -131,7 +131,7 @@ public class SreReasoningService {
 
         if (!highRisks.isEmpty()) {
             report.append("IMMEDIATE_THREATS:\n");
-            highRisks.forEach(f -> report.append("- ").append(f.getTitle()).append(" on ").append(f.getServiceName()).append("\n"));
+            highRisks.forEach(f -> report.append("- ").append(f.getTitle()).append(" on ").append(f.getResourceId()).append("\n"));
             report.append("\nRECOMMENDATION: Patch CVE-2024-XXXX in checkout-service immediately.");
         } else {
             report.append("CONCLUSION: Security posture is compliant with current benchmarks.");

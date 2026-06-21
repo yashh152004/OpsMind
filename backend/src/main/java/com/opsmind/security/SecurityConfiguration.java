@@ -45,11 +45,11 @@ public class SecurityConfiguration {
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests((authorize) ->
                         authorize
-                                .requestMatchers(org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/auth/**")).permitAll()
-                                .requestMatchers(org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/ai/**")).permitAll()
-                                .requestMatchers(org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/system/**")).permitAll()
-                                .requestMatchers(org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/simulator/**")).permitAll()
-                                .requestMatchers(org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher("/error")).permitAll()
+                                .requestMatchers("/auth/**").permitAll()
+                                .requestMatchers("/ai/**").permitAll()
+                                .requestMatchers("/system/**").permitAll()
+                                .requestMatchers("/simulator/**").permitAll()
+                                .requestMatchers("/error").permitAll()
                                 .anyRequest().authenticated()
                 ).sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
