@@ -13,9 +13,10 @@ public class SreReasoningService {
     private final InfrastructureRepository infrastructureRepository;
     private final SreInsightService insightService;
     private final PythonAiClient pythonAiClient;
-
     private final SystemMetricRepository metricRepository;
     private final LogRepository logRepository;
+    private final PlatformActivityService activityService;
+    private final NotificationRepository notificationRepository;
 
     public SreReasoningService(IncidentRepository incidentRepository,
                                 AlertRepository alertRepository,
@@ -23,7 +24,9 @@ public class SreReasoningService {
                                 SreInsightService insightService,
                                 PythonAiClient pythonAiClient,
                                 SystemMetricRepository metricRepository,
-                                LogRepository logRepository) {
+                                LogRepository logRepository,
+                                PlatformActivityService activityService,
+                                NotificationRepository notificationRepository) {
         this.incidentRepository = incidentRepository;
         this.alertRepository = alertRepository;
         this.infrastructureRepository = infrastructureRepository;
@@ -31,6 +34,8 @@ public class SreReasoningService {
         this.pythonAiClient = pythonAiClient;
         this.metricRepository = metricRepository;
         this.logRepository = logRepository;
+        this.activityService = activityService;
+        this.notificationRepository = notificationRepository;
     }
 
     public enum Intent {
@@ -46,6 +51,8 @@ public class SreReasoningService {
         context.put("risk_scores", insightService.calculateRiskScores());
         context.put("latest_metrics", metricRepository.findTop50ByMetricNameOrderByTimestampDesc("CPU_USAGE"));
         context.put("latest_logs", logRepository.findTop100ByOrderByTimestampDesc());
+        context.put("audit_logs", activityService.getRecentLogs()); // Now aware of platform activity
+        context.put("unread_notifications", notificationRepository.findByIsReadFalseOrderByCreatedAtDesc());
         
         // Delegating to specialized Python AI Engine
         Map<String, Object> aiResult = pythonAiClient.getIntelligence(query, context);

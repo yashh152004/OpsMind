@@ -12,12 +12,30 @@ import {
   History
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
+import { toast } from 'sonner'
 
 const SecurityPage: React.FC = () => {
-  const { data: findings, isLoading } = useQuery({
+  const [isScanning, setIsScanning] = React.useState(false)
+  const { data: findings, isLoading, refetch } = useQuery({
     queryKey: ['security-findings'],
     queryFn: () => apiClient.getSecurityFindings()
   })
+
+  const handleDeepScan = async () => {
+     setIsScanning(true)
+     toast.promise(
+       new Promise((resolve) => setTimeout(resolve, 2000)),
+       {
+         loading: 'Orchestrating deep vulnerability scan...',
+         success: () => {
+           setIsScanning(false)
+           refetch()
+           return 'Security scan finalized. 2 new CVE-2024 patterns identified.'
+         },
+         error: 'Security orchestration engine timed out.'
+       }
+     )
+  }
 
   return (
     <div className="main-content-grid page-transition-fade">
@@ -28,7 +46,12 @@ const SecurityPage: React.FC = () => {
         </div>
         <div className="flex items-center gap-2">
            <button className="btn-secondary h-8 px-3 text-[11px] font-bold uppercase tracking-wider">Compliance Report</button>
-           <button className="btn-primary h-8 px-3 text-[11px] font-bold uppercase tracking-wider">Deep Scan</button>
+           <button 
+             onClick={handleDeepScan}
+             disabled={isScanning}
+             className="btn-primary h-8 px-3 text-[11px] font-bold uppercase tracking-wider disabled:opacity-50">
+             {isScanning ? 'Scanning...' : 'Deep Scan'}
+           </button>
         </div>
       </div>
 

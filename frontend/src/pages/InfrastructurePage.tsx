@@ -18,10 +18,36 @@ import {
 import { cn } from '@/utils/cn'
 
 const InfrastructurePage: React.FC = () => {
-  const { data: assets, isLoading } = useQuery({
+  const [isScanning, setIsScanning] = React.useState(false)
+  const { data: assets, isLoading, refetch } = useQuery({
     queryKey: ['infra-assets'],
     queryFn: () => apiClient.getInfrastructureAssets()
   })
+
+  const handleScan = async () => {
+    setIsScanning(true)
+    try {
+      const result = await apiClient.performInfrastructureScan()
+      toast.success(`Scan Complete: ${result.nodes_discovered} nodes analyzed.`)
+      refetch()
+    } catch (err) {
+      toast.error('Automated cluster scan failed.')
+    } finally {
+      setIsScanning(false)
+    }
+  }
+
+  const handleTopology = async () => {
+     try {
+       const data = await apiClient.getInfrastructureTopology()
+       console.log("Topology Mapping:", data)
+       toast.info('Topology Mapping generated. View console for graph data.', {
+         description: `${data.length} upstream/downstream relationships mapped.`
+       })
+     } catch (err) {
+       toast.error('Failed to generate topology view.')
+     }
+  }
 
   return (
     <div className="main-content-grid page-transition-fade">
@@ -36,8 +62,10 @@ const InfrastructurePage: React.FC = () => {
            </div>
         </div>
         <div className="flex items-center gap-2">
-           <button className="btn-secondary h-8 px-3 text-[11px] font-bold uppercase tracking-wider">Topology View</button>
-           <button className="btn-primary h-8 px-3 text-[11px] font-bold uppercase tracking-wider">Inventory Scan</button>
+           <button onClick={handleTopology} className="btn-secondary h-8 px-3 text-[11px] font-bold uppercase tracking-wider">Topology View</button>
+           <button onClick={handleScan} disabled={isScanning} className="btn-primary h-8 px-3 text-[11px] font-bold uppercase tracking-wider disabled:opacity-50">
+              {isScanning ? 'Scanning...' : 'Inventory Scan'}
+           </button>
         </div>
       </div>
 

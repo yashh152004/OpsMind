@@ -14,41 +14,48 @@ import java.util.Map;
 @RequestMapping("/alerts")
 public class AlertController {
 
-    private final AlertRepository alertRepository;
+    private final AlertRepository repository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final com.opsmind.service.PlatformActivityService activityService;
 
-    public AlertController(AlertRepository alertRepository, SimpMessagingTemplate messagingTemplate) {
-        this.alertRepository = alertRepository;
+    public AlertController(AlertRepository repository, 
+                           SimpMessagingTemplate messagingTemplate,
+                           com.opsmind.service.PlatformActivityService activityService) {
+        this.repository = repository;
         this.messagingTemplate = messagingTemplate;
+        this.activityService = activityService;
     }
 
     @GetMapping
     public ResponseEntity<List<Alert>> getAllAlerts() {
-        return ResponseEntity.ok(alertRepository.findAll());
+        return ResponseEntity.ok(repository.findAll());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Alert> getAlert(@PathVariable Long id) {
-        return alertRepository.findById(id)
+        return repository.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping("/{id}/acknowledge")
     public ResponseEntity<Alert> acknowledgeAlert(@PathVariable Long id) {
-        return alertRepository.findById(id).map(alert -> {
+        return repository.findById(id).map(alert -> {
             alert.setStatus("ACKNOWLEDGED");
-            Alert saved = alertRepository.save(alert);
+            Alert saved = repository.save(alert);
+            
+            activityService.logAction("ALERT_ACKNOWLEDGED", "ALERTS", "system", "Alert acknowledged: " + saved.getAlertName());
             messagingTemplate.convertAndSend("/topic/alerts", saved);
+            
             return ResponseEntity.ok(saved);
         }).orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping("/{id}/resolve")
     public ResponseEntity<Alert> resolveAlert(@PathVariable Long id) {
-        return alertRepository.findById(id).map(alert -> {
+        return repository.findById(id).map(alert -> {
             alert.setStatus("RESOLVED");
-            Alert saved = alertRepository.save(alert);
+            Alert saved = repository.save(alert);
             messagingTemplate.convertAndSend("/topic/alerts", saved);
             return ResponseEntity.ok(saved);
         }).orElse(ResponseEntity.notFound().build());
@@ -62,7 +69,7 @@ public class AlertController {
         if (alert.getStatus() == null) {
             alert.setStatus("TRIGGERED");
         }
-        Alert saved = alertRepository.save(alert);
+        Alert saved = repository.save(alert);
         messagingTemplate.convertAndSend("/topic/alerts", saved);
         return ResponseEntity.ok(saved);
     }

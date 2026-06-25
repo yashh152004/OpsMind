@@ -31,16 +31,32 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
 
   // Notification State
   const [unreadCount, setUnreadCount] = useState(0)
+  const [notifications, setNotifications] = useState<any[]>([])
+  const [showNotifications, setShowNotifications] = useState(false)
+  const notifRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setShowResults(false)
       }
+      if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
+        setShowNotifications(false)
+      }
     }
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
+
+  const fetchNotifications = async () => {
+    try {
+      const data = await apiClient.getNotifications()
+      setNotifications(data)
+      setUnreadCount(data.length)
+    } catch (e) {
+      console.error("Failed to fetch notifications")
+    }
+  }
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(async () => {
@@ -64,18 +80,21 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
   }, [query])
 
   useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const data = await apiClient.getNotifications()
-        setUnreadCount(data.length)
-      } catch (e) {
-        console.error("Failed to fetch notifications")
-      }
-    }
     fetchNotifications()
-    const interval = setInterval(fetchNotifications, 30000)
+    const interval = setInterval(fetchNotifications, 15000)
     return () => clearInterval(interval)
   }, [])
+
+  const handleMarkAllRead = async () => {
+    try {
+      await apiClient.markAllNotificationsAsRead()
+      setUnreadCount(0)
+      setNotifications([])
+      setShowNotifications(false)
+    } catch (e) {
+      console.error("Failed to mark all read")
+    }
+  }
 
   return (
     <header className="h-14 border-b border-border bg-white flex items-center justify-between px-4 sticky top-0 z-[100]">
@@ -107,25 +126,46 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
           </div>
         </div>
 
-        {/* Search Results Dropdown Placeholder */}
+        {/* Search Results Dropdown */}
         {showResults && (
-           <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-border rounded-sm shadow-lg z-[200] max-h-96 overflow-y-auto p-1">
+           <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-border rounded-sm shadow-xl z-[200] max-h-96 overflow-y-auto p-1 animate-in fade-in slide-in-from-top-1 duration-200">
               {results.length > 0 ? (
                 results.map((res, i) => (
-                  <button key={i} className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded-sm flex items-center justify-between group">
+                  <button key={i} 
+                          onClick={() => {
+                            setShowResults(false);
+                            setQuery('');
+                            const path = res.type === 'INCIDENT' ? '/incidents' : 
+                                         res.type === 'ALERT' ? '/alerts' : 
+                                         res.type === 'INFRASTRUCTURE' ? '/infrastructure' : 
+                                         res.type === 'SECURITY' ? '/security' : '/settings';
+                            navigate(path);
+                          }}
+                          className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded-sm flex items-center justify-between group transition-colors">
                     <div className="flex items-center gap-3">
-                      <div className="h-6 w-6 bg-slate-100 rounded flex items-center justify-center text-muted">
-                        <Terminal className="h-3.5 w-3.5" />
+                      <div className="h-6 w-6 bg-slate-100 rounded flex items-center justify-center text-muted group-hover:bg-accent/10 group-hover:text-accent transition-colors">
+                        {res.type === 'INCIDENT' ? <AlertCircle className="h-3 w-3" /> : 
+                         res.type === 'ALERT' ? <Bell className="h-3 w-3" /> : 
+                         res.type === 'INFRASTRUCTURE' ? <Terminal className="h-3 w-3" /> : 
+                         res.type === 'USER' ? <HelpCircle className="h-3 w-3" /> :
+                         <Cpu className="h-3 w-3" />}
                       </div>
                       <div>
-                        <div className="text-[12px] font-semibold text-primary">{res.name || res.title}</div>
-                        <div className="text-[10px] text-muted">{res.type} • {res.location}</div>
+                        <div className="text-[12px] font-bold text-primary">{res.title}</div>
+                        <div className="text-[10px] text-muted flex items-center gap-1.5 uppercase font-bold tracking-wider">
+                           <span className="text-accent">{res.type}</span> • {res.subtitle}
+                        </div>
                       </div>
                     </div>
                   </button>
                 ))
               ) : (
-                <div className="p-4 text-center text-muted text-xs">No matching enterprise resources found.</div>
+                <div className="p-8 text-center">
+                   <div className="text-muted/20 flex justify-center mb-2"><Search className="h-6 w-6" /></div>
+                   <div className="text-muted text-[11px] font-bold uppercase tracking-widest leading-relaxed">
+                      No matching records<br/><span className="font-medium normal-case opacity-60">Try searching for service names, incident IDs, or cluster regions</span>
+                   </div>
+                </div>
               )}
            </div>
         )}
@@ -142,13 +182,53 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
            <span className="text-accent">Cluster OK</span>
         </div>
 
-        <div className="flex items-center gap-1">
-           <button className="text-muted hover:text-primary transition-colors relative p-2 hover:bg-slate-50 rounded-sm" onClick={() => navigate('/alerts')}>
+        <div className="flex items-center gap-1 relative" ref={notifRef}>
+           <button 
+             className="text-muted hover:text-primary transition-colors relative p-2 hover:bg-slate-50 rounded-sm" 
+             onClick={() => setShowNotifications(!showNotifications)}>
              <Bell className="h-4.5 w-4.5" />
              {unreadCount > 0 && (
-               <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-critical rounded-full border border-white" />
+               <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-critical rounded-full border border-white animate-pulse" />
              )}
            </button>
+
+           {showNotifications && (
+             <div className="absolute top-full right-0 mt-1 w-80 bg-white border border-border rounded-sm shadow-2xl z-[300] flex flex-col animate-in fade-in slide-in-from-top-1 duration-200">
+                <div className="px-4 py-2.5 border-b border-border bg-slate-50 flex items-center justify-between">
+                   <span className="text-[10px] font-bold uppercase tracking-wider text-primary">System Notifications</span>
+                   <button onClick={handleMarkAllRead} className="text-[9px] font-bold text-accent hover:underline uppercase tracking-wider">Clear All</button>
+                </div>
+                <div className="max-h-80 overflow-y-auto">
+                   {notifications.length > 0 ? (
+                     notifications.map((n: any) => (
+                       <div key={n.id} className="p-3 border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer" 
+                            onClick={() => {
+                              setShowNotifications(false);
+                              navigate('/incidents'); // Default for now
+                            }}>
+                          <div className="flex justify-between items-start mb-1">
+                             <div className="text-[11px] font-bold text-primary leading-tight">{n.title}</div>
+                             <span className={cn("px-1 py-0.5 rounded-sm text-[8px] font-bold uppercase", 
+                               n.severity === 'CRITICAL' ? "bg-red-50 text-red-600" : "bg-blue-50 text-blue-600")}>
+                               {n.severity}
+                             </span>
+                          </div>
+                          <div className="text-[10px] text-muted line-clamp-2 leading-normal">{n.message}</div>
+                          <div className="mt-1.5 text-[8px] font-bold text-muted/40 uppercase tracking-tighter">
+                             {new Date(n.timestamp).toLocaleTimeString()}
+                          </div>
+                       </div>
+                     ))
+                   ) : (
+                     <div className="p-10 text-center text-muted text-[10px] font-bold uppercase tracking-widest opacity-40">No pending signals</div>
+                   )}
+                </div>
+                <button className="p-2 border-t border-border text-[9px] font-bold text-primary hover:bg-slate-50 text-center uppercase tracking-widest" onClick={() => { setShowNotifications(false); navigate('/alerts'); }}>
+                  View All Signals
+                </button>
+             </div>
+           )}
+
            <button className="text-muted hover:text-primary transition-colors hidden sm:block p-2 hover:bg-slate-50 rounded-sm">
              <HelpCircle className="h-4.5 w-4.5" />
            </button>

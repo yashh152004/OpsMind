@@ -14,9 +14,21 @@ import {
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
 
+import { useQuery } from '@tanstack/react-query'
+import { apiClient } from '@/services/api'
+import { toast } from 'sonner'
+
 const SettingsPage: React.FC = () => {
+  const [isAuditModalOpen, setIsAuditModalOpen] = React.useState(false)
+  const { data: auditLogs, isLoading: isLoadingLogs } = useQuery({
+    queryKey: ['audit-logs'],
+    queryFn: () => apiClient.getAuditLogs(),
+    enabled: isAuditModalOpen
+  })
+
   return (
     <div className="max-w-4xl mx-auto main-content-grid page-transition-fade pb-20">
+      {/* ... previous code ... */}
       <div className="flex flex-col gap-1.5 pb-2 border-b border-border mb-8">
         <h1 className="text-page-title">Platform Configuration</h1>
         <p className="text-helper font-medium">Manage your organizational identity, global integrations, and security protocols.</p>
@@ -49,12 +61,54 @@ const SettingsPage: React.FC = () => {
                 </div>
                 <div className="mt-4 flex gap-6">
                    <button className="text-[11px] font-bold text-accent hover:underline uppercase tracking-wider">Update Credentials</button>
-                   <button className="text-[11px] font-bold text-muted hover:text-primary transition-colors uppercase tracking-wider">Audit History</button>
+                   <button 
+                     onClick={() => setIsAuditModalOpen(true)}
+                     className="text-[11px] font-bold text-muted hover:text-primary transition-colors uppercase tracking-wider">
+                     Audit History
+                   </button>
                 </div>
               </div>
             </div>
           </div>
         </section>
+
+        {/* Audit Log Modal */}
+        {isAuditModalOpen && (
+          <div className="fixed inset-0 z-[500] flex items-center justify-center bg-primary/20 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+            <div className="bg-white border border-border w-full max-w-4xl rounded shadow-2xl flex flex-col max-h-[80vh]">
+              <div className="px-5 py-3 border-b border-border bg-slate-50 flex items-center justify-between">
+                <h2 className="text-sm font-bold uppercase tracking-wider text-primary">Platform Audit History</h2>
+                <button onClick={() => setIsAuditModalOpen(false)} className="text-muted hover:text-critical transition-colors"><X className="h-5 w-5" /></button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-0">
+                <table className="enterprise-table">
+                   <thead>
+                      <tr>
+                         <th className="w-32">Module</th>
+                         <th className="w-48">Action</th>
+                         <th>Details</th>
+                         <th className="w-40">Timestamp</th>
+                      </tr>
+                   </thead>
+                   <tbody>
+                      {isLoadingLogs ? (
+                        <tr><td colSpan={4} className="py-20 text-center animate-pulse text-muted font-bold text-[10px] uppercase tracking-widest">Hydrating Log Stream...</td></tr>
+                      ) : auditLogs?.length === 0 ? (
+                        <tr><td colSpan={4} className="py-20 text-center text-muted font-bold text-[10px] uppercase tracking-widest">Zero activities recorded in current epoch</td></tr>
+                      ) : auditLogs?.map((log: any) => (
+                        <tr key={log.id}>
+                          <td><span className="px-1.5 py-0.5 bg-slate-100 text-secondary border border-border rounded-sm text-[9px] font-bold uppercase tracking-wider">{log.module}</span></td>
+                          <td className="text-[12px] font-bold text-primary">{log.action}</td>
+                          <td className="text-[11px] text-muted font-medium">{log.details}</td>
+                          <td className="text-[11px] font-medium text-muted font-mono">{new Date(log.timestamp).toLocaleString()}</td>
+                        </tr>
+                      ))}
+                   </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Global Integrations */}
         <section className="space-y-4">

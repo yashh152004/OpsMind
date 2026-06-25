@@ -56,15 +56,17 @@ const DashboardPage: React.FC = () => {
       {/* KPI Matrix */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[
-          { label: 'Cluster Uptime', val: stats?.uptime || '99.99%', color: 'text-success', trend: '+0.01%', icon: Activity },
-          { label: 'Active Incidents', val: stats?.activeIncidents || '0', color: 'text-primary', trend: 'UNCHANGED', icon: AlertTriangle },
-          { label: 'Avg Latency', val: stats?.mttr || '12.4ms', color: 'text-accent', trend: '-2.1ms', icon: Cpu },
-          { label: 'SLA Fulfillment', val: '100.0%', color: 'text-primary', trend: 'STABLE', icon: ShieldCheck },
+          { label: 'Cluster Uptime', val: stats?.uptime || '99.99%', color: 'text-success', trend: '+0.01%', icon: Activity, href: '/infrastructure' },
+          { label: 'Active Incidents', val: stats?.activeIncidents || '0', color: 'text-primary', trend: 'UNCHANGED', icon: AlertTriangle, href: '/incidents' },
+          { label: 'Avg Latency', val: stats?.mttr || '12.4ms', color: 'text-accent', trend: '-2.1ms', icon: Cpu, href: '/analytics' },
+          { label: 'SLA Fulfillment', val: '100.0%', color: 'text-primary', trend: 'STABLE', icon: ShieldCheck, href: '/analytics' },
         ].map(kpi => (
-          <div key={kpi.label} className="enterprise-card p-4 hover-lift">
+          <div key={kpi.label} 
+               onClick={() => window.location.href = kpi.href}
+               className="enterprise-card p-4 hover-lift cursor-pointer group">
             <div className="flex justify-between items-start mb-2">
-               <span className="text-metric-label">{kpi.label}</span>
-               <kpi.icon className="h-3.5 w-3.5 text-muted/40" />
+               <span className="text-metric-label group-hover:text-accent transition-colors">{kpi.label}</span>
+               <kpi.icon className="h-3.5 w-3.5 text-muted/40 group-hover:text-accent" />
             </div>
             <div className={cn("text-2xl metric-value", kpi.color)}>{kpi.val}</div>
             <div className="mt-2 text-[10px] font-bold text-muted uppercase tracking-wider flex items-center">
@@ -79,9 +81,9 @@ const DashboardPage: React.FC = () => {
 
       <div className="grid gap-6 lg:grid-cols-12">
         {/* Main Performance Graph */}
-        <div className="enterprise-card lg:col-span-8">
+        <div className="enterprise-card lg:col-span-8 group cursor-pointer" onClick={() => window.location.href = '/analytics'}>
            <div className="enterprise-card-header">
-              <span className="text-section-title flex items-center gap-2">
+              <span className="text-section-title flex items-center gap-2 group-hover:text-accent transition-colors">
                  <Activity className="h-3.5 w-3.5 text-accent" /> Infrastructure Health Trend
               </span>
               <div className="flex gap-1.5">
@@ -104,9 +106,9 @@ const DashboardPage: React.FC = () => {
         </div>
 
         {/* Severity Distribution */}
-        <div className="enterprise-card lg:col-span-4">
+        <div className="enterprise-card lg:col-span-4 group cursor-pointer" onClick={() => window.location.href = '/incidents'}>
            <div className="enterprise-card-header">
-              <span className="text-section-title flex items-center gap-2">
+              <span className="text-section-title flex items-center gap-2 group-hover:text-accent transition-colors">
                  <AlertTriangle className="h-3.5 w-3.5 text-warning" /> Incident Severity
               </span>
            </div>

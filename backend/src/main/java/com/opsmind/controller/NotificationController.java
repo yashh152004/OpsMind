@@ -30,4 +30,12 @@ public class NotificationController {
         });
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/read-all")
+    public ResponseEntity<Void> markAllAsRead() {
+        List<Notification> unread = notificationRepository.findByIsReadFalseOrderByCreatedAtDesc();
+        unread.forEach(n -> n.setRead(true));
+        notificationRepository.saveAll(unread);
+        return ResponseEntity.ok().build();
+    }
 }

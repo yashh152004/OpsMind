@@ -9,20 +9,27 @@ import {
   ChevronUp, 
   ChevronDown,
   Terminal,
-  HelpCircle
+  HelpCircle,
+  X,
+  ShieldCheck,
+  Bug
 } from 'lucide-react'
 import { apiClient } from '@/services/api'
 import { toast } from 'sonner'
 import { cn } from '@/utils/cn'
+import { useNavigate } from 'react-router-dom'
 
 const DemoController: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<'SIM' | 'STEPS'>('STEPS')
+  const navigate = useNavigate()
 
   const triggerSimulation = async (type: string, label: string) => {
     try {
       await apiClient.triggerSimulation(type)
-      toast.success(`Demo Event: ${label} triggered successfully.`)
+      toast.success(`Demo Scenario: ${label}`, {
+        description: "Event injected. Data will propagate to Dashboards, Alerts, and AI Reasoning."
+      })
     } catch (e) {
       toast.error('Simulation engine offline.')
     }
@@ -33,7 +40,7 @@ const DemoController: React.FC = () => {
     { title: 'Incident Command', desc: 'Real-time triage & RCA.', target: '/incidents' },
     { title: 'Infrastructure', desc: 'Distributed asset monitoring.', target: '/infrastructure' },
     { title: 'Alert Stream', desc: 'Live telemetry processing.', target: '/alerts' },
-    { title: 'AI SRE Copilot', desc: 'Reasoning via LLM chains.', target: '/ai-chat' },
+    { title: 'AI SRE Copilot', desc: 'Reasoning via platform state.', target: '/ai-chat' },
   ]
 
   return (
@@ -82,6 +89,10 @@ const DemoController: React.FC = () => {
                    {steps.map((step, i) => (
                       <div 
                         key={i} 
+                        onClick={() => {
+                          navigate(step.target);
+                          setIsOpen(false);
+                        }}
                         className="p-3 bg-white border border-border rounded-sm hover:border-accent hover:bg-slate-50 transition-all cursor-pointer group"
                       >
                          <div className="flex items-center gap-3">
@@ -138,11 +149,31 @@ const DemoController: React.FC = () => {
                       </div>
                    </div>
 
+                   <div className="space-y-2">
+                       <div className="text-[9px] font-bold text-muted uppercase tracking-widest px-1">Security & Stability</div>
+                       <div className="grid grid-cols-2 gap-2">
+                          <button 
+                            onClick={() => triggerSimulation('security_threat', 'Brute Force Attack')}
+                            className="flex items-center gap-2 p-2.5 bg-white border border-border rounded-sm hover:bg-red-50 hover:border-red-100 transition-colors group"
+                          >
+                             <ShieldCheck className="h-3.5 w-3.5 text-critical" />
+                             <span className="text-[10px] font-bold text-secondary uppercase">Threat</span>
+                          </button>
+                          <button 
+                            onClick={() => triggerSimulation('memory_leak', 'Memory Leak')}
+                            className="flex items-center gap-2 p-2.5 bg-white border border-border rounded-sm hover:bg-yellow-50 hover:border-yellow-100 transition-colors group"
+                          >
+                             <Bug className="h-3.5 w-3.5 text-warning" />
+                             <span className="text-[10px] font-bold text-secondary uppercase">M-Leak</span>
+                          </button>
+                       </div>
+                    </div>
+
                    <div className="pt-2">
                       <div className="flex items-start gap-2.5 p-3 bg-blue-50 rounded-sm border border-blue-100">
                          <HelpCircle className="h-4 w-4 text-accent shrink-0 mt-0.5" />
                          <p className="text-[10px] text-secondary font-medium leading-normal">
-                            Scenarios will propagate to the Alert Stream and trigger AI reasoning automatically.
+                            Scenarios propagate end-to-end. Watch for new Alerts, Incidents, and Audit Logs.
                          </p>
                       </div>
                    </div>
@@ -158,6 +189,5 @@ const DemoController: React.FC = () => {
     </div>
   )
 }
-
 
 export default DemoController

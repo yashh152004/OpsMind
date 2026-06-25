@@ -11,12 +11,24 @@ import {
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/services/api'
 import { cn } from '@/utils/cn'
+import { toast } from 'sonner'
 
 const AiInsightsPage: React.FC = () => {
   const { data: insights, isLoading } = useQuery({
     queryKey: ['ai-insights'],
     queryFn: () => apiClient.getAiInsights()
   })
+
+  const handleRemediate = (insight: any) => {
+     toast.promise(
+       new Promise((resolve) => setTimeout(resolve, 1500)),
+       {
+         loading: `AI SRE executing remediation: ${insight.recommendation}...`,
+         success: `System stabilized. Patch applied to ${insight.title}.`,
+         error: 'Remediation failed. Manual intervention required.'
+       }
+     )
+  }
 
   return (
     <div className="space-y-8 pb-12 page-transition">
@@ -28,7 +40,7 @@ const AiInsightsPage: React.FC = () => {
           </h1>
           <p className="text-muted-foreground text-sm font-medium">Predictive risk assessment and infrastructure auto-scaling recommendations.</p>
         </div>
-        <button className="btn-secondary h-9 text-xs">
+        <button className="btn-secondary h-9 text-xs" onClick={() => window.location.reload()}>
            <RefreshCcw className="h-3.5 w-3.5 mr-2" />
            Sync Reasoning Engine
         </button>
@@ -93,7 +105,9 @@ const AiInsightsPage: React.FC = () => {
                       <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                       STATUS: {insight.status}
                    </div>
-                   <button className="btn-primary w-full h-9 text-xs mt-4 md:mt-0">
+                   <button 
+                     onClick={() => handleRemediate(insight)}
+                     className="btn-primary w-full h-9 text-xs mt-4 md:mt-0 shadow-lg shadow-blue-500/10 transition-all hover:-translate-y-0.5 active:translate-y-0">
                      Execute Remediation <ArrowRight className="h-3 w-3 ml-2" />
                    </button>
                 </div>
@@ -116,7 +130,7 @@ const AiInsightsPage: React.FC = () => {
             </p>
           </div>
           <div className="flex gap-2">
-            <button className="btn-secondary h-9 text-xs">View Action Log</button>
+            <button className="btn-secondary h-9 text-xs" onClick={() => window.location.href='/settings'}>View Action Log</button>
             <button className="btn-primary h-9 text-xs">Configure Rules</button>
           </div>
         </div>

@@ -257,12 +257,22 @@ class ApiClient {
   }
 
   async globalSearch(query: string) {
-    const response = await this.client.get('/search/global', { params: { q: query } })
+    const response = await this.client.get('/search', { params: { q: query } })
     return response.data
   }
 
   async getInfrastructureAssets() {
     const response = await this.client.get('/infrastructure/assets')
+    return response.data
+  }
+
+  async performInfrastructureScan() {
+    const response = await this.client.post('/infrastructure/scan')
+    return response.data
+  }
+
+  async getInfrastructureTopology() {
+    const response = await this.client.get('/infrastructure/topology')
     return response.data
   }
 
@@ -273,6 +283,11 @@ class ApiClient {
 
   async triggerSimulation(type: string) {
     const response = await this.client.post('/simulator/trigger', { type })
+    return response.data
+  }
+
+  async getAuditLogs() {
+    const response = await this.client.get('/audit')
     return response.data
   }
 
@@ -308,6 +323,10 @@ class ApiClient {
 
   async markNotificationAsRead(id: number) {
     await this.client.post(`/notifications/${id}/read`)
+  }
+
+  async markAllNotificationsAsRead() {
+    await this.client.post('/notifications/read-all')
   }
 
   getAxiosInstance() {
