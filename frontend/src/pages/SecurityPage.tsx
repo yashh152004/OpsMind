@@ -6,7 +6,6 @@ import {
   Lock, 
   Eye, 
   Activity, 
-  Search,
   ArrowRight,
   ShieldCheck,
   AlertTriangle,
@@ -24,8 +23,8 @@ const SecurityPage: React.FC = () => {
     <div className="space-y-8 pb-20 page-transition">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold font-outfit flex items-center gap-2">
-             <ShieldCheck className="h-6 w-6 text-primary" /> Security Posture
+          <h1 className="text-2xl md:text-3xl font-black text-[#0F172A] tracking-tight flex items-center gap-2">
+             <ShieldCheck className="h-6 w-6 text-blue-600" /> Security Posture
           </h1>
           <p className="text-muted-foreground text-sm font-medium">Monitoring distributed vulnerabilities, compliance gaps, and access anomalies.</p>
         </div>

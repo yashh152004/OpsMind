@@ -7,7 +7,6 @@ import {
   ArrowRight,
   RefreshCcw,
   CheckCircle2,
-  AlertTriangle
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/services/api'
@@ -23,8 +22,8 @@ const AiInsightsPage: React.FC = () => {
     <div className="space-y-8 pb-12 page-transition">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold font-outfit flex items-center gap-2">
-             <Sparkles className="h-6 w-6 text-primary fill-primary/20" />
+          <h1 className="text-2xl font-black text-[#0F172A] tracking-tight flex items-center gap-2">
+             <Sparkles className="h-6 w-6 text-blue-600 fill-blue-600/10" />
              Autonomous Intelligence Engine
           </h1>
           <p className="text-muted-foreground text-sm font-medium">Predictive risk assessment and infrastructure auto-scaling recommendations.</p>

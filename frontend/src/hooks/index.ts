@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuthStore, useOrganizationStore } from '@/stores/auth'
 import { apiClient } from '@/services/api'
-import type { AuthCredentials, AuthResponse, User, RegisterRequest } from '@/types'
+import type { AuthCredentials, AuthResponse, RegisterRequest } from '@/types'
 
 /**
  * Authentication Hook

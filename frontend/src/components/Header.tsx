@@ -4,7 +4,6 @@ import {
   Bell, 
   HelpCircle, 
   ChevronDown, 
-  Command, 
   Loader2, 
   AlertCircle, 
   Terminal, 

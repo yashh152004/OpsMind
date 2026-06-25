@@ -33,7 +33,7 @@ const AnalyticsPage: React.FC = () => {
     <div className="space-y-8 pb-12 page-transition">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="text-center md:text-left">
-          <h1 className="text-2xl md:text-3xl font-bold font-outfit">Performance Reporting</h1>
+          <h1 className="text-2xl md:text-3xl font-black text-[#0F172A] tracking-tight">System Performance</h1>
           <p className="text-muted-foreground text-sm font-medium">Historical efficacy and SLA fulfillment metrics.</p>
         </div>
         <button className="btn-secondary h-10 w-full md:w-auto text-xs flex justify-center bg-card shadow-sm border-border active:scale-95 transition-transform">
@@ -85,7 +85,7 @@ const AnalyticsPage: React.FC = () => {
                   <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: '#94A3B8', fontSize: 11}} dy={10} />
                   <YAxis axisLine={false} tickLine={false} tick={{fill: '#94A3B8', fontSize: 11}} />
                   <Tooltip 
-                    contentStyle={{ backgroundColor: '#111827', border: '1px solid #1F2937', borderRadius: '8px' }}
+                    contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '12px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}
                   />
                   <Line 
                     type="monotone" 
@@ -114,9 +114,9 @@ const AnalyticsPage: React.FC = () => {
                     <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#1F2937" />
                     <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94A3B8', fontSize: 10}} dy={10} />
                     <YAxis domain={[95, 100]} axisLine={false} tickLine={false} tick={{fill: '#94A3B8', fontSize: 11}} />
-                    <Tooltip 
-                        contentStyle={{ backgroundColor: '#111827', border: '1px solid #1F2937', borderRadius: '8px' }}
-                    />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '12px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}
+                  />
                     <Bar dataKey="value" radius={[2, 2, 0, 0]} barSize={32}>
                         {(trends?.serviceHealth || []).map((entry: any, index: number) => (
                            <Cell key={`cell-${index}`} fill={entry.value > 99.9 ? '#10B981' : '#F59E0B'} />

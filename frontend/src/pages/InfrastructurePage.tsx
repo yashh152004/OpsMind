@@ -26,7 +26,7 @@ const InfrastructurePage: React.FC = () => {
     <div className="space-y-8 pb-20 page-transition">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold font-outfit">Resource Topology</h1>
+          <h1 className="text-2xl font-black text-[#0F172A] tracking-tight">Resource Topology</h1>
           <p className="text-muted-foreground text-sm font-medium">Monitoring distributed infrastructure assets and service health.</p>
         </div>
         <div className="flex items-center gap-2 w-full md:w-auto">

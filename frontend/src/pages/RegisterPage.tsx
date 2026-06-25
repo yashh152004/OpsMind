@@ -1,11 +1,10 @@
 import React, { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAuth } from '@/hooks'
 import { toast } from 'sonner'
 import { Activity, Shield, Mail, ArrowRight, Loader2, User, Building } from 'lucide-react'
 
 const RegisterPage: React.FC = () => {
-  const navigate = useNavigate()
   const { register, isRegisterLoading, registerError } = useAuth()
   const [formData, setFormData] = useState({
     email: '',
@@ -41,7 +40,7 @@ const RegisterPage: React.FC = () => {
           <div className="h-10 w-10 bg-primary rounded shadow-lg flex items-center justify-center mb-4">
             <Activity className="h-6 w-6 text-white" />
           </div>
-          <h1 className="text-2xl font-bold font-outfit tracking-tighter">Provision Node Cluster</h1>
+          <h1 className="text-2xl font-black text-[#0F172A] tracking-tighter uppercase">Provision Node Cluster</h1>
           <p className="text-muted-foreground text-xs mt-1">Deploy an enterprise intelligence environment in minutes.</p>
         </div>
 

@@ -6,9 +6,7 @@ import {
   ShieldCheck, 
   Activity, 
   ArrowRight,
-  ExternalLink,
   Plus,
-  CheckCircle2,
   RefreshCw,
   Trash2,
   Lock
@@ -32,7 +30,7 @@ const IntegrationsPage: React.FC = () => {
     <div className="space-y-8 page-transition pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold font-outfit">Sensor Connectors</h1>
+          <h1 className="text-2xl font-black text-[#0F172A] tracking-tight">Sensor Connectors</h1>
           <p className="text-muted-foreground text-sm font-medium">Provision and monitor high-cardinality data sinks.</p>
         </div>
         <button 

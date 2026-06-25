@@ -6,10 +6,8 @@ import {
   Globe, 
   Slack,
   Webhook,
-  Database,
   Lock,
   ChevronRight,
-  ExternalLink,
   Save
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
@@ -18,7 +16,7 @@ const SettingsPage: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-12 pb-20 page-transition">
       <div className="flex flex-col gap-2">
-        <h1 className="text-2xl font-bold font-outfit">Console Configuration</h1>
+        <h1 className="text-2xl font-black text-[#0F172A] tracking-tight">Console Configuration</h1>
         <p className="text-muted-foreground text-sm font-medium">Manage your organization's cluster, integrations, and SRE identities.</p>
       </div>
 

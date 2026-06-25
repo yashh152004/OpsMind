@@ -12,26 +12,21 @@ import {
   Cell
 } from 'recharts'
 import { 
-  Activity, 
+  Activity,
   AlertTriangle, 
-  CheckCircle2, 
-  Users,
   ArrowUpRight,
   ArrowDownRight,
   Zap,
   ShieldCheck,
-  Search,
   ExternalLink,
   AlertCircle
 } from 'lucide-react'
-import { useAuth } from '@/hooks'
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/services/api'
 import { cn } from '@/utils/cn'
 import { toast } from 'sonner'
 
 const DashboardPage: React.FC = () => {
-  const { user } = useAuth()
   
   const { data: stats, isLoading } = useQuery({
     queryKey: ['dashboard-stats'],
@@ -76,38 +71,40 @@ const DashboardPage: React.FC = () => {
   ]
 
   return (
-    <div className="space-y-8 pb-12">
+    <div className="space-y-10 pb-12">
       {/* Header Section */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-        <div className="text-center lg:text-left">
-          <h1 className="text-3xl md:text-4xl font-bold font-outfit tracking-tight">Platform Overview</h1>
-          <p className="text-muted-foreground text-sm font-medium mt-1">Real-time operational health and incident intelligence.</p>
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 border-b border-slate-200 pb-8">
+        <div>
+          <h1 className="text-3xl font-extrabold text-[#0F172A] tracking-tight">Systems Overview</h1>
+          <p className="text-slate-500 text-sm font-medium mt-2 flex items-center gap-2">
+            <Activity className="h-4 w-4 text-blue-600" />
+            Operational Intelligence Surface • Real-time telemetry active
+          </p>
         </div>
-        <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
-          <div className="flex w-full sm:w-auto gap-1 p-1 bg-accent/20 border border-border rounded-lg justify-center sm:justify-start">
+        <div className="flex flex-col sm:flex-row items-center gap-4">
+          <div className="flex bg-slate-100 p-1 rounded-lg border border-slate-200">
              {[
-               { icon: Activity, type: "cpu_spike", title: "CPU Spike" },
-               { icon: AlertCircle, type: "database_crash", title: "DB Crash" },
-               { icon: Zap, type: "api_latency", title: "Latency" }
+               { icon: Activity, type: "cpu_spike", title: "CPU" },
+               { icon: AlertCircle, type: "database_crash", title: "DB" },
+               { icon: Zap, type: "api_latency", title: "LAT" }
              ].map(sim => (
                <button 
                  key={sim.type}
                  onClick={async () => {
                    await apiClient.triggerSimulation(sim.type);
-                   toast.success(`Simulation: ${sim.title} injected.`);
+                   toast.success(`Simulation Injected: ${sim.title}`);
                  }}
-                 className="p-2 hover:bg-primary/20 hover:text-primary rounded-md text-muted-foreground transition-all flex-1 sm:flex-none justify-center"
+                 className="p-2.5 hover:bg-white hover:text-blue-600 rounded-md text-slate-500 transition-all flex items-center gap-2 font-bold text-[10px] uppercase tracking-tighter"
                  title={`Simulate ${sim.title}`}
                >
-                 <sim.icon className="h-4 w-4" />
+                 <sim.icon className="h-3.5 w-3.5" />
+                 {sim.title}
                </button>
              ))}
-             <span className="w-px bg-border mx-1 hidden sm:block" />
-             <div className="px-2 py-1 text-[9px] font-bold text-muted-foreground uppercase flex items-center hidden sm:flex">Lab</div>
           </div>
           <div className="flex gap-2 w-full sm:w-auto">
-            <button className="btn-secondary h-10 text-xs flex-1 sm:flex-none justify-center">Board</button>
-            <button className="btn-primary h-10 text-xs flex-1 sm:flex-none justify-center shadow-lg shadow-primary/20">Track Incident</button>
+            <button className="px-4 py-2 bg-white border border-slate-200 text-[#0F172A] font-bold text-xs rounded-lg hover:bg-slate-50 transition-colors">Incident Board</button>
+            <button className="px-4 py-2 bg-[#2563EB] text-white font-bold text-xs rounded-lg hover:bg-blue-700 transition-shadow shadow-md shadow-blue-600/20">Track New Incident</button>
           </div>
         </div>
       </div>
@@ -115,72 +112,75 @@ const DashboardPage: React.FC = () => {
       {/* KPI Stream */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {kpis.map((kpi) => (
-          <div key={kpi.label} className="enterprise-card p-5 group enterprise-card-hover">
+          <div key={kpi.label} className="bg-white border border-slate-200 p-6 rounded-xl shadow-sm hover:border-blue-300 transition-all group">
             <div className="flex items-center justify-between mb-4">
-              <div className={cn("p-2 rounded bg-background border border-border", kpi.color)}>
-                <kpi.icon className="h-4 w-4" />
+              <div className={cn("p-2 rounded-lg bg-slate-50 border border-slate-100", kpi.color)}>
+                <kpi.icon className="h-5 w-5" />
               </div>
               <div className={cn(
-                "flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded",
-                kpi.trend === 'up' ? "bg-emerald-500/10 text-emerald-500" : "bg-blue-500/10 text-blue-500"
+                "flex items-center gap-1 text-[10px] font-extrabold px-2 py-0.5 rounded-full border",
+                kpi.trend === 'up' ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-blue-50 text-blue-600 border-blue-100"
               )}>
                 {kpi.trend === 'up' ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
                 {kpi.change}
               </div>
             </div>
-            <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{kpi.label}</div>
-            <div className="text-2xl font-bold mt-1 font-mono tracking-tight">
+            <div className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.15em]">{kpi.label}</div>
+            <div className="text-2xl font-black mt-1 text-[#0F172A] font-mono tracking-tighter">
               {isLoading ? <div className="h-8 w-24 skeleton" /> : kpi.value}
             </div>
           </div>
         ))}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-8 lg:grid-cols-3">
         {/* Network performance */}
-        <div className="enterprise-card p-6 lg:col-span-2">
-           <div className="flex items-center justify-between mb-8">
-              <h3 className="text-lg font-bold">Service Latency (ms)</h3>
-              <div className="flex items-center gap-2">
-                <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <span className="h-2 w-2 rounded-full bg-primary" /> Success
+        <div className="bg-white border border-slate-200 p-8 rounded-2xl shadow-sm lg:col-span-2">
+           <div className="flex items-center justify-between mb-10">
+              <div>
+                <h3 className="text-lg font-bold text-[#0F172A]">Core Telemetry Stream</h3>
+                <p className="text-xs text-slate-500 font-medium">Latency gradients across global edge nodes</p>
+              </div>
+              <div className="flex items-center gap-6">
+                <span className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                  <span className="h-2 w-2 rounded-full bg-[#2563EB]" /> Nominal
                 </span>
-                <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <span className="h-2 w-2 rounded-full bg-destructive" /> Failed
+                <span className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                  <span className="h-2 w-2 rounded-full bg-red-500" /> Outlier
                 </span>
               </div>
            </div>
-           <div className="h-[320px] w-full">
+           <div className="h-[340px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={stats?.performanceSeries || []}>
                 <defs>
                   <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#2563EB" stopOpacity={0.1}/>
+                    <stop offset="5%" stopColor="#2563EB" stopOpacity={0.15}/>
                     <stop offset="95%" stopColor="#2563EB" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1F2937" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
                 <XAxis 
                   dataKey="time" 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{ fill: '#94A3B8', fontSize: 11 }} 
-                  dy={10}
+                  tick={{ fill: '#64748B', fontSize: 10, fontWeight: 600 }} 
+                  dy={15}
                 />
                 <YAxis 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{ fill: '#94A3B8', fontSize: 11 }} 
+                  tick={{ fill: '#64748B', fontSize: 10, fontWeight: 600 }} 
                 />
                 <Tooltip 
-                  contentStyle={{ backgroundColor: '#111827', border: '1px solid #1F2937', borderRadius: '8px' }}
-                  itemStyle={{ color: '#F8FAFC' }}
+                  contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '12px', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                  itemStyle={{ color: '#0F172A', fontWeight: 700 }}
                 />
                 <Area 
                   type="monotone" 
                   dataKey="value" 
                   stroke="#2563EB" 
-                  strokeWidth={2}
+                  strokeWidth={3}
                   fillOpacity={1} 
                   fill="url(#colorValue)" 
                 />
@@ -190,25 +190,28 @@ const DashboardPage: React.FC = () => {
         </div>
 
         {/* Severity Distribution */}
-        <div className="enterprise-card p-6">
-          <h3 className="text-lg font-bold mb-8">Alert Distribution</h3>
-          <div className="h-[250px] w-full">
+        <div className="bg-white border border-slate-200 p-8 rounded-2xl shadow-sm">
+          <div className="mb-10">
+            <h3 className="text-lg font-bold text-[#0F172A]">Event Distribution</h3>
+            <p className="text-xs text-slate-500 font-medium">Alert density by systemic impact</p>
+          </div>
+          <div className="h-[280px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={stats?.severityDistribution || []} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#1F2937" />
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#F1F5F9" />
                 <XAxis type="number" hide />
                 <YAxis 
                   dataKey="name" 
                   type="category" 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{ fill: '#F8FAFC', fontWeight: 'bold', fontSize: 12 }} 
+                  tick={{ fill: '#0F172A', fontWeight: 800, fontSize: 11 }} 
                 />
                 <Tooltip 
-                  cursor={{ fill: 'transparent' }}
-                  contentStyle={{ backgroundColor: '#111827', border: '1px solid #1F2937', borderRadius: '8px' }}
+                  cursor={{ fill: '#F8FAFC' }}
+                  contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '12px' }}
                 />
-                <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={24}>
+                <Bar dataKey="count" radius={[0, 6, 6, 0]} barSize={28}>
                   {(stats?.severityDistribution || []).map((entry: any, index: number) => (
                     <Cell key={`cell-${index}`} fill={entry.name === 'P1' ? '#EF4444' : entry.name === 'P2' ? '#F59E0B' : '#2563EB'} />
                   ))}
@@ -216,56 +219,65 @@ const DashboardPage: React.FC = () => {
               </BarChart>
             </ResponsiveContainer>
           </div>
-          <div className="mt-6 space-y-4">
-             <div className="flex items-center justify-between text-xs">
-                <span className="text-muted-foreground font-medium">Critical Issues Unresolved</span>
-                <span className="font-bold text-destructive">4 Active</span>
+          <div className="mt-8 space-y-5">
+             <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Critical Backlog</span>
+                <span className="text-xs font-black text-red-600">4 Active</span>
              </div>
-             <div className="h-2 w-full bg-accent/20 rounded-full overflow-hidden">
-                <div className="h-full bg-destructive w-[20%]" />
+             <div className="h-2.5 w-full bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+                <div className="h-full bg-red-500 w-[25%]" />
              </div>
+             <p className="text-[10px] text-slate-400 font-medium leading-relaxed italic">
+                System stress analysis suggests potential cascading failure in North-Europe shard.
+             </p>
           </div>
         </div>
       </div>
 
       {/* AI Risk Engine Board */}
-      <div className="enterprise-card overflow-hidden">
-        <div className="p-4 bg-accent/20 border-b border-border flex items-center justify-between">
-           <div className="flex items-center gap-2 text-primary">
-              <Zap className="h-4 w-4 fill-primary" />
-              <span className="text-sm font-bold uppercase tracking-widest text-[#2563EB]">AI Risk Detection System</span>
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden border-t-4 border-t-blue-600">
+        <div className="p-5 bg-slate-50/50 border-b border-slate-200 flex items-center justify-between">
+           <div className="flex items-center gap-3">
+              <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-md shadow-blue-600/20">
+                <ShieldCheck className="h-4 w-4" />
+              </div>
+              <div>
+                <span className="text-xs font-black uppercase tracking-[0.2em] text-[#0F172A]">AI Contextual Risk Engine</span>
+                <p className="text-[10px] text-slate-400 font-bold">MODE: SRE_AUTONOMOUS_ANALYSIS_V3</p>
+              </div>
            </div>
-           <button className="text-xs text-primary font-bold hover:underline">Analysis Report</button>
+           <button className="px-3 py-1.5 bg-white border border-slate-200 text-blue-600 font-bold text-[10px] rounded-lg hover:bg-slate-50 transition-all uppercase tracking-tighter shadow-sm">Audit Logic</button>
         </div>
-        <div className="p-6 overflow-x-auto">
-           <table className="w-full text-left min-w-[600px]">
-              <thead>
-                <tr className="text-[10px] text-muted-foreground uppercase tracking-widest">
-                  <th className="pb-4">Risk Profile</th>
-                  <th className="pb-4">Infrastructure Context</th>
-                  <th className="pb-4">Confidence</th>
-                  <th className="pb-4">Status</th>
-                  <th className="pb-4 text-right">Action</th>
+        <div className="overflow-x-auto">
+           <table className="w-full text-left min-w-[800px]">
+              <thead className="bg-slate-50/30">
+                <tr className="text-[10px] text-slate-400 font-black uppercase tracking-[0.15em] border-b border-slate-200/50">
+                  <th className="px-8 py-5">System Risk Profile</th>
+                  <th className="px-8 py-5">Autonomous Reasoning Context</th>
+                  <th className="px-8 py-5">Confidence</th>
+                  <th className="px-8 py-5">Logic State</th>
+                  <th className="px-8 py-5 text-right">Insight</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
+              <tbody className="divide-y divide-slate-100">
                 {(stats?.riskProfiles || [
-                  { id: 1, type: 'Notice', context: 'Baseline stability - Analyzing patterns', conf: '98%', status: 'STABLE' },
-                  { id: 2, type: 'Warning', context: 'Memory pressure detected in US-EAST-1B', conf: '84%', status: 'MONITORING' }
+                  { id: 1, type: 'Nominal', context: 'Baseline stability - All global clusters reporting nominal latency gradients.', conf: '99.2%', status: 'STABLE' },
+                  { id: 2, type: 'Warning', context: 'Anomalous memory pressure detected in US-EAST-1B shard. Potential OOM signal.', conf: '86.4%', status: 'REASONING' },
+                  { id: 3, type: 'Critical', context: 'Failed health probes for Auth-Service-02. Cascading latency detected.', conf: '92.1%', status: 'FAILED' }
                 ]).map((item: any, idx: number) => (
-                  <tr key={item.id || idx} className="text-sm hover:bg-accent/10 transition-colors">
-                    <td className="py-4">
+                  <tr key={item.id || idx} className="text-sm hover:bg-slate-50/80 transition-colors group">
+                    <td className="px-8 py-5">
                        <span className={cn(
-                         "status-badge",
-                         item.type === 'Critical' ? "badge-critical" : 
-                         item.type === 'Warning' ? "badge-warning" : "badge-info"
+                         "px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter border",
+                         item.type === 'Critical' ? "bg-red-50 text-red-600 border-red-100" : 
+                         item.type === 'Warning' ? "bg-orange-50 text-orange-600 border-orange-100" : "bg-blue-50 text-blue-600 border-blue-100"
                        )}>{item.type}</span>
                     </td>
-                    <td className="py-4 font-mono text-xs">{item.context}</td>
-                    <td className="py-4 font-bold">{item.conf}</td>
-                    <td className="py-4 font-bold text-[10px] text-muted-foreground">{item.status}</td>
-                    <td className="py-4 text-right">
-                       <button className="text-primary hover:text-blue-400 transition-all p-1 hover:bg-primary/10 rounded">
+                    <td className="px-8 py-5 font-medium text-[#0F172A] max-w-md truncate">{item.context}</td>
+                    <td className="px-8 py-5 font-black text-slate-600">{item.conf}</td>
+                    <td className="px-8 py-5 font-black text-[10px] text-slate-400 uppercase tracking-widest">{item.status}</td>
+                    <td className="px-8 py-5 text-right">
+                       <button className="text-slate-300 hover:text-blue-600 transition-all p-2 hover:bg-blue-50 rounded-lg">
                          <ExternalLink className="h-4 w-4" />
                        </button>
                     </td>

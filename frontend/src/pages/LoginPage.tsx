@@ -1,11 +1,10 @@
 import React, { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAuth } from '@/hooks'
 import { toast } from 'sonner'
 import { Activity, Shield, Lock, Mail, ArrowRight, Loader2, Key } from 'lucide-react'
 
 const LoginPage: React.FC = () => {
-  const navigate = useNavigate()
   const { login, isLoginLoading, loginError } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -27,7 +26,7 @@ const LoginPage: React.FC = () => {
           <div className="h-12 w-12 bg-primary rounded shadow-lg shadow-blue-500/10 flex items-center justify-center mb-6">
             <Activity className="h-7 w-7 text-white" />
           </div>
-          <h1 className="text-3xl font-bold font-outfit tracking-tighter">Login to OpsCenter</h1>
+          <h1 className="text-3xl font-black text-[#0F172A] tracking-tighter">OpsMind Intelligence</h1>
           <p className="text-muted-foreground text-sm mt-1">Access your operational intelligence dashboard.</p>
         </div>
 

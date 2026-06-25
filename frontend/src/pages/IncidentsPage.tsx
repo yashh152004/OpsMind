@@ -2,11 +2,9 @@ import React, { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/services/api'
 import { 
-  AlertTriangle, 
   Clock, 
   ExternalLink, 
   Filter,
-  MoreVertical,
   Plus,
   Search,
   ChevronLeft,
@@ -15,15 +13,16 @@ import {
   Terminal,
   Activity,
   CheckCircle2,
-  BrainCircuit,
-  Unplug
+  BrainCircuit
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { cn } from '@/utils/cn'
 import { exportToCSV } from '@/utils/export'
+import { useOrganization } from '@/hooks'
 
 const IncidentsPage: React.FC = () => {
-  const [page, setPage] = useState(0)
+  const { organizationId } = useOrganization()
+  const [page] = useState(0)
   const [searchTerm, setSearchTerm] = useState('')
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [newIncident, setNewIncident] = useState({ title: '', severity: 'P2', serviceName: '', description: '' })
@@ -33,13 +32,13 @@ const IncidentsPage: React.FC = () => {
 
   const { data: incidents, isLoading, isError, refetch } = useQuery({
     queryKey: ['incidents', page, searchTerm, activeTab],
-    queryFn: () => apiClient.getIncidents('default'),
+    queryFn: () => apiClient.getIncidents(organizationId || 'default'),
   })
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      await apiClient.createIncident('default', { ...newIncident, status: 'OPEN' })
+      await apiClient.createIncident(organizationId || 'default', { ...newIncident, status: 'OPEN' })
       setIsCreateModalOpen(false)
       setNewIncident({ title: '', severity: 'P2', serviceName: '', description: '' })
       refetch()
@@ -72,20 +71,20 @@ const IncidentsPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6 page-transition">
+    <div className="space-y-8 page-transition pb-12">
       {/* Structural Header */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between border-b border-slate-200 pb-8">
         <div>
-          <h1 className="text-2xl font-bold font-outfit">Incident Management</h1>
-          <p className="text-muted-foreground text-sm font-medium">Monitoring trackable service disruptions and outages.</p>
+          <h1 className="text-2xl font-black text-[#0F172A] tracking-tight">Incident Stream</h1>
+          <p className="text-slate-500 text-sm font-medium mt-1">Operational log of systemic disruptions and service outages.</p>
         </div>
-        <div className="flex items-center gap-2">
-          <button className="btn-secondary h-9 text-xs" onClick={handleExport}>
-            <Download className="h-3.5 w-3.5 mr-1" />
-            Export Log
+        <div className="flex items-center gap-3">
+          <button className="px-4 py-2 bg-white border border-slate-200 text-[#0F172A] font-bold text-xs rounded-lg hover:bg-slate-50 transition-all flex items-center gap-2" onClick={handleExport}>
+            <Download className="h-3.5 w-3.5" />
+            Export Dataset
           </button>
-          <button className="btn-primary h-9 text-xs" onClick={() => setIsCreateModalOpen(true)}>
-            <Plus className="h-3.5 w-3.5 mr-1" />
+          <button className="px-4 py-2 bg-[#2563EB] text-white font-bold text-xs rounded-lg hover:bg-blue-700 transition-all shadow-md shadow-blue-600/10 flex items-center gap-2" onClick={() => setIsCreateModalOpen(true)}>
+            <Plus className="h-4 w-4" />
             Declare Incident
           </button>
         </div>
@@ -93,57 +92,57 @@ const IncidentsPage: React.FC = () => {
 
       {/* Declare Incident Modal */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
-          <div className="enterprise-card max-w-lg w-full p-6 shadow-2xl animate-in zoom-in-95 duration-200">
-            <h3 className="text-lg font-bold mb-4">Declare New Incident</h3>
-            <form onSubmit={handleCreate} className="space-y-4">
+        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-slate-900/40 backdrop-blur-[2px] p-4">
+          <div className="bg-white border border-slate-200 max-w-lg w-full p-8 rounded-2xl shadow-2xl animate-in zoom-in-95 duration-200">
+            <h3 className="text-xl font-black text-[#0F172A] mb-6">Initialize New Incident</h3>
+            <form onSubmit={handleCreate} className="space-y-6">
                <div>
-                 <label className="text-xs font-bold text-muted-foreground uppercase">Title</label>
+                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Incident Label</label>
                  <input 
                   required
-                  placeholder="e.g. Cache layer pod eviction"
-                  className="input-field mt-1" 
+                  placeholder="e.g. Cluster auth-service degradation"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm font-medium mt-2 focus:bg-white focus:ring-2 focus:ring-blue-600/10 focus:border-blue-600 outline-none transition-all" 
                   value={newIncident.title}
                   onChange={e => setNewIncident({...newIncident, title: e.target.value})}
                  />
                </div>
-               <div className="grid grid-cols-2 gap-4">
+               <div className="grid grid-cols-2 gap-6">
                   <div>
-                    <label className="text-xs font-bold text-muted-foreground uppercase">Severity</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Impact Severity</label>
                     <select 
-                      className="input-field mt-1"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm font-bold mt-2 focus:bg-white outline-none"
                       value={newIncident.severity}
                       onChange={e => setNewIncident({...newIncident, severity: e.target.value})}
                     >
-                       <option value="P1">P1 - Critical</option>
-                       <option value="P2">P2 - Warning</option>
-                       <option value="P3">P3 - Notice</option>
+                       <option value="P1">P1 - Critical (Outage)</option>
+                       <option value="P2">P2 - Major (Disruption)</option>
+                       <option value="P3">P3 - Minor (Service Notice)</option>
                     </select>
                   </div>
                   <div>
-                    <label className="text-xs font-bold text-muted-foreground uppercase">Service</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Affected Service</label>
                     <input 
                       required
-                      placeholder="Service Name"
-                      className="input-field mt-1"
+                      placeholder="Auth_Service_V1"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm font-medium mt-2 focus:bg-white focus:ring-2 focus:ring-blue-600/10 outline-none"
                       value={newIncident.serviceName}
                       onChange={e => setNewIncident({...newIncident, serviceName: e.target.value})}
                     />
                   </div>
                </div>
                <div>
-                 <label className="text-xs font-bold text-muted-foreground uppercase">Description</label>
+                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status Briefing</label>
                  <textarea 
                   required
-                  placeholder="Technical details..."
-                  className="input-field mt-1 h-24"
+                  placeholder="Describe the detected anomaly and its scope..."
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm font-medium mt-2 h-32 focus:bg-white focus:ring-2 focus:ring-blue-600/10 outline-none resize-none"
                   value={newIncident.description}
                   onChange={e => setNewIncident({...newIncident, description: e.target.value})}
                  />
                </div>
-               <div className="flex gap-3 justify-end pt-2">
-                  <button type="button" className="btn-ghost" onClick={() => setIsCreateModalOpen(false)}>Cancel</button>
-                  <button type="submit" className="btn-primary">Initialize Incident</button>
+               <div className="flex gap-4 justify-end pt-4">
+                  <button type="button" className="text-slate-400 hover:text-slate-600 font-bold text-xs px-4" onClick={() => setIsCreateModalOpen(false)}>Cancel</button>
+                  <button type="submit" className="bg-[#0F172A] text-white px-6 py-2.5 rounded-lg font-bold text-xs shadow-lg shadow-slate-900/20 hover:bg-slate-800 transition-all">Begin Triage</button>
                </div>
             </form>
           </div>
@@ -151,119 +150,115 @@ const IncidentsPage: React.FC = () => {
       )}
 
       {/* Status Filter Tabs */}
-      <div className="flex items-center border-b border-border mb-4 overflow-x-auto no-scrollbar">
+      <div className="flex items-center gap-2 border-b border-slate-200 overflow-x-auto no-scrollbar">
         {tabs.map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={cn(
-              "px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all relative whitespace-nowrap",
-              activeTab === tab ? "text-primary border-b-2 border-primary" : "text-muted-foreground hover:text-foreground"
+              "px-5 py-3 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative border-b-2",
+              activeTab === tab ? "text-blue-600 border-blue-600" : "text-slate-400 border-transparent hover:text-slate-600"
             )}
           >
             {tab}
-            {activeTab === tab && (
-              <span className="absolute -top-1 -right-1 flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-              </span>
-            )}
           </button>
         ))}
       </div>
 
       {/* Control Bar */}
       <div className="flex flex-col md:flex-row gap-4 items-center">
-        <div className="relative flex-1 group">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+        <div className="relative flex-1 group w-full">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-blue-600 transition-colors" />
           <input 
             type="text" 
-            placeholder="Filter by ID, service, or keyword..."
-            className="input-field pl-10 h-10 w-full"
+            placeholder="Search incident profiles, service identifiers, or telemetry context..."
+            className="w-full bg-white border border-slate-200 rounded-xl px-12 py-3 text-sm font-medium text-[#0F172A] outline-none focus:ring-2 focus:ring-blue-600/10 focus:border-blue-600 transition-all"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <div className="flex items-center gap-2 w-full md:w-auto">
-          <div className="flex items-center bg-card border border-border rounded-md px-3 py-2 text-xs font-bold text-muted-foreground">
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          <div className="flex items-center bg-white border border-slate-200 rounded-lg px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-widest whitespace-nowrap">
              <Filter className="h-3.5 w-3.5 mr-2" /> 
-             All Statuses
+             Filter
           </div>
-          <div className="flex items-center bg-card border border-border rounded-md px-3 py-2 text-xs font-bold text-muted-foreground">
+          <div className="flex items-center bg-white border border-slate-200 rounded-lg px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-widest whitespace-nowrap">
              <Activity className="h-3.5 w-3.5 mr-2" /> 
-             Last 24h
+             Real-Time
           </div>
         </div>
       </div>
 
       {/* Data Surface */}
-      <div className="enterprise-card overflow-hidden">
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
         <table className="w-full text-left">
-          <thead className="bg-accent/40 border-b border-border">
+          <thead className="bg-slate-50/50 border-b border-slate-200">
             <tr>
-              <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">IDENTIFIER</th>
-              <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">INCIDENT PROFILE</th>
-              <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hidden lg:table-cell">SEVERITY</th>
-              <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">STATUS</th>
-              <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hidden xl:table-cell">SERVICE</th>
-              <th className="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hidden sm:table-cell">DETECTED</th>
-              <th className="px-6 py-4"></th>
+              <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.15em] text-slate-400">UUID</th>
+              <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.15em] text-slate-400">Incident Context</th>
+              <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 hidden lg:table-cell">Tier</th>
+              <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.15em] text-slate-400">Operational State</th>
+              <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 hidden xl:table-cell">Service</th>
+              <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 hidden sm:table-cell">Detected At</th>
+              <th className="px-8 py-5"></th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border">
+          <tbody className="divide-y divide-slate-100">
             {isLoading ? (
               Array(5).fill(0).map((_, i) => (
                 <tr key={i}>
-                  <td colSpan={7} className="px-6 py-4"><div className="h-10 w-full skeleton" /></td>
+                  <td colSpan={7} className="px-8 py-6"><div className="h-10 w-full bg-slate-100 animate-pulse rounded-lg" /></td>
                 </tr>
               ))
             ) : isError ? (
-               <tr><td colSpan={7} className="px-6 py-12 text-center text-destructive font-bold">Failed to load incident stream. Reconneting...</td></tr>
+               <tr><td colSpan={7} className="px-8 py-16 text-center text-red-600 font-black text-sm uppercase tracking-widest bg-red-50/30">Failed to sync incident stream. Check API connectivity.</td></tr>
+            ) : !filteredIncidents?.length ? (
+               <tr><td colSpan={7} className="px-8 py-16 text-center text-slate-400 font-bold text-sm">No incidents match current filter criteria.</td></tr>
             ) : filteredIncidents?.map((incident: any) => (
-              <tr key={incident.id} className="hover:bg-accent/20 transition-colors group cursor-pointer">
-                <td className="px-6 py-4 font-mono text-xs text-primary font-bold">
+              <tr key={incident.id} className="hover:bg-slate-50/80 transition-colors group cursor-pointer border-l-2 border-transparent hover:border-blue-600">
+                <td className="px-8 py-6 font-mono text-[11px] text-blue-600 font-black">
                   #{incident.id.toString().padStart(4, '0')}
                 </td>
-                <td className="px-6 py-4">
-                  <div className="font-bold text-sm leading-none">{incident.title}</div>
-                  <div className="text-[10px] text-muted-foreground mt-1.5 font-medium line-clamp-1">{incident.description}</div>
+                <td className="px-8 py-6">
+                  <div className="font-extrabold text-[#0F172A] text-sm leading-tight">{incident.title}</div>
+                  <div className="text-[10px] text-slate-400 mt-2 font-bold line-clamp-1 uppercase tracking-tight">{incident.description}</div>
                 </td>
-                <td className="px-6 py-4 hidden lg:table-cell">
+                <td className="px-8 py-6 hidden lg:table-cell">
                   <span className={cn(
-                    "status-badge",
-                    incident.severity === 'P1' ? "badge-critical" :
-                    incident.severity === 'P2' ? "badge-warning" :
-                    "badge-info"
+                    "px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest border",
+                    incident.severity === 'P1' ? "bg-red-50 text-red-600 border-red-100" :
+                    incident.severity === 'P2' ? "bg-orange-50 text-orange-600 border-orange-100" :
+                    "bg-blue-50 text-blue-600 border-blue-100"
                   )}>
                     {incident.severity}
                   </span>
                 </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-2">
+                <td className="px-8 py-6">
+                  <div className="flex items-center gap-3">
                     <div className={cn(
-                      "h-1.5 w-1.5 rounded-full",
+                      "h-2 w-2 rounded-full",
                       incident.status === 'RESOLVED' ? "bg-emerald-500" : "bg-orange-500 animate-pulse"
                     )} />
-                    <span className="text-xs font-bold text-foreground/80">{incident.status}</span>
+                    <span className="text-[11px] font-black text-slate-600 uppercase tracking-widest">{incident.status}</span>
                   </div>
                 </td>
-                <td className="px-6 py-4 hidden xl:table-cell">
-                   <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-                      <Terminal className="h-3 w-3" />
+                <td className="px-8 py-6 hidden xl:table-cell">
+                   <div className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                      <Terminal className="h-3.5 w-3.5 text-slate-400" />
                       {incident.serviceName}
                    </div>
                 </td>
-                <td className="px-6 py-4 text-xs font-mono text-muted-foreground hidden sm:table-cell">
+                <td className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] hidden sm:table-cell">
                   <div className="flex items-center gap-2">
-                    <Clock className="h-3 w-3" />
-                    {new Date(incident.createdAt).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
+                    <Clock className="h-3.5 w-3.5" />
+                    {new Date(incident.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}
                   </div>
                 </td>
-                <td className="px-6 py-4 text-right">
-                  <div className="flex items-center justify-end gap-1 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                <td className="px-8 py-6 text-right">
+                  <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button 
-                      className="btn-ghost text-primary hover:bg-primary/10" 
-                      title="AI Reasoninig (RCA)"
+                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all" 
+                      title="AI Root Cause Analysis"
                       onClick={(e) => {
                         e.stopPropagation();
                         navigate('/ai-chat', { state: { initialMessage: `/rca ${incident.id}` } });
@@ -273,8 +268,8 @@ const IncidentsPage: React.FC = () => {
                     </button>
                     {incident.status !== 'RESOLVED' && (
                       <button 
-                        className="btn-ghost text-emerald-500 hover:bg-emerald-500/10" 
-                        title="Resolve Incident"
+                        className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all" 
+                        title="Resolve Manually"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleResolve(incident.id)
@@ -283,7 +278,7 @@ const IncidentsPage: React.FC = () => {
                         <CheckCircle2 className="h-4 w-4" />
                       </button>
                     )}
-                    <button className="btn-ghost hidden sm:inline-flex" title="View Trace"><ExternalLink className="h-4 w-4" /></button>
+                    <button className="p-2 text-slate-300 hover:text-[#0F172A] hidden sm:inline-flex" title="External Link"><ExternalLink className="h-4 w-4" /></button>
                   </div>
                 </td>
               </tr>
@@ -292,14 +287,14 @@ const IncidentsPage: React.FC = () => {
         </table>
         
         {/* Pagination Console */}
-        <div className="px-6 py-4 bg-accent/20 border-t border-border flex items-center justify-between">
-           <div className="text-[10px] font-bold text-muted-foreground uppercase">
-             Showing {incidents?.length || 0} of {incidents?.length || 0} trackable units
+        <div className="px-8 py-5 bg-slate-50/50 border-t border-slate-200 flex items-center justify-between">
+           <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+             Operational Units: {filteredIncidents?.length || 0} sync'd
            </div>
-           <div className="flex items-center gap-2">
-              <button disabled className="p-1 border border-border rounded bg-card disabled:opacity-30"><ChevronLeft className="h-4 w-4" /></button>
-              <div className="text-xs font-bold px-2">Page 1</div>
-              <button disabled className="p-1 border border-border rounded bg-card disabled:opacity-30"><ChevronRight className="h-4 w-4" /></button>
+           <div className="flex items-center gap-3">
+              <button disabled className="p-1.5 border border-slate-200 rounded-lg bg-white disabled:opacity-30"><ChevronLeft className="h-4 w-4" /></button>
+              <div className="text-xs font-black text-[#0F172A]">01</div>
+              <button disabled className="p-1.5 border border-slate-200 rounded-lg bg-white disabled:opacity-30"><ChevronRight className="h-4 w-4" /></button>
            </div>
         </div>
       </div>
