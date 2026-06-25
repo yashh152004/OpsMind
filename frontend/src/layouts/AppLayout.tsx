@@ -2,6 +2,7 @@ import React from 'react'
 import { Outlet } from 'react-router-dom'
 import Sidebar from '@/components/Sidebar'
 import Header from '@/components/Header'
+import DemoController from '@/components/DemoController'
 
 const AppLayout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
@@ -21,6 +22,9 @@ const AppLayout: React.FC = () => {
             <Outlet />
           </div>
         </main>
+        
+        {/* Demo Mode Overlay */}
+        <DemoController />
       </div>
     </div>
   )

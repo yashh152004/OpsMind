@@ -14,278 +14,161 @@ import {
 import { 
   Activity,
   AlertTriangle, 
-  ArrowUpRight,
-  ArrowDownRight,
-  Zap,
   ShieldCheck,
   ExternalLink,
-  AlertCircle
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/services/api'
 import { cn } from '@/utils/cn'
-import { toast } from 'sonner'
 
 const DashboardPage: React.FC = () => {
-  
-  const { data: stats, isLoading } = useQuery({
+  const { data: stats } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: () => apiClient.getDashboardStats(),
-    refetchInterval: 30000 // Refetch every 30s for 'Live' feel
+    refetchInterval: 15000
   })
 
-  // Professional KPI configuration
-  const kpis = [
-    { 
-      label: 'System Uptime', 
-      value: stats?.uptime || '---', 
-      change: '+0.02%', 
-      trend: 'up',
-      icon: Zap,
-      color: 'text-blue-500'
-    },
-    { 
-      label: 'Active Incidents', 
-      value: stats?.activeIncidents || '0', 
-      change: '-12%', 
-      trend: 'down',
-      icon: AlertTriangle,
-      color: 'text-orange-500'
-    },
-    { 
-      label: 'Mean Time to Resolve', 
-      value: stats?.mttr || '---', 
-      change: '-5m', 
-      trend: 'down',
-      icon: Activity,
-      color: 'text-emerald-500'
-    },
-    { 
-      label: 'SLA Compliance', 
-      value: stats?.slaStatus || '---', 
-      change: '100%', 
-      trend: 'up',
-      icon: ShieldCheck,
-      color: 'text-primary'
-    },
-  ]
-
   return (
-    <div className="space-y-10 pb-12">
-      {/* Header Section */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 border-b border-slate-200 pb-8">
+    <div className="space-y-6 pb-10 page-transition">
+      {/* Executive Summary Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-slate-200">
         <div>
-          <h1 className="text-3xl font-extrabold text-[#0F172A] tracking-tight">Systems Overview</h1>
-          <p className="text-slate-500 text-sm font-medium mt-2 flex items-center gap-2">
-            <Activity className="h-4 w-4 text-blue-600" />
-            Operational Intelligence Surface • Real-time telemetry active
-          </p>
+          <h1 className="text-xl font-black text-slate-900 tracking-tight">Executive Intelligence Overview</h1>
+          <div className="flex items-center gap-3 mt-1">
+             <span className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100 uppercase tracking-widest">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                Connectivity: 100%
+             </span>
+             <span className="text-[10px] text-slate-400 font-medium">Last Sync: Just now</span>
+          </div>
         </div>
-        <div className="flex flex-col sm:flex-row items-center gap-4">
-          <div className="flex bg-slate-100 p-1 rounded-lg border border-slate-200">
-             {[
-               { icon: Activity, type: "cpu_spike", title: "CPU" },
-               { icon: AlertCircle, type: "database_crash", title: "DB" },
-               { icon: Zap, type: "api_latency", title: "LAT" }
-             ].map(sim => (
-               <button 
-                 key={sim.type}
-                 onClick={async () => {
-                   await apiClient.triggerSimulation(sim.type);
-                   toast.success(`Simulation Injected: ${sim.title}`);
-                 }}
-                 className="p-2.5 hover:bg-white hover:text-blue-600 rounded-md text-slate-500 transition-all flex items-center gap-2 font-bold text-[10px] uppercase tracking-tighter"
-                 title={`Simulate ${sim.title}`}
-               >
-                 <sim.icon className="h-3.5 w-3.5" />
-                 {sim.title}
-               </button>
-             ))}
-          </div>
-          <div className="flex gap-2 w-full sm:w-auto">
-            <button className="px-4 py-2 bg-white border border-slate-200 text-[#0F172A] font-bold text-xs rounded-lg hover:bg-slate-50 transition-colors">Incident Board</button>
-            <button className="px-4 py-2 bg-[#2563EB] text-white font-bold text-xs rounded-lg hover:bg-blue-700 transition-shadow shadow-md shadow-blue-600/20">Track New Incident</button>
-          </div>
+        <div className="flex items-center gap-2">
+            <button className="btn-secondary h-8 px-3 text-[11px] font-bold uppercase tracking-wider">Export PDF</button>
+            <button className="btn-primary h-8 px-3 text-[11px] font-bold uppercase tracking-wider">Configure Layout</button>
         </div>
       </div>
 
-      {/* KPI Stream */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        {kpis.map((kpi) => (
-          <div key={kpi.label} className="bg-white border border-slate-200 p-6 rounded-xl shadow-sm hover:border-blue-300 transition-all group">
-            <div className="flex items-center justify-between mb-4">
-              <div className={cn("p-2 rounded-lg bg-slate-50 border border-slate-100", kpi.color)}>
-                <kpi.icon className="h-5 w-5" />
-              </div>
-              <div className={cn(
-                "flex items-center gap-1 text-[10px] font-extrabold px-2 py-0.5 rounded-full border",
-                kpi.trend === 'up' ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-blue-50 text-blue-600 border-blue-100"
-              )}>
-                {kpi.trend === 'up' ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
-                {kpi.change}
-              </div>
+      {/* KPI Matrix */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {[
+          { label: 'Cluster Uptime', val: stats?.uptime || '99.982%', color: 'text-emerald-600', trend: '+0.012%' },
+          { label: 'Active Incidents', val: stats?.activeIncidents || '00', color: 'text-slate-900', trend: '-2' },
+          { label: 'Latency (Avg)', val: stats?.mttr || '12.4ms', color: 'text-blue-600', trend: '-2.1ms' },
+          { label: 'SLA Fulfillment', val: '100.0%', color: 'text-slate-900', trend: 'STABLE' },
+        ].map(kpi => (
+          <div key={kpi.label} className="enterprise-card p-4 flex flex-col justify-between h-28">
+            <div className="flex justify-between items-start">
+               <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none">{kpi.label}</span>
+               <span className="text-[9px] font-bold text-slate-400 font-mono">{kpi.trend}</span>
             </div>
-            <div className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.15em]">{kpi.label}</div>
-            <div className="text-2xl font-black mt-1 text-[#0F172A] font-mono tracking-tighter">
-              {isLoading ? <div className="h-8 w-24 skeleton" /> : kpi.value}
-            </div>
+            <div className={cn("text-3xl font-black metric-mono", kpi.color)}>{kpi.val}</div>
           </div>
         ))}
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-3">
-        {/* Network performance */}
-        <div className="bg-white border border-slate-200 p-8 rounded-2xl shadow-sm lg:col-span-2">
-           <div className="flex items-center justify-between mb-10">
-              <div>
-                <h3 className="text-lg font-bold text-[#0F172A]">Core Telemetry Stream</h3>
-                <p className="text-xs text-slate-500 font-medium">Latency gradients across global edge nodes</p>
-              </div>
-              <div className="flex items-center gap-6">
-                <span className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                  <span className="h-2 w-2 rounded-full bg-[#2563EB]" /> Nominal
-                </span>
-                <span className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                  <span className="h-2 w-2 rounded-full bg-red-500" /> Outlier
-                </span>
+      <div className="grid gap-6 lg:grid-cols-12">
+        {/* Main Telemetry Graph */}
+        <div className="enterprise-card p-0 lg:col-span-8 overflow-hidden">
+           <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+              <span className="text-[11px] font-black text-slate-600 uppercase tracking-[0.15em] flex items-center gap-2">
+                 <Activity className="h-3.5 w-3.5 text-blue-600" /> System Efficacy Gradient
+              </span>
+              <div className="flex gap-2">
+                 {['1H', '6H', '24H', '7D'].map(t => (
+                   <button key={t} className={cn("text-[9px] font-bold px-1.5 py-0.5 rounded", t === '1H' ? "bg-slate-200 text-slate-900" : "text-slate-400 hover:text-slate-600")}>{t}</button>
+                 ))}
               </div>
            </div>
-           <div className="h-[340px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={stats?.performanceSeries || []}>
-                <defs>
-                  <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#2563EB" stopOpacity={0.15}/>
-                    <stop offset="95%" stopColor="#2563EB" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
-                <XAxis 
-                  dataKey="time" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fill: '#64748B', fontSize: 10, fontWeight: 600 }} 
-                  dy={15}
-                />
-                <YAxis 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fill: '#64748B', fontSize: 10, fontWeight: 600 }} 
-                />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '12px', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                  itemStyle={{ color: '#0F172A', fontWeight: 700 }}
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="value" 
-                  stroke="#2563EB" 
-                  strokeWidth={3}
-                  fillOpacity={1} 
-                  fill="url(#colorValue)" 
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
+           <div className="p-6 h-[380px]">
+             <ResponsiveContainer width="100%" height="100%">
+               <AreaChart data={stats?.performanceSeries || []}>
+                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" strokeOpacity={0.5} />
+                 <XAxis dataKey="time" hide />
+                 <YAxis axisLine={false} tickLine={false} tick={{fill: '#94A3B8', fontSize: 10}} />
+                 <Tooltip contentStyle={{ borderRadius: '4px', border: '1px solid #E2E8F0', boxShadow: 'none', fontSize: '12px' }} />
+                 <Area type="monotone" dataKey="value" stroke="#2563EB" strokeWidth={2} fill="#2563EB" fillOpacity={0.05} />
+               </AreaChart>
+             </ResponsiveContainer>
+           </div>
         </div>
 
         {/* Severity Distribution */}
-        <div className="bg-white border border-slate-200 p-8 rounded-2xl shadow-sm">
-          <div className="mb-10">
-            <h3 className="text-lg font-bold text-[#0F172A]">Event Distribution</h3>
-            <p className="text-xs text-slate-500 font-medium">Alert density by systemic impact</p>
-          </div>
-          <div className="h-[280px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={stats?.severityDistribution || []} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#F1F5F9" />
-                <XAxis type="number" hide />
-                <YAxis 
-                  dataKey="name" 
-                  type="category" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fill: '#0F172A', fontWeight: 800, fontSize: 11 }} 
-                />
-                <Tooltip 
-                  cursor={{ fill: '#F8FAFC' }}
-                  contentStyle={{ backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '12px' }}
-                />
-                <Bar dataKey="count" radius={[0, 6, 6, 0]} barSize={28}>
-                  {(stats?.severityDistribution || []).map((entry: any, index: number) => (
-                    <Cell key={`cell-${index}`} fill={entry.name === 'P1' ? '#EF4444' : entry.name === 'P2' ? '#F59E0B' : '#2563EB'} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="mt-8 space-y-5">
-             <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Critical Backlog</span>
-                <span className="text-xs font-black text-red-600">4 Active</span>
-             </div>
-             <div className="h-2.5 w-full bg-slate-100 rounded-full overflow-hidden border border-slate-200">
-                <div className="h-full bg-red-500 w-[25%]" />
-             </div>
-             <p className="text-[10px] text-slate-400 font-medium leading-relaxed italic">
-                System stress analysis suggests potential cascading failure in North-Europe shard.
-             </p>
-          </div>
+        <div className="enterprise-card p-0 lg:col-span-4 overflow-hidden">
+           <div className="px-5 py-3 border-b border-slate-100 bg-slate-50/50">
+              <span className="text-[11px] font-black text-slate-600 uppercase tracking-[0.15em] flex items-center gap-2">
+                 <AlertTriangle className="h-3.5 w-3.5 text-orange-500" /> Severity Concentration
+              </span>
+           </div>
+           <div className="p-6">
+              <div className="h-[220px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={stats?.severityDistribution || []} layout="vertical">
+                    <XAxis type="number" hide />
+                    <YAxis dataKey="name" type="category" hide />
+                    <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={32}>
+                      {(stats?.severityDistribution || []).map((entry: any, index: number) => (
+                        <Cell key={`cell-${index}`} fill={entry.name === 'P1' ? '#EF4444' : entry.name === 'P2' ? '#F59E0B' : '#2563EB'} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="mt-6 space-y-4">
+                 {(stats?.severityDistribution || []).map((entry: any) => (
+                   <div key={entry.name} className="flex items-center justify-between text-[11px] font-bold">
+                      <div className="flex items-center gap-2">
+                         <span className={cn("h-2 w-2 rounded-full", entry.name === 'P1' ? "bg-red-500" : entry.name === 'P2' ? "bg-orange-500" : "bg-blue-500")} />
+                         <span className="text-slate-500 uppercase tracking-widest">{entry.name} Incidents</span>
+                      </div>
+                      <span className="metric-mono">{entry.count}</span>
+                   </div>
+                 ))}
+              </div>
+           </div>
         </div>
       </div>
 
-      {/* AI Risk Engine Board */}
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden border-t-4 border-t-blue-600">
-        <div className="p-5 bg-slate-50/50 border-b border-slate-200 flex items-center justify-between">
-           <div className="flex items-center gap-3">
-              <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-md shadow-blue-600/20">
-                <ShieldCheck className="h-4 w-4" />
-              </div>
-              <div>
-                <span className="text-xs font-black uppercase tracking-[0.2em] text-[#0F172A]">AI Contextual Risk Engine</span>
-                <p className="text-[10px] text-slate-400 font-bold">MODE: SRE_AUTONOMOUS_ANALYSIS_V3</p>
-              </div>
-           </div>
-           <button className="px-3 py-1.5 bg-white border border-slate-200 text-blue-600 font-bold text-[10px] rounded-lg hover:bg-slate-50 transition-all uppercase tracking-tighter shadow-sm">Audit Logic</button>
-        </div>
-        <div className="overflow-x-auto">
-           <table className="w-full text-left min-w-[800px]">
-              <thead className="bg-slate-50/30">
-                <tr className="text-[10px] text-slate-400 font-black uppercase tracking-[0.15em] border-b border-slate-200/50">
-                  <th className="px-8 py-5">System Risk Profile</th>
-                  <th className="px-8 py-5">Autonomous Reasoning Context</th>
-                  <th className="px-8 py-5">Confidence</th>
-                  <th className="px-8 py-5">Logic State</th>
-                  <th className="px-8 py-5 text-right">Insight</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {(stats?.riskProfiles || [
-                  { id: 1, type: 'Nominal', context: 'Baseline stability - All global clusters reporting nominal latency gradients.', conf: '99.2%', status: 'STABLE' },
-                  { id: 2, type: 'Warning', context: 'Anomalous memory pressure detected in US-EAST-1B shard. Potential OOM signal.', conf: '86.4%', status: 'REASONING' },
-                  { id: 3, type: 'Critical', context: 'Failed health probes for Auth-Service-02. Cascading latency detected.', conf: '92.1%', status: 'FAILED' }
-                ]).map((item: any, idx: number) => (
-                  <tr key={item.id || idx} className="text-sm hover:bg-slate-50/80 transition-colors group">
-                    <td className="px-8 py-5">
-                       <span className={cn(
-                         "px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter border",
-                         item.type === 'Critical' ? "bg-red-50 text-red-600 border-red-100" : 
-                         item.type === 'Warning' ? "bg-orange-50 text-orange-600 border-orange-100" : "bg-blue-50 text-blue-600 border-blue-100"
-                       )}>{item.type}</span>
-                    </td>
-                    <td className="px-8 py-5 font-medium text-[#0F172A] max-w-md truncate">{item.context}</td>
-                    <td className="px-8 py-5 font-black text-slate-600">{item.conf}</td>
-                    <td className="px-8 py-5 font-black text-[10px] text-slate-400 uppercase tracking-widest">{item.status}</td>
-                    <td className="px-8 py-5 text-right">
-                       <button className="text-slate-300 hover:text-blue-600 transition-all p-2 hover:bg-blue-50 rounded-lg">
-                         <ExternalLink className="h-4 w-4" />
-                       </button>
-                    </td>
+      {/* Autonomous Reasoning Feed */}
+      <div className="enterprise-card p-0 overflow-hidden">
+         <div className="px-5 py-3 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
+            <span className="text-[11px] font-black text-slate-600 uppercase tracking-[0.15em] flex items-center gap-2">
+               <ShieldCheck className="h-3.5 w-3.5 text-blue-600" /> AI Contextual Analysis
+            </span>
+            <div className="status-badge badge-info">V3.0 Engine Active</div>
+         </div>
+         <table className="enterprise-table">
+            <thead>
+               <tr>
+                  <th>Risk Profile</th>
+                  <th>Autonomous Intelligence Reasoning Context</th>
+                  <th>Confidence</th>
+                  <th>Logic State</th>
+                  <th className="text-right">Action</th>
+               </tr>
+            </thead>
+            <tbody>
+               {(stats?.riskProfiles || [
+                  { id: 1, type: 'Nominal', context: 'Infrastructure nodes operating within baseline throughput constraints. No anomalies.', conf: '99.4%', status: 'STABLE' },
+                  { id: 2, type: 'Warning', context: 'Elevated CPU throttling in us-east-1a shard. Investigating potential memory leak.', conf: '88.1%', status: 'REASONING' },
+                  { id: 3, type: 'Critical', context: 'Health probe failure on Auth-Service. Potential cascading auth fallout detected.', conf: '94.2%', status: 'TRIGGERED' }
+               ]).map((item: any) => (
+                  <tr key={item.id} className="hover:bg-slate-50 transition-colors">
+                     <td className="w-32">
+                        <span className={cn(
+                          "status-badge",
+                          item.type === 'Critical' ? "badge-critical" : item.type === 'Warning' ? "badge-warning" : "badge-success"
+                        )}>{item.type}</span>
+                     </td>
+                     <td className="font-medium text-slate-600">{item.context}</td>
+                     <td className="metric-mono text-xs">{item.conf}</td>
+                     <td className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">{item.status}</td>
+                     <td className="text-right">
+                        <button className="btn-ghost"><ExternalLink className="h-3.5 w-3.5" /></button>
+                     </td>
                   </tr>
-                ))}
-              </tbody>
-           </table>
-        </div>
+               ))}
+            </tbody>
+         </table>
       </div>
     </div>
   )

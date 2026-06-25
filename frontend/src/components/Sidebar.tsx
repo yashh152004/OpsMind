@@ -60,7 +60,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             <div className="h-8 w-8 bg-primary rounded flex items-center justify-center text-white font-bold text-xl">
               <Zap className="h-4 w-4" />
             </div>
-            <span className="font-outfit font-bold text-lg tracking-tight text-white uppercase">OpsMind</span>
+            <span className="font-bold text-base tracking-tight text-white">OpsMind.</span>
           </div>
           <button className="lg:hidden text-slate-400 p-1" onClick={onClose}>
              <Terminal className="h-4 w-4" />
@@ -102,13 +102,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           ))}
         </nav>
 
-        {/* Footer Branding */}
-        <div className="p-4 border-t border-[#1E293B]">
-          <div className="p-3 bg-[#1E293B]/40 rounded-lg border border-[#1E293B]">
-            <div className="text-[10px] font-bold text-slate-500 uppercase mb-2">Systems Intelligence</div>
-            <div className="flex items-center gap-2 text-xs font-semibold text-emerald-400">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-              AI_OS OPERATIONAL
+        {/* System Status Footer */}
+        <div className="p-4 border-t border-slate-800">
+          <div className="p-3 bg-slate-900 rounded border border-slate-800">
+            <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Platform Status</div>
+            <div className="flex items-center gap-2 text-[10px] font-bold text-emerald-500">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              OPERATIONAL
             </div>
           </div>
         </div>
