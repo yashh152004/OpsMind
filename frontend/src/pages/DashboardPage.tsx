@@ -16,6 +16,7 @@ import {
   AlertTriangle, 
   ShieldCheck,
   ExternalLink,
+  Cpu,
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/services/api'

@@ -11,7 +11,9 @@ import {
   BrainCircuit,
   Zap,
   MoreVertical,
-  Filter
+  Filter,
+  Activity,
+  Terminal,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { cn } from '@/utils/cn'
