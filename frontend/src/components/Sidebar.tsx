@@ -51,30 +51,30 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       />
 
       <aside className={cn(
-        "fixed lg:static inset-y-0 left-0 w-64 bg-card border-r border-border flex flex-col z-[200] transition-transform duration-300 lg:translate-x-0",
+        "fixed lg:static inset-y-0 left-0 w-64 bg-[#0F172A] border-r border-[#1E293B] flex flex-col z-[200] transition-transform duration-300 lg:translate-x-0",
         isOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         {/* Brand Header */}
-        <div className="h-16 flex items-center px-6 border-b border-border justify-between">
+        <div className="h-16 flex items-center px-6 border-b border-[#1E293B] justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 bg-primary rounded flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-primary/20">
-              O
+            <div className="h-8 w-8 bg-primary rounded flex items-center justify-center text-white font-bold text-xl">
+              <Zap className="h-4 w-4" />
             </div>
-            <span className="font-outfit font-bold text-lg tracking-tight">OpsMind</span>
+            <span className="font-outfit font-bold text-lg tracking-tight text-white uppercase">OpsMind</span>
           </div>
-          <button className="lg:hidden text-muted-foreground p-1" onClick={onClose}>
+          <button className="lg:hidden text-slate-400 p-1" onClick={onClose}>
              <Terminal className="h-4 w-4" />
           </button>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-7 mt-4 overflow-y-auto">
+        <nav className="flex-1 p-4 space-y-6 mt-4 overflow-y-auto">
           {navigation.map((group) => (
             <div key={group.group}>
-              <h3 className="px-3 text-[10px] uppercase font-bold text-muted-foreground/60 tracking-widest mb-3">
+              <h3 className="px-3 text-[10px] uppercase font-bold text-slate-500 tracking-[0.2em] mb-4">
                 {group.group}
               </h3>
-              <div className="space-y-0.5">
+              <div className="space-y-1">
                 {group.items.map((item) => (
                   <NavLink
                     key={item.name}
@@ -85,11 +85,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     className={({ isActive }) => cn(
                       "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-all duration-200",
                       isActive 
-                        ? "bg-primary/10 text-primary border-r-2 border-primary" 
-                        : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                        ? "bg-primary text-white" 
+                        : "text-slate-400 hover:bg-[#1E293B] hover:text-white"
                     )}
                   >
-                    <item.icon className="h-4 w-4" />
+                    <item.icon className={cn("h-4 w-4", isActive ? "text-white" : "text-slate-500")} />
                     <span>{item.name}</span>
                   </NavLink>
                 ))}
@@ -99,12 +99,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         </nav>
 
         {/* Footer Branding */}
-        <div className="p-4 border-t border-border">
-          <div className="p-3 bg-accent/20 rounded-md border border-border/50">
-            <div className="text-[10px] font-bold text-muted-foreground uppercase mb-1">Grid Status</div>
-            <div className="flex items-center gap-2 text-xs font-semibold text-emerald-500">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse" />
-              Operational
+        <div className="p-4 border-t border-[#1E293B]">
+          <div className="p-3 bg-[#1E293B]/40 rounded-lg border border-[#1E293B]">
+            <div className="text-[10px] font-bold text-slate-500 uppercase mb-2">Systems Intelligence</div>
+            <div className="flex items-center gap-2 text-xs font-semibold text-emerald-400">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+              AI_OS OPERATIONAL
             </div>
           </div>
         </div>

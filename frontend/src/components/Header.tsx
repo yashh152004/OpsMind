@@ -79,11 +79,11 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
   }, [])
 
   return (
-    <header className="h-16 border-b border-border bg-card flex items-center justify-between px-4 md:px-8 sticky top-0 z-[100]">
+    <header className="h-16 border-b border-[#E2E8F0] bg-white flex items-center justify-between px-4 md:px-8 sticky top-0 z-[100]">
       {/* Mobile Toggle */}
       <button 
         onClick={onToggleSidebar}
-        className="lg:hidden mr-4 text-muted-foreground hover:text-foreground p-2 hover:bg-accent rounded-md transition-colors"
+        className="lg:hidden mr-4 text-slate-500 hover:text-[#0F172A] p-2 hover:bg-slate-50 rounded-md transition-colors"
       >
         <Menu className="h-5 w-5" />
       </button>
@@ -91,7 +91,7 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
       {/* Global Search Interface */}
       <div className="flex-1 max-w-md relative hidden sm:block" ref={searchRef}>
         <div className="relative group">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-primary transition-colors">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-blue-600 transition-colors">
             {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
           </div>
           <input
@@ -99,20 +99,20 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onFocus={() => query.length > 2 && setShowResults(true)}
-            className="w-full bg-accent/40 border border-border rounded-md pl-10 pr-12 py-1.5 text-sm focus:bg-background transition-all focus:ring-1 focus:ring-primary focus:border-primary outline-none"
-            placeholder="Search cluster... (Cmd + K)"
+            className="w-full bg-slate-50 border border-[#E2E8F0] rounded-lg pl-10 pr-12 py-2 text-sm text-[#0F172A] placeholder:text-slate-400 transition-all focus:bg-white focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 outline-none"
+            placeholder="Search telemetry, active logs, or platform docs..."
           />
           <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none hidden md:flex">
-             <kbd className="h-5 px-1.5 bg-background border border-border rounded text-[10px] flex items-center gap-1 text-muted-foreground">
-                <Command className="h-2.5 w-2.5" /> K
+             <kbd className="h-5 px-1.5 bg-white border border-[#E2E8F0] rounded text-[10px] flex items-center gap-1 text-slate-400 font-bold uppercase tracking-tighter">
+                CMD K
              </kbd>
           </div>
         </div>
 
         {showResults && (
-           <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-lg shadow-2xl max-h-[400px] overflow-y-auto z-[200] animate-in fade-in slide-in-from-top-2">
+           <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-[#E2E8F0] rounded-xl shadow-2xl max-h-[480px] overflow-y-auto z-[200] animate-in fade-in slide-in-from-top-2">
               {results.length === 0 ? (
-                <div className="p-8 text-center text-xs text-muted-foreground">No matches for "{query}"</div>
+                <div className="p-8 text-center text-xs text-slate-500 font-medium">No system matches for "{query}"</div>
               ) : (
                 <div className="p-2 space-y-1">
                    {results.map((item, i) => (
@@ -122,18 +122,18 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
                          setShowResults(false)
                          navigate(item.type === 'INCIDENT' ? '/incidents' : item.type === 'ALERT' ? '/alerts' : '/infrastructure')
                        }}
-                       className="p-3 hover:bg-accent rounded-md cursor-pointer flex items-center justify-between group transition-colors"
+                       className="p-3 hover:bg-slate-50 rounded-lg cursor-pointer flex items-center justify-between group transition-colors border border-transparent hover:border-[#E2E8F0]"
                      >
-                       <div className="flex items-center gap-3">
-                          <div className="h-8 w-8 bg-background border border-border rounded flex items-center justify-center text-primary">
+                       <div className="flex items-center gap-4">
+                          <div className="h-9 w-9 bg-slate-100 border border-[#E2E8F0] rounded-lg flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform">
                              {item.type === 'INCIDENT' ? <AlertCircle className="h-4 w-4" /> : item.type === 'ALERT' ? <Terminal className="h-4 w-4" /> : <Cpu className="h-4 w-4" />}
                           </div>
                           <div>
-                             <div className="text-xs font-bold">{item.title}</div>
-                             <div className="text-[10px] text-muted-foreground uppercase font-bold tracking-tighter">{item.subtitle}</div>
+                             <div className="text-sm font-bold text-[#0F172A]">{item.title}</div>
+                             <div className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">{item.subtitle}</div>
                           </div>
                        </div>
-                       <div className="text-[10px] font-bold text-muted-foreground border border-border px-1.5 rounded uppercase">
+                       <div className="text-[10px] font-bold text-slate-400 bg-slate-50 border border-[#E2E8F0] px-2 py-0.5 rounded-full uppercase tracking-tighter">
                           {item.type}
                        </div>
                      </div>
@@ -144,31 +144,35 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
         )}
       </div>
 
-      <div className="flex items-center gap-3 md:gap-6 ml-auto">
-        <button className="text-muted-foreground hover:text-foreground transition-colors relative" onClick={() => navigate('/alerts')}>
-          <Bell className="h-5 w-5" />
-          {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 h-4 w-4 bg-primary text-[10px] text-white flex items-center justify-center rounded-full border-2 border-card font-bold animate-in zoom-in">
-              {unreadCount}
-            </span>
-          )}
-        </button>
-        <button className="text-muted-foreground hover:text-foreground transition-colors hidden sm:block">
-          <HelpCircle className="h-5 w-5" />
-        </button>
+      <div className="flex items-center gap-4 md:gap-8 ml-auto">
+        <div className="flex items-center gap-1 md:gap-2">
+           <button className="text-slate-500 hover:text-[#0F172A] transition-colors relative p-2 hover:bg-slate-50 rounded-full" onClick={() => navigate('/alerts')}>
+             <Bell className="h-5 w-5" />
+             {unreadCount > 0 && (
+               <span className="absolute top-1 right-1 h-4 w-4 bg-red-600 text-[10px] text-white flex items-center justify-center rounded-full border-2 border-white font-bold">
+                 {unreadCount}
+               </span>
+             )}
+           </button>
+           <button className="text-slate-500 hover:text-[#0F172A] transition-colors hidden sm:block p-2 hover:bg-slate-50 rounded-full">
+             <HelpCircle className="h-5 w-5" />
+           </button>
+        </div>
         
-        <div className="h-6 w-px bg-border mx-2 hidden sm:block" />
+        <div className="h-8 w-px bg-[#E2E8F0] mx-0 hidden sm:block" />
 
-        <button className="flex items-center gap-3 group">
-          <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xs shadow-md shadow-primary/20 transition-transform group-hover:scale-110">
-            {user?.firstName?.[0] || 'U'}
-          </div>
-          <div className="hidden lg:block text-left">
-            <div className="text-xs font-bold leading-none">{user?.firstName}</div>
-            <div className="text-[10px] text-muted-foreground mt-1 uppercase font-bold tracking-tighter">SRE_ADMIN</div>
-          </div>
-          <ChevronDown className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-        </button>
+        <div className="flex items-center gap-4 pl-2">
+           <div className="hidden lg:block text-right">
+             <div className="text-sm font-bold text-[#0F172A] leading-tight">{user?.firstName} {user?.lastName}</div>
+             <div className="text-[10px] text-blue-600 font-bold uppercase tracking-[0.1em]">Principal SRE</div>
+           </div>
+           <button className="flex items-center gap-2 group p-1 bg-slate-50 border border-[#E2E8F0] rounded-full pr-3 hover:bg-white transition-colors">
+             <div className="h-8 w-8 rounded-full bg-[#0F172A] flex items-center justify-center text-white font-bold text-xs shadow-inner">
+               {user?.firstName?.[0] || 'U'}
+             </div>
+             <ChevronDown className="h-4 w-4 text-slate-400 group-hover:text-[#0F172A] transition-colors" />
+           </button>
+        </div>
       </div>
     </header>
   )
