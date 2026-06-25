@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, AxiosError } from 'axios'
 import { useAuthStore } from '@/stores/auth'
-import type { AuthResponse, AuthCredentials, User, RegisterRequest } from '@/types'
+import type { AuthResponse, AuthCredentials, User, RegisterRequest, Notification } from '@/types'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api'
 
@@ -296,6 +296,18 @@ class ApiClient {
   async getChatResponse(message: string) {
     const response = await this.client.post<{ response: string }>('/ai/chat', { message })
     return response.data
+  }
+
+  /**
+   * Notification Endpoints
+   */
+  async getNotifications() {
+    const response = await this.client.get<Notification[]>('/notifications')
+    return response.data
+  }
+
+  async markNotificationAsRead(id: number) {
+    await this.client.post(`/notifications/${id}/read`)
   }
 
   getAxiosInstance() {

@@ -142,6 +142,15 @@ export interface Alert {
   resolvedAt?: string
 }
 
+export interface Notification {
+  id: number
+  title: string
+  message: string
+  type: 'ERROR' | 'WARNING' | 'INFO'
+  isRead: boolean
+  createdAt: string
+}
+
 export interface AlertRule {
   id: string
   organizationId: string
