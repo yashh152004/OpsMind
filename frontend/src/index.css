@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,35 +6,30 @@
 
 @layer base {
   :root {
-    /* Enterprise Palette - Primary */
-    --background: 210, 40%, 98%;   /* #F8FAFC */
-    --foreground: 222, 47%, 11%;   /* #0F172A */
-    --card: 0, 0%, 100%;           /* #FFFFFF */
-    --card-foreground: 222, 47%, 11%;
-    --popover: 0, 0%, 100%;
-    --popover-foreground: 222, 47%, 11%;
+    /* Enterprise Color System */
+    --primary: 222 47% 11%;      /* #0F172A */
+    --secondary: 217 33% 17%;    /* #1E293B */
+    --accent: 221 83% 53%;       /* #2563EB */
+    --success: 142 71% 45%;      /* #10B981 */
+    --warning: 38 92% 50%;       /* #F59E0B */
+    --critical: 0 84% 60%;       /* #EF4444 */
+    --background: 210 40% 98%;   /* #F8FAFC */
+    --surface: 0 0% 100%;        /* #FFFFFF */
+    --border: 214 32% 91%;        /* #E2E8F0 */
+    --muted: 215 16% 47%;         /* #64748B */
     
-    --primary: 222, 47%, 11%;      /* #0F172A - Primary is Dark Navy */
-    --primary-foreground: 210, 40%, 98%;
-    
-    --secondary: 217, 33%, 17%;    /* #1E293B - Secondary */
-    --secondary-foreground: 210, 40%, 98%;
-
-    --accent: 221, 83%, 53%;       /* #2563EB - Blue Accent */
-    --accent-foreground: 210, 40%, 98%;
-
-    --muted: 210, 40%, 96.1%;
-    --muted-foreground: 215, 16%, 47%; /* #64748B */
-
-    --border: 214, 32%, 91%;       /* #E2E8F0 */
-    --input: 214, 32%, 91%;
-    --ring: 221, 83%, 53%;
-    --radius: 0.375rem;
-
-    /* Operational Status Colors */
-    --success: 142, 71%, 45%;      /* #10B981 */
-    --warning: 38, 92%, 50%;       /* #F59E0B */
-    --critical: 0, 84%, 60%;       /* #EF4444 */
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary-foreground: 210 40% 98%;
+    --secondary-foreground: 210 40% 98%;
+    --accent-foreground: 210 40% 98%;
+    --muted-foreground: 215 16% 47%;
+    --input: 214 32% 91%;
+    --ring: 221 83% 53%;
+    --radius: 0.25rem; /* More compact SaaS look */
   }
 }
 
@@ -43,85 +38,122 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-inter antialiased;
-    font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1;
+    @apply bg-background text-foreground font-inter antialiased selection:bg-accent/20 selection:text-accent;
+    font-feature-settings: "cv02", "cv05", "cv08", "ss01";
   }
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-inter font-bold tracking-tight text-foreground;
-  }
-  h1 { @apply text-xl; }
-  h2 { @apply text-lg; }
-  h3 { @apply text-base; }
   
+  /* Typography Hierarchy */
+  h1 { @apply text-page-title mb-4; }
+  h2 { @apply text-lg font-semibold tracking-tight text-primary; }
+  h3 { @apply text-base font-semibold text-primary; }
+  h4 { @apply text-sm font-semibold text-primary; }
+  
+  .text-page-title { @apply text-xl font-bold tracking-tight text-primary; }
+  .text-section-title { @apply text-[11px] font-bold uppercase tracking-widest text-muted; }
+  .text-card-title { @apply text-sm font-semibold text-primary; }
+  .text-table-header { @apply text-[10px] font-bold uppercase tracking-widest text-muted; }
+  .text-metric-label { @apply text-[10px] font-bold uppercase tracking-widest text-muted; }
+  .text-body { @apply text-sm text-secondary; }
+  .text-helper { @apply text-xs text-muted; }
+
   code, pre {
-    @apply font-mono text-[0.875em];
+    @apply font-mono text-[12px];
   }
 }
 
 @layer components {
-  /* High Density Enterprise Surfaces */
+  /* Layout Containers */
+  .main-content-grid {
+    @apply grid gap-4 p-4 lg:p-6;
+  }
+
+  /* Enterprise Surfaces */
   .enterprise-card {
-    @apply bg-card border border-border rounded-md shadow-[0_1px_2px_rgba(0,0,0,0.05)] transition-shadow duration-200;
+    @apply bg-card border border-border rounded shadow-[0_1px_2px_rgba(0,0,0,0.05)] overflow-hidden;
   }
 
-  .enterprise-card:hover {
-    @apply shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05),0_2px_4px_-1px_rgba(0,0,0,0.03)];
+  .enterprise-card-header {
+    @apply px-4 py-2.5 border-b border-border bg-slate-50/50 flex items-center justify-between;
   }
 
-  /* Professional Operational Buttons */
+  .enterprise-card-content {
+    @apply p-4;
+  }
+
+  /* Professional Buttons */
   .btn-primary {
-    @apply bg-primary text-white font-semibold py-1.5 px-3.5 rounded text-sm transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2;
+    @apply bg-accent text-white font-medium py-1.5 px-4 rounded-sm text-sm transition-all hover:bg-accent/90 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2;
   }
 
   .btn-secondary {
-    @apply bg-white text-foreground border border-border font-semibold py-1.5 px-3.5 rounded text-sm hover:bg-slate-50 transition-all flex items-center justify-center gap-2;
+    @apply bg-white text-secondary border border-border font-medium py-1.5 px-4 rounded-sm text-sm hover:bg-slate-50 transition-all flex items-center justify-center gap-2;
   }
 
   .btn-ghost {
-    @apply hover:bg-slate-100 text-muted-foreground hover:text-foreground transition-colors p-1.5 rounded;
+    @apply hover:bg-slate-100 text-muted hover:text-primary transition-colors p-1.5 rounded-sm;
   }
-
-  /* Production-Grade Form Controls */
-  .input-field {
-    @apply w-full bg-white border border-border rounded px-3 py-1.5 text-sm text-foreground placeholder:text-slate-400 outline-none transition-shadow focus:border-accent focus:ring-1 focus:ring-accent/20;
-  }
-
-  /* Operational Metrics & Status */
-  .metric-mono {
-    @apply font-mono font-medium tracking-tighter;
-  }
-
-  .status-badge {
-    @apply px-1.5 py-0.5 rounded-sm text-[10px] font-black uppercase tracking-widest border shrink-0;
-  }
-
-  .badge-critical { @apply bg-red-50 text-red-600 border-red-100; }
-  .badge-warning { @apply bg-orange-50 text-orange-600 border-orange-100; }
-  .badge-success { @apply bg-emerald-50 text-emerald-600 border-emerald-100; }
-  .badge-info { @apply bg-blue-50 text-blue-600 border-blue-100; }
 
   /* Table System */
+  .enterprise-table-container {
+    @apply w-full overflow-x-auto border border-border rounded-sm bg-white;
+  }
+
   .enterprise-table {
     @apply w-full text-left text-sm border-collapse;
   }
+
   .enterprise-table thead tr {
-    @apply bg-slate-50 border-y border-border;
+    @apply bg-slate-50 border-b border-border;
   }
+
   .enterprise-table th {
-    @apply px-4 py-2.5 text-[11px] font-black uppercase tracking-widest text-muted-foreground;
+    @apply px-4 py-2 text-table-header;
   }
+
   .enterprise-table td {
-    @apply px-4 py-3 border-b border-border/50 align-middle;
+    @apply px-4 py-2.5 border-b border-border/50 align-middle text-secondary;
+  }
+
+  .enterprise-table tr:last-child td {
+    @apply border-b-0;
+  }
+
+  .enterprise-table tr:hover td {
+    @apply bg-slate-50/30;
+  }
+
+  /* Status Badges */
+  .status-badge {
+    @apply inline-flex items-center px-1.5 py-0.5 rounded-sm text-[10px] font-bold uppercase tracking-wider border shrink-0;
+  }
+
+  .badge-critical { @apply bg-red-50 text-critical border-red-100; }
+  .badge-warning { @apply bg-amber-50 text-warning border-amber-100; }
+  .badge-success { @apply bg-emerald-50 text-success border-emerald-100; }
+  .badge-info { @apply bg-blue-50 text-accent border-blue-100; }
+
+  /* Forms */
+  .input-field {
+    @apply w-full bg-white border border-border rounded-sm px-3 py-1.5 text-sm text-primary placeholder:text-muted/50 outline-none transition-shadow focus:border-accent focus:ring-1 focus:ring-accent/20;
+  }
+
+  /* Metric Display */
+  .metric-value {
+    @apply font-mono font-bold tracking-tight text-primary;
   }
 }
 
-/* Operational Utilities */
-.signal-dot {
-  @apply h-2 w-2 rounded-full;
+/* Micro-interactions */
+.hover-scale { @apply transition-transform hover:scale-[1.01] active:scale-[0.99]; }
+
+.scrollbar-slim::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+.scrollbar-slim::-webkit-scrollbar-thumb {
+  @apply bg-slate-200 rounded-full hover:bg-slate-300;
 }
 
-.scrollbar-none::-webkit-scrollbar { display: none; }
-
-.page-transition {
-  @apply animate-in fade-in duration-200 ease-out;
+.page-transition-fade {
+  @apply animate-in fade-in duration-200;
 }

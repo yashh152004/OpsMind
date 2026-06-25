@@ -44,37 +44,37 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       {/* Mobile Backdrop */}
       <div 
         className={cn(
-          "fixed inset-0 bg-background/80 backdrop-blur-sm z-[150] lg:hidden transition-opacity duration-300",
+          "fixed inset-0 bg-primary/20 backdrop-blur-sm z-[150] lg:hidden transition-opacity duration-300",
           isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         )}
         onClick={onClose}
       />
 
       <aside className={cn(
-        "fixed lg:static inset-y-0 left-0 w-64 bg-[#0F172A] border-r border-[#1E293B] flex flex-col z-[200] transition-transform duration-300 lg:translate-x-0",
+        "fixed lg:static inset-y-0 left-0 w-60 bg-primary border-r border-secondary flex flex-col z-[200] transition-transform duration-300 lg:translate-x-0",
         isOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         {/* Brand Header */}
-        <div className="h-16 flex items-center px-6 border-b border-[#1E293B] justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-8 w-8 bg-primary rounded flex items-center justify-center text-white font-bold text-xl">
-              <Zap className="h-4 w-4" />
+        <div className="h-14 flex items-center px-4 border-b border-secondary justify-between bg-[#0B1222]">
+          <div className="flex items-center gap-2.5">
+            <div className="h-7 w-7 bg-accent rounded-sm flex items-center justify-center text-white font-bold">
+              <Activity className="h-4 w-4" />
             </div>
-            <span className="font-bold text-base tracking-tight text-white">OpsMind.</span>
+            <span className="font-bold text-sm tracking-tight text-white uppercase">OpsMind</span>
           </div>
-          <button className="lg:hidden text-slate-400 p-1" onClick={onClose}>
+          <button className="lg:hidden text-muted hover:text-white p-1" onClick={onClose}>
              <Terminal className="h-4 w-4" />
           </button>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-6 mt-4 overflow-y-auto">
+        <nav className="flex-1 p-3 space-y-4 mt-2 overflow-y-auto scrollbar-slim">
           {navigation.map((group) => (
             <div key={group.group}>
-              <h3 className="px-3 text-[10px] uppercase font-bold text-slate-500 tracking-[0.2em] mb-4">
+              <h3 className="px-3 text-[10px] uppercase font-bold text-muted/60 tracking-[0.15em] mb-2">
                 {group.group}
               </h3>
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 {group.items.map((item) => (
                   <NavLink
                     key={item.name}
@@ -83,15 +83,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                       if (window.innerWidth < 1024) onClose();
                     }}
                     className={({ isActive }) => cn(
-                      "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-all duration-200",
+                      "flex items-center gap-2.5 px-3 py-2 text-[13px] font-medium rounded-sm transition-all duration-150",
                       isActive 
-                        ? "bg-blue-600 text-white" 
-                        : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                        ? "bg-accent text-white shadow-sm shadow-accent/20" 
+                        : "text-muted hover:bg-secondary hover:text-white"
                     )}
                   >
                     {({ isActive }) => (
                       <>
-                        <item.icon className={cn("h-4 w-4", isActive ? "text-white" : "text-slate-500")} />
+                        <item.icon className={cn("h-4 w-4 shrink-0", isActive ? "text-white" : "text-muted/60")} />
                         <span>{item.name}</span>
                       </>
                     )}
@@ -102,19 +102,20 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           ))}
         </nav>
 
-        {/* System Status Footer */}
-        <div className="p-4 border-t border-slate-800">
-          <div className="p-3 bg-slate-900 rounded border border-slate-800">
-            <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Platform Status</div>
-            <div className="flex items-center gap-2 text-[10px] font-bold text-emerald-500">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              OPERATIONAL
+        {/* Platform Status Footer */}
+        <div className="p-3 border-t border-secondary bg-[#0B1222]">
+          <div className="p-2.5 bg-secondary/30 rounded-sm border border-secondary/50">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[9px] font-bold text-muted uppercase tracking-widest">Workspace</span>
+              <span className="h-1.5 w-1.5 rounded-full bg-success" />
             </div>
+            <div className="text-[11px] font-semibold text-white truncate">production-cluster-01</div>
           </div>
         </div>
       </aside>
     </>
   )
 }
+
 
 export default Sidebar
