@@ -66,8 +66,20 @@ const IncidentsPage: React.FC = () => {
     return matchesSearch && matchesTab
   })
 
-  const handleExport = () => {
-    if (filteredIncidents) exportToCSV(filteredIncidents, 'OpsMind_Incidents')
+  const handleExport = async () => {
+    try {
+      const blob = await apiClient.exportModule('incidents');
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `OpsMind_Incidents_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      toast.success('Incidents exported successfully.');
+    } catch (err) {
+      toast.error('Failed to generate export file.');
+    }
   }
 
   return (

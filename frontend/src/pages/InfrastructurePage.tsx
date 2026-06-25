@@ -15,7 +15,7 @@ import {
   ExternalLink,
   AlertTriangle,
 } from 'lucide-react'
-import { cn } from '@/utils/cn'
+import { toast } from 'sonner'
 
 const InfrastructurePage: React.FC = () => {
   const [isScanning, setIsScanning] = React.useState(false)
@@ -49,6 +49,22 @@ const InfrastructurePage: React.FC = () => {
      }
   }
 
+  const handleExport = async () => {
+    try {
+      const blob = await apiClient.exportModule('infrastructure');
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `OpsMind_Infrastructure_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      toast.success('Infrastructure inventory exported.');
+    } catch (err) {
+      toast.error('Failed to generate export file.');
+    }
+  }
+
   return (
     <div className="main-content-grid page-transition-fade">
       {/* Infrastructure Header */}
@@ -62,6 +78,9 @@ const InfrastructurePage: React.FC = () => {
            </div>
         </div>
         <div className="flex items-center gap-2">
+           <button onClick={handleExport} className="btn-secondary h-8 px-3 text-[11px] font-bold uppercase tracking-wider">
+              <Download className="h-3.5 w-3.5 mr-1.5" /> Export Inventory
+           </button>
            <button onClick={handleTopology} className="btn-secondary h-8 px-3 text-[11px] font-bold uppercase tracking-wider">Topology View</button>
            <button onClick={handleScan} disabled={isScanning} className="btn-primary h-8 px-3 text-[11px] font-bold uppercase tracking-wider disabled:opacity-50">
               {isScanning ? 'Scanning...' : 'Inventory Scan'}

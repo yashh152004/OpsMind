@@ -46,8 +46,20 @@ const AlertsPage: React.FC = () => {
     (a.source?.toLowerCase() || '').includes(searchTerm.toLowerCase())
   )
 
-  const handleExport = () => {
-    if (filteredAlerts) exportToCSV(filteredAlerts, 'OpsMind_Alerts')
+  const handleExport = async () => {
+    try {
+      const blob = await apiClient.exportModule('alerts');
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `OpsMind_Alerts_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      toast.success('Alerts exported successfully.');
+    } catch (err) {
+      toast.error('Failed to generate export file.');
+    }
   }
 
   const handleAcknowledge = async (id: string) => {

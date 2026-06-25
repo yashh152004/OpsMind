@@ -56,6 +56,7 @@ public class AlertController {
         return repository.findById(id).map(alert -> {
             alert.setStatus("RESOLVED");
             Alert saved = repository.save(alert);
+            activityService.logAction("ALERT_RESOLVED", "ALERTS", "system", "Alert resolved: " + saved.getAlertName());
             messagingTemplate.convertAndSend("/topic/alerts", saved);
             return ResponseEntity.ok(saved);
         }).orElse(ResponseEntity.notFound().build());
@@ -70,6 +71,11 @@ public class AlertController {
             alert.setStatus("TRIGGERED");
         }
         Alert saved = repository.save(alert);
+        
+        if ("CRITICAL".equals(saved.getSeverity())) {
+            activityService.notify("Critical Telemetry Alert", "Active alert detected: " + saved.getAlertName(), "ERROR");
+        }
+        
         messagingTemplate.convertAndSend("/topic/alerts", saved);
         return ResponseEntity.ok(saved);
     }
