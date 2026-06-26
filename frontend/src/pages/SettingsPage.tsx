@@ -272,7 +272,7 @@ const SettingsPage: React.FC = () => {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {users?.map(u => (
+                                        {(users as any[])?.map(u => (
                                             <tr key={u.email}>
                                                 <td className="font-bold">{u.firstName} {u.lastName} <div className="text-[10px] font-medium text-muted normal-case italic">{u.email}</div></td>
                                                 <td><span className="font-mono">{u.role}</span></td>
@@ -400,7 +400,7 @@ const SettingsPage: React.FC = () => {
                              </tr>
                           </thead>
                           <tbody>
-                             {auditLogs?.map(log => (
+                             {(auditLogs as any[])?.map((log: any) => (
                                <tr key={log.id}>
                                   <td><span className="font-bold text-accent">{log.action}</span></td>
                                   <td><span className="text-muted font-bold text-[10px] uppercase">{log.module}</span></td>
