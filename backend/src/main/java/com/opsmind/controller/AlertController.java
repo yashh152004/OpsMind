@@ -27,7 +27,10 @@ public class AlertController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Alert>> getAllAlerts() {
+    public ResponseEntity<List<Alert>> getAllAlerts(@RequestParam(required = false) Long organizationId) {
+        if (organizationId != null) {
+            return ResponseEntity.ok(repository.findByOrganizationId(organizationId));
+        }
         return ResponseEntity.ok(repository.findAll());
     }
 

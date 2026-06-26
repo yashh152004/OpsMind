@@ -19,7 +19,10 @@ public class IncidentController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Incident>> getAllIncidents() {
+    public ResponseEntity<List<Incident>> getAllIncidents(@RequestParam(required = false) Long organizationId) {
+        if (organizationId != null) {
+            return ResponseEntity.ok(repository.findByOrganizationId(organizationId));
+        }
         return ResponseEntity.ok(repository.findAll());
     }
 

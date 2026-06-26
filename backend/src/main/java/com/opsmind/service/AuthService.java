@@ -20,15 +20,18 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final com.opsmind.repository.OrganizationRepository organizationRepository;
 
     public AuthService(AuthenticationManager authenticationManager,
                        UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
-                       JwtTokenProvider jwtTokenProvider) {
+                       JwtTokenProvider jwtTokenProvider,
+                       com.opsmind.repository.OrganizationRepository organizationRepository) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.organizationRepository = organizationRepository;
     }
 
     public AuthResponse login(LoginRequest loginRequest) {
@@ -47,6 +50,8 @@ public class AuthService {
                         .email(user.getEmail())
                         .firstName(user.getFirstName())
                         .lastName(user.getLastName())
+                        .organizationId(user.getOrganizationId())
+                        .role(user.getRole())
                         .build())
                 .build();
     }
@@ -56,12 +61,20 @@ public class AuthService {
             throw new RuntimeException("Email already exists!");
         }
 
+        // Create Organization
+        com.opsmind.model.Organization org = com.opsmind.model.Organization.builder()
+                .name(registerRequest.getOrganizationName())
+                .build();
+        org = organizationRepository.save(org);
+
         User user = User.builder()
                 .firstName(registerRequest.getFirstName())
                 .lastName(registerRequest.getLastName())
                 .email(registerRequest.getEmail())
                 .password(passwordEncoder.encode(registerRequest.getPassword()))
-                .organizationName(registerRequest.getOrganizationName())
+                .organizationId(org.getId())
+                .organizationName(org.getName())
+                .role("ADMIN")
                 .build();
 
         userRepository.save(user);

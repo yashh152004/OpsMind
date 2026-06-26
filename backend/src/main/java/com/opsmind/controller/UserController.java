@@ -19,6 +19,28 @@ public class UserController {
         this.activityService = activityService;
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<User> getCurrentUser() {
+        String email = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+        return repository.findByEmail(email).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<User> updateProfile(@RequestBody User profileData) {
+        String email = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+        return repository.findByEmail(email).map(user -> {
+            user.setFirstName(profileData.getFirstName());
+            user.setLastName(profileData.getLastName());
+            user.setTitle(profileData.getTitle());
+            user.setDepartment(profileData.getDepartment());
+            user.setPhone(profileData.getPhone());
+            user.setTimezone(profileData.getTimezone());
+            user.setLanguage(profileData.getLanguage());
+            user.setAvatarUrl(profileData.getAvatarUrl());
+            return ResponseEntity.ok(repository.save(user));
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
     @GetMapping
     public ResponseEntity<List<User>> getAllUsers() {
         return ResponseEntity.ok(repository.findAll());

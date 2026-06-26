@@ -28,36 +28,36 @@ class ApiClient {
       (error) => Promise.reject(error)
     )
 
-    // Response interceptor to handle token refresh
+    // Response interceptor to handle errors and refresh
     this.client.interceptors.response.use(
       (response) => response,
       async (error: AxiosError) => {
         const originalRequest = error.config as any
 
-        if (error.response?.status === 401 && !originalRequest._retry) {
-          originalRequest._retry = true
-          const { refreshToken } = useAuthStore.getState()
+        if (error.response) {
+            console.error(`API Error [${error.response.status}]:`, error.response.data);
+            
+            if (error.response.status === 401 && !originalRequest._retry) {
+                originalRequest._retry = true
+                const { refreshToken } = useAuthStore.getState()
 
-          if (refreshToken) {
-            try {
-              const response = await this.client.post<AuthResponse>(
-                '/auth/refresh',
-                { refreshToken }
-              )
-              const { accessToken: newAccessToken } = response.data
-              useAuthStore.getState().setAccessToken(newAccessToken)
-
-              originalRequest.headers.Authorization = `Bearer ${newAccessToken}`
-              return this.client(originalRequest)
-            } catch (refreshError) {
-              useAuthStore.getState().logout()
-              window.location.href = '/login'
-              return Promise.reject(refreshError)
+                if (refreshToken) {
+                    try {
+                        const response = await this.client.post<AuthResponse>('/auth/refresh', { refreshToken })
+                        const { accessToken: newAccessToken } = response.data
+                        useAuthStore.getState().setAccessToken(newAccessToken)
+                        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`
+                        return this.client(originalRequest)
+                    } catch (refreshError) {
+                        useAuthStore.getState().logout()
+                        window.location.href = '/login'
+                        return Promise.reject(refreshError)
+                    }
+                } else {
+                    useAuthStore.getState().logout()
+                    window.location.href = '/login'
+                }
             }
-          } else {
-            useAuthStore.getState().logout()
-            window.location.href = '/login'
-          }
         }
 
         return Promise.reject(error)
@@ -88,19 +88,6 @@ class ApiClient {
     return response.data
   }
 
-  async verifyEmail(token: string) {
-    const response = await this.client.post<AuthResponse>(`/auth/verify/${token}`)
-    return response.data
-  }
-
-  async forgotPassword(email: string) {
-    await this.client.post('/auth/forgot-password', { email })
-  }
-
-  async resetPassword(token: string, password: string) {
-    await this.client.post(`/auth/reset-password/${token}`, { password })
-  }
-
   /**
    * User Endpoints
    */
@@ -109,33 +96,13 @@ class ApiClient {
     return response.data
   }
 
-  async updateCurrentUser(data: Partial<User>) {
+  async updateProfile(data: Partial<User>) {
     const response = await this.client.put<User>('/users/me', data)
     return response.data
   }
 
-  async getUsers(organizationId: string) {
-    const response = await this.client.get<User[]>('/users', {
-      params: { organizationId },
-    })
-    return response.data
-  }
-
-  async getUser(userId: string) {
-    const response = await this.client.get<User>(`/users/${userId}`)
-    return response.data
-  }
-
-  async createUser(organizationId: string, userData: any) {
-    const response = await this.client.post<User>('/users', {
-      ...userData,
-      organizationId,
-    })
-    return response.data
-  }
-
-  async updateUser(userId: string, data: Partial<User>) {
-    const response = await this.client.put<User>(`/users/${userId}`, data)
+  async getUsers() {
+    const response = await this.client.get<User[]>('/users')
     return response.data
   }
 
@@ -144,65 +111,24 @@ class ApiClient {
   }
 
   /**
-   * Organization Endpoints
-   */
-  async getOrganizations() {
-    const response = await this.client.get('/organizations')
-    return response.data
-  }
-
-  async getOrganization(orgId: string) {
-    const response = await this.client.get(`/organizations/${orgId}`)
-    return response.data
-  }
-
-  async createOrganization(data: any) {
-    const response = await this.client.post('/organizations', data)
-    return response.data
-  }
-
-  async updateOrganization(orgId: string, data: Partial<any>) {
-    const response = await this.client.put(`/organizations/${orgId}`, data)
-    return response.data
-  }
-
-  /**
    * Incident Endpoints
    */
-  async getIncidents(organizationId: string, filters?: any) {
+  async getIncidents(organizationId: string | number) {
     const response = await this.client.get('/incidents', {
-      params: { organizationId, ...filters },
+      params: { organizationId },
     })
     return response.data
   }
 
-  async getIncident(incidentId: string) {
-    const response = await this.client.get(`/incidents/${incidentId}`)
-    return response.data
-  }
+  async createIncident(organizationId: string | number, data: any) {
+    const orgIdNum = typeof organizationId === 'string' && !isNaN(Number(organizationId)) 
+        ? Number(organizationId) 
+        : organizationId;
 
-  async createIncident(organizationId: string, data: any) {
     const response = await this.client.post('/incidents', {
       ...data,
-      organizationId,
+      organizationId: orgIdNum === 'default' ? null : orgIdNum,
     })
-    return response.data
-  }
-
-  async updateIncident(incidentId: string, data: Partial<any>) {
-    const response = await this.client.put(`/incidents/${incidentId}`, data)
-    return response.data
-  }
-
-  async assignIncident(incidentId: string, userId: string) {
-    const response = await this.client.post(`/incidents/${incidentId}/assign`, {
-      userId,
-    })
-    return response.data
-  }
-
-  async escalateIncident(incidentId: string) {
-    const response = await this.client.post(`/incidents/${incidentId}/escalate`)
     return response.data
   }
 
@@ -216,73 +142,41 @@ class ApiClient {
   /**
    * Alert Endpoints
    */
-  async getAlerts(organizationId: string, filters?: any) {
+  async getAlerts(organizationId: string | number) {
     const response = await this.client.get('/alerts', {
-      params: { organizationId, ...filters },
+      params: { organizationId },
     })
     return response.data
   }
 
-  async getAlert(alertId: string) {
-    const response = await this.client.get(`/alerts/${alertId}`)
-    return response.data
-  }
-
-  async acknowledgeAlert(alertId: string) {
-    const response = await this.client.post(`/alerts/${alertId}/acknowledge`)
-    return response.data
-  }
-
-  async resolveAlert(alertId: string) {
-    const response = await this.client.post(`/alerts/${alertId}/resolve`)
-    return response.data
-  }
-
   /**
-   * Analytics & Summary Endpoints
+   * Infrastructure Endpoints
    */
-  async getDashboardStats() {
-    const response = await this.client.get('/summary/stats')
-    return response.data
-  }
-
-  async getAnalyticsTrends() {
-    const response = await this.client.get('/analytics/trends')
-    return response.data
-  }
-
-  async getAiInsights() {
-    const response = await this.client.get('/ai/insights')
-    return response.data
-  }
-
-  async globalSearch(query: string) {
-    const response = await this.client.get('/search', { params: { q: query } })
-    return response.data
-  }
-
   async getInfrastructureAssets() {
     const response = await this.client.get('/infrastructure/assets')
     return response.data
   }
 
-  async performInfrastructureScan() {
-    const response = await this.client.post('/infrastructure/scan')
+  /**
+   * Export System (Phase 5)
+   */
+  async exportModule(module: string) {
+    const response = await this.client.get(`/export/${module}`, {
+      responseType: 'blob'
+    })
     return response.data
   }
 
-  async getInfrastructureTopology() {
-    const response = await this.client.get('/infrastructure/topology')
+  /**
+   * Settings (Phase 3)
+   */
+  async getSettings() {
+    const response = await this.client.get('/settings')
     return response.data
   }
 
-  async getSecurityFindings() {
-    const response = await this.client.get('/security/findings')
-    return response.data
-  }
-
-  async triggerSimulation(type: string) {
-    const response = await this.client.post('/simulator/trigger', { type })
+  async updateSettings(settings: Record<string, string>) {
+    const response = await this.client.post('/settings', settings)
     return response.data
   }
 
@@ -291,16 +185,42 @@ class ApiClient {
     return response.data
   }
 
-  async getIncidentMetrics(organizationId: string, timeRange?: string) {
-    const response = await this.client.get('/analytics/incidents/metrics', {
-      params: { organizationId, timeRange },
+  /**
+   * Storage (Phase 2)
+   */
+  async uploadFile(file: File) {
+    const formData = new FormData()
+    formData.append('file', file)
+    const response = await this.client.post('/storage/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
     })
     return response.data
   }
 
-  async getIncidentTrends(organizationId: string, timeRange?: string) {
-    const response = await this.client.get('/analytics/incidents/trends', {
-      params: { organizationId, timeRange },
+  /**
+   * Notification Endpoints
+   */
+  async getNotifications() {
+    const response = await this.client.get<Notification[]>('/notifications')
+    return response.data
+  }
+
+  async markNotificationAsRead(id: number | string) {
+    await this.client.post(`/notifications/${id}/read`)
+  }
+
+  async markAllNotificationsAsRead() {
+    await this.client.post('/notifications/read-all')
+  }
+
+  /**
+   * Search Endpoints
+   */
+  async globalSearch(query: string) {
+    const response = await this.client.get('/search', {
+      params: { q: query }
     })
     return response.data
   }
@@ -314,40 +234,24 @@ class ApiClient {
   }
 
   /**
-   * Notification Endpoints
+   * Demo & Simulation
    */
-  async getNotifications() {
-    const response = await this.client.get<Notification[]>('/notifications')
+  async triggerSimulation(type: string) {
+    const response = await this.client.post(`/simulator/trigger/${type}`)
     return response.data
   }
 
-  async markNotificationAsRead(id: number) {
-    await this.client.post(`/notifications/${id}/read`)
-  }
-
-  async markAllNotificationsAsRead() {
-    await this.client.post('/notifications/read-all')
-  }
-
-  async getSettings() {
-    const response = await this.client.get('/settings')
+  /**
+   * Integrations
+   */
+  async getIntegrations() {
+    const response = await this.client.get('/integrations')
     return response.data
   }
 
-  async updateSettings(settings: Map<string, string> | Record<string, string>) {
-    const response = await this.client.post('/settings', settings)
+  async connectIntegration(data: any) {
+    const response = await this.client.post('/integrations/connect', data)
     return response.data
-  }
-
-  async exportModule(module: string) {
-    const response = await this.client.get(`/export/${module}`, {
-      responseType: 'blob'
-    })
-    return response.data
-  }
-
-  getAxiosInstance() {
-    return this.client
   }
 }
 

@@ -9,5 +9,6 @@ import java.util.List;
 public interface AlertRepository extends JpaRepository<Alert, Long> {
     List<Alert> findByStatus(String status);
     List<Alert> findBySeverity(String severity);
+    List<Alert> findByOrganizationId(Long organizationId);
     long countBySeverityAndStatusNot(String severity, String status);
 }

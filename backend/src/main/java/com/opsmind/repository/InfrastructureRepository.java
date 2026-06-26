@@ -9,4 +9,5 @@ import java.util.Optional;
 @Repository
 public interface InfrastructureRepository extends JpaRepository<InfrastructureAsset, Long> {
     Optional<InfrastructureAsset> findByName(String name);
+    java.util.List<InfrastructureAsset> findByOrganizationId(Long organizationId);
 }

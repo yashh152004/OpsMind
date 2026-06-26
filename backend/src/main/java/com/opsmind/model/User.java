@@ -31,9 +31,20 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    @Column(name = "organization_id")
+    private Long organizationId;
+
     private String organizationName;
 
     private String role = "ADMIN";
 
     private String status = "ACTIVE";
+
+    private String avatarUrl;
+
+    private String title;
+    private String department;
+    private String phone;
+    private String timezone = "UTC";
+    private String language = "en";
 }

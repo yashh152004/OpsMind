@@ -43,7 +43,13 @@ export interface User {
   lastName: string
   role: UserRole
   organizationId: string
-  teamIds: string[]
+  organizationName?: string
+  avatarUrl?: string
+  title?: string
+  department?: string
+  phone?: string
+  timezone?: string
+  language?: string
   status: 'ACTIVE' | 'INACTIVE' | 'PENDING_VERIFICATION'
   createdAt: string
   updatedAt: string

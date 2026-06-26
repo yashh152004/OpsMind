@@ -18,6 +18,9 @@ public class Notification {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "organization_id")
+    private Long organizationId;
+
     private String title;
     private String message;
     private String severity; // CRITICAL, WARNING, INFO

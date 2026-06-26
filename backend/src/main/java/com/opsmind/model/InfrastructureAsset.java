@@ -17,6 +17,9 @@ public class InfrastructureAsset {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "organization_id")
+    private Long organizationId;
+
     private String name;
     private String type; // DATABASE, CLUSTER, SERVICE, STORAGE
     private String status; // HEALTHY, WARNING, CRITICAL
