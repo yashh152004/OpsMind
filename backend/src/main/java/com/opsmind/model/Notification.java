@@ -20,7 +20,7 @@ public class Notification {
 
     private String title;
     private String message;
-    private String type; // ERROR, WARNING, INFO
+    private String severity; // CRITICAL, WARNING, INFO
     private boolean isRead;
     private LocalDateTime createdAt;
 

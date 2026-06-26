@@ -329,6 +329,23 @@ class ApiClient {
     await this.client.post('/notifications/read-all')
   }
 
+  async getSettings() {
+    const response = await this.client.get('/settings')
+    return response.data
+  }
+
+  async updateSettings(settings: Map<string, string> | Record<string, string>) {
+    const response = await this.client.post('/settings', settings)
+    return response.data
+  }
+
+  async exportModule(module: string) {
+    const response = await this.client.get(`/export/${module}`, {
+      responseType: 'blob'
+    })
+    return response.data
+  }
+
   getAxiosInstance() {
     return this.client
   }

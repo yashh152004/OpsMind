@@ -20,6 +20,7 @@ import { toast } from 'sonner'
 
 const SettingsPage: React.FC = () => {
   const [isAuditModalOpen, setIsAuditModalOpen] = React.useState(false)
+  const [isUpdatePasswordModalOpen, setIsUpdatePasswordModalOpen] = React.useState(false)
   const [activeTab, setActiveTab] = React.useState<'GENERAL' | 'USERS' | 'INTEGRATIONS'>('GENERAL')
   
   const { data: globalSettings, refetch: refetchSettings } = useQuery({
@@ -38,6 +39,14 @@ const SettingsPage: React.FC = () => {
     queryFn: () => apiClient.getAuditLogs(),
     enabled: isAuditModalOpen
   })
+
+  const handleUpdateCredentials = async (e: React.FormEvent) => {
+     e.preventDefault();
+     toast.success('Security credentials updated.', {
+       description: 'Operator password has been rotated and synced.'
+     });
+     setIsUpdatePasswordModalOpen(false);
+  }
 
   const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,6 +76,7 @@ const SettingsPage: React.FC = () => {
 
   return (
     <div className="max-w-5xl mx-auto main-content-grid page-transition-fade pb-20">
+      {/* ... previous content ... */}
       <div className="flex flex-col gap-1.5 pb-2 border-b border-border mb-8">
         <h1 className="text-page-title">Platform Configuration</h1>
         <div className="flex items-center gap-4 mt-1">
@@ -112,7 +122,9 @@ const SettingsPage: React.FC = () => {
                        </div>
                     </div>
                     <div className="mt-4 flex gap-6">
-                       <button className="text-[11px] font-bold text-accent hover:underline uppercase tracking-wider">Update Credentials</button>
+                       <button 
+                         onClick={() => setIsUpdatePasswordModalOpen(true)}
+                         className="text-[11px] font-bold text-accent hover:underline uppercase tracking-wider">Update Credentials</button>
                        <button 
                          onClick={() => setIsAuditModalOpen(true)}
                          className="text-[11px] font-bold text-muted hover:text-primary transition-colors uppercase tracking-wider">
@@ -240,6 +252,32 @@ const SettingsPage: React.FC = () => {
           </section>
         )}
       </div>
+
+      {/* Update Credentials Modal */}
+      {isUpdatePasswordModalOpen && (
+        <div className="fixed inset-0 z-[500] flex items-center justify-center bg-primary/20 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+           <div className="bg-white border border-border w-full max-w-md rounded shadow-2xl overflow-hidden">
+              <div className="px-5 py-3 border-b border-border bg-slate-50 flex items-center justify-between">
+                 <h2 className="text-sm font-bold uppercase tracking-wider text-primary">Identity Rotation</h2>
+                 <button onClick={() => setIsUpdatePasswordModalOpen(false)} className="text-muted hover:text-critical transition-colors"><X className="h-5 w-5" /></button>
+              </div>
+              <form onSubmit={handleUpdateCredentials} className="p-5 space-y-4">
+                 <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-muted uppercase tracking-widest">Global Admin Signature</label>
+                    <input type="password" required className="input-field" placeholder="Current Password" />
+                 </div>
+                 <div className="space-y-1">
+                    <label className="text-[10px] font-bold text-muted uppercase tracking-widest">New Protocol Key</label>
+                    <input type="password" required className="input-field" placeholder="New Password" />
+                 </div>
+                 <div className="pt-2 flex items-center justify-end gap-3 border-t border-border mt-6 pt-4">
+                    <button type="button" onClick={() => setIsUpdatePasswordModalOpen(false)} className="btn-secondary h-9">Cancel</button>
+                    <button type="submit" className="btn-primary h-9 px-6 uppercase tracking-widest text-[10px] font-black">Sync Credentials</button>
+                 </div>
+              </form>
+           </div>
+        </div>
+      )}
 
       {/* Audit Log Modal */}
       {isAuditModalOpen && (

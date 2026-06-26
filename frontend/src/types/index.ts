@@ -146,7 +146,7 @@ export interface Notification {
   id: number
   title: string
   message: string
-  type: 'ERROR' | 'WARNING' | 'INFO'
+  severity: 'CRITICAL' | 'WARNING' | 'INFO'
   isRead: boolean
   createdAt: string
 }

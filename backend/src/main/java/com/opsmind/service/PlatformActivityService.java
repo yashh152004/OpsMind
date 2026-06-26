@@ -21,11 +21,11 @@ public class PlatformActivityService {
         auditLogRepository.save(new AuditLog(action, module, user, details));
     }
 
-    public void notify(String title, String message, String type) {
+    public void notify(String title, String message, String severity) {
         Notification n = new Notification();
         n.setTitle(title);
         n.setMessage(message);
-        n.setType(type);
+        n.setSeverity(severity);
         n.setRead(false);
         n.setCreatedAt(java.time.LocalDateTime.now());
         notificationRepository.save(n);

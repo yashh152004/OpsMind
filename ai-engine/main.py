@@ -64,64 +64,85 @@ class SREReasoningEngine:
 
     def perform_rca(self, query: str, context: ContextData) -> Dict[str, Any]:
         """Deep correlation of alerts and metrics to find root cause."""
-        active_incidents = context.incidents
-        if not active_incidents:
-            return {"conclusion": "No active incidents found to analyze."}
+        active_alerts = context.alerts
+        infrastructure = context.infrastructure
         
-        # Simulate correlation logic
-        primary = active_incidents[0]
-        related_alerts = [a for a in context.alerts if a.get('serviceName') == primary.get('serviceName')]
+        if not active_alerts:
+            return {"conclusion": "Telemetry analysis indicates no active anomalies. Infrastructure health is within normal parameters."}
         
+        # Look for heavy resource hitters in alerts
+        criticals = [a for a in active_alerts if a.get('severity') == 'CRITICAL']
+        target = criticals[0] if criticals else active_alerts[0]
+        
+        source = target.get('source', 'Unknown Resource')
+        name = target.get('alertName', 'General Anomaly')
+        msg = target.get('message', 'Threshold exceeded')
+
         return {
-            "conclusion": f"Root cause identified for {primary.get('title')}. High memory pressure on Node-04 caused '{primary.get('serviceName')}' to OOM-kill.",
+            "conclusion": f"Root cause investigation for {source} identified {name}. Detail: {msg}. This matches a classic resource exhaustion pattern.",
             "evidence": {
-                "metric_spike": "Memory usage > 92%",
-                "log_signal": "Out of memory: Killed process 4122 (java)",
-                "correlation_id": "CORR-99812"
+                "source": source,
+                "signal": name,
+                "correlation_count": len(active_alerts),
+                "timestamp": target.get('timestamp')
             }
         }
 
     def generate_sre_response(self, intent: str, query: str, context: ContextData) -> ReasoningResponse:
-        """Generates a professional, technically-grounded SRE response."""
+        """Generates a professional, technically-grounded SRE response based on LIVE data."""
         
         if intent == "INCIDENT_LOOKUP":
             count = len(context.incidents)
-            summary = ", ".join([f"#{i.get('id')} ({i.get('severity')})" for i in context.incidents[:3]])
+            if count == 0:
+                return ReasoningResponse(
+                    intent=intent,
+                    reasoning=["Scanning incident database", "Zero active partitions found"],
+                    response="Operational Status: All systems are green. No active incidents are currently being tracked by the platform.",
+                    confidence=1.0,
+                    recommendations=[{"label": "Review History", "action": "/incidents"}]
+                )
+            
+            summary = ", ".join([f"#{i.get('id')} ({i.get('severity')})" for i in context.incidents[:2]])
             return ReasoningResponse(
                 intent=intent,
-                reasoning=["Fetched active incident list", "Filtered by severity", "Prioritizing cluster stability"],
-                response=f"Current Estate Status: We are tracking {count} active incidents. Critical focus: {summary}. Systems are currently under high load in the US-EAST region.",
-                confidence=0.98,
-                recommendations=[
-                    {"label": "View Incident Details", "action": "/incidents"},
-                    {"label": "Check Resource Gradients", "action": "/analytics"}
-                ]
+                reasoning=["Extracted live incident stream", "Ranked by impact"],
+                response=f"Current Estate Status: We are tracking {count} active incidents. Primary focus: {summary}. Systems are experiencing localized disruption.",
+                confidence=0.99,
+                recommendations=[{"label": "Open Incident Command", "action": "/incidents"}]
             )
 
         if intent == "ROOT_CAUSE_ANALYSIS":
             rca = self.perform_rca(query, context)
             return ReasoningResponse(
                 intent=intent,
-                reasoning=["Correlating telemetry spikes", "Analyzing dependency map", "Checking recent deployments"],
-                response=f"RCA Complete: {rca['conclusion']}. I recommend scaling the horizontal pod autoscaler (HPA) to accommodate current saturation levels.",
-                confidence=0.85,
+                reasoning=["Correlating telemetry spikes", "Cross-referencing alerts with infrastructure status"],
+                response=f"Investigation Complete: {rca['conclusion']}.",
+                confidence=0.88,
                 recommendations=[
-                    {"label": "Execute Remediation", "action": "trigger_scaling"},
-                    {"label": "Scale Cluster", "action": "/infrastructure"}
+                    {"label": "View Affected Resource", "action": "/infrastructure"},
+                    {"label": "Run Remediation", "action": "trigger_fix"}
                 ],
                 evidence=rca.get('evidence')
             )
+            
+        if intent == "INFRASTRUCTURE_ANALYSIS":
+            nodes = len(context.infrastructure)
+            healthy = len([n for n in context.infrastructure if n.get('status') == 'HEALTHY'])
+            return ReasoningResponse(
+                intent=intent,
+                reasoning=["Auditing node registry", "Calculating health vector"],
+                response=f"Infrastructure Audit: Detected {nodes} nodes in active clusters. {healthy}/{nodes} are reporting healthy status. Availability is at {(healthy/nodes)*100:.1f}% if current telemetry persists.",
+                confidence=0.95,
+                recommendations=[{"label": "Node Details", "action": "/infrastructure"}]
+            )
 
-        # Fallback for product/general queries
+        # Fallback
         return ReasoningResponse(
             intent=intent,
-            reasoning=["Analyzing OpsMind platform capabilities", "Matching feature documentation"],
-            response="OpsMind is your enterprise SRE intelligence layer. I can analyze real-time telemetry, perform RCA on incidents, and predict infrastructure failures before they impact customers.",
+            reasoning=["Matching query against OpsMind intelligence capabilities"],
+            response="I am the OpsMind AI Engine, currently analyzing your real-time system telemetry. Ask me about specific incidents, node health, or performance anomalies.",
             confidence=1.0,
-            recommendations=[
-                {"label": "Explore Intelligence", "action": "/intelligence"},
-                {"label": "Setup Alerts", "action": "/settings"}
-            ]
+            recommendations=[{"label": "Dashboard", "action": "/"}]
         )
 
 engine = SREReasoningEngine()

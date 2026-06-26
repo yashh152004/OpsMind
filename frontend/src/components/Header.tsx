@@ -13,6 +13,7 @@ import {
 import { useAuth } from '@/hooks'
 import { apiClient } from '@/services/api'
 import { useNavigate } from 'react-router-dom'
+import { cn } from '@/utils/cn'
 
 interface HeaderProps {
   onToggleSidebar: () => void;
