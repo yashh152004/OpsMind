@@ -2,21 +2,14 @@ import React, { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/services/api'
 import { 
-  Clock, 
-  ExternalLink, 
-  Filter,
-  Plus,
-  Search,
   Download,
   Terminal,
   CheckCircle2,
   BrainCircuit,
-  MoreVertical,
   X
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { cn } from '@/utils/cn'
-import { exportToCSV } from '@/utils/export'
 import { useOrganization } from '@/hooks'
 import { toast } from 'sonner'
 

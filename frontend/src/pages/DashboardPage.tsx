@@ -4,7 +4,7 @@ import {
   BarChart, Bar, Cell
 } from 'recharts'
 import { 
-  Activity, AlertTriangle, ShieldCheck, ExternalLink, Cpu, 
+  Activity, AlertTriangle, ShieldCheck, 
   Plus, Download, FileText, Layout, Info, TrendingUp, TrendingDown
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
@@ -268,10 +268,5 @@ const DashboardPage: React.FC = () => {
     </div>
   )
 }
-
-export default DashboardPage
-  )
-}
-
 
 export default DashboardPage

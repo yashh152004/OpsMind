@@ -2,30 +2,23 @@ import React, { useState, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { 
   User, 
-  Bell, 
   Shield, 
   Globe, 
   Slack,
   Webhook,
   Lock,
   ChevronRight,
-  Save,
-  X,
-  Eye,
   Camera,
   Mail,
   Phone,
   Briefcase,
   History,
-  Trash2,
-  CheckCircle2,
   AlertTriangle,
-  Upload,
-  RefreshCw,
   LogOut,
   Building,
-  Key,
-  Plus
+  Plus,
+  Eye,
+  EyeOff
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import { apiClient } from '@/services/api'
@@ -50,6 +43,7 @@ const SettingsPage: React.FC = () => {
     language: user?.language || 'en',
     avatarUrl: user?.avatarUrl || ''
   })
+  const [apiKeyVisible, setApiKeyVisible] = useState(false)
 
   // Sync profile form when user data loads
   React.useEffect(() => {
@@ -278,7 +272,11 @@ const SettingsPage: React.FC = () => {
                                                 <td><span className="font-mono">{u.role}</span></td>
                                                 <td><span className="status-badge badge-success">{u.status}</span></td>
                                                 <td className="text-right">
-                                                    <button className="text-critical hover:underline font-bold uppercase tracking-widest text-[9px]">Revoke</button>
+                                                    <button 
+                                                      onClick={() => toast.success(`Revocation request for ${u.firstName} sent to admin`)}
+                                                      className="text-critical hover:underline font-bold uppercase tracking-widest text-[9px]">
+                                                      Revoke
+                                                    </button>
                                                 </td>
                                             </tr>
                                         ))}
@@ -339,26 +337,34 @@ const SettingsPage: React.FC = () => {
                         <p className="text-xs text-muted">Manage authentication protocols and platform-wide security keys.</p>
                      </div>
 
-                     <div className="space-y-6">
-                        <section className="space-y-4">
-                           <h3 className="text-xs font-black uppercase tracking-widest text-muted border-b border-border pb-2">Global API Access Key</h3>
-                           <div className="p-4 bg-slate-50 border border-border rounded-sm space-y-4">
-                              <div className="flex items-center justify-between">
-                                 <div className="font-mono text-[12px] text-primary">ops_live_948a********************b12z</div>
-                                 <div className="flex items-center gap-2">
-                                    <button className="text-[10px] font-bold text-accent hover:underline uppercase">Reveal</button>
-                                    <div className="h-3 w-[1px] bg-border" />
-                                    <button className="text-[10px] font-bold text-accent hover:underline uppercase">Copy</button>
-                                 </div>
-                              </div>
-                              <div className="flex items-center gap-2 text-critical">
-                                 <AlertTriangle className="h-3.5 w-3.5" />
-                                 <span className="text-[10px] font-bold uppercase tracking-wider">Warning: Never expose this key in client-side codebases.</span>
-                              </div>
-                           </div>
-                        </section>
+                      <div className="space-y-6">
+                         <section className="space-y-4">
+                            <h3 className="text-xs font-black uppercase tracking-widest text-muted border-b border-border pb-2">Global API Access Key</h3>
+                            <div className="p-4 bg-slate-50 border border-border rounded-sm space-y-4">
+                               <div className="flex items-center justify-between">
+                                  <div className="font-mono text-[12px] text-primary">
+                                     {apiKeyVisible ? 'ops_live_948a_29x8_v12_z7' : 'ops_live_948a********************b12z'}
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                     <button 
+                                       onClick={() => setApiKeyVisible(!apiKeyVisible)}
+                                       className="text-[10px] font-bold text-accent hover:underline uppercase flex items-center gap-1">
+                                        {apiKeyVisible ? <><EyeOff className="h-3 w-3" /> Hide</> : <><Eye className="h-3 w-3" /> Reveal</>}
+                                     </button>
+                                     <div className="h-3 w-[1px] bg-border" />
+                                     <button 
+                                       onClick={() => { navigator.clipboard.writeText('ops_live_948a_29x8_v12_z7'); toast.success('API Key copied'); }}
+                                       className="text-[10px] font-bold text-accent hover:underline uppercase">Copy</button>
+                                  </div>
+                               </div>
+                               <div className="flex items-center gap-2 text-critical">
+                                  <AlertTriangle className="h-3.5 w-3.5" />
+                                  <span className="text-[10px] font-bold uppercase tracking-wider">Warning: Never expose this key in client-side codebases.</span>
+                               </div>
+                            </div>
+                         </section>
 
-                        <section className="space-y-4">
+                         <section className="space-y-4">
                            <h3 className="text-xs font-black uppercase tracking-widest text-muted border-b border-border pb-2">Two-Factor Authentication</h3>
                            <div className="flex items-center justify-between p-4 border border-border rounded">
                               <div className="flex items-center gap-4">

@@ -10,14 +10,11 @@ import {
   CheckCircle2,
   BrainCircuit,
   Zap,
-  MoreVertical,
-  Filter,
-  Activity,
+  Activity, 
   Terminal,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { cn } from '@/utils/cn'
-import { exportToCSV } from '@/utils/export'
 import { useAlertStream } from '@/hooks/useAlertStream'
 import { useOrganization } from '@/hooks'
 import { toast } from 'sonner'

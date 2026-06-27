@@ -2,16 +2,11 @@ import React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/services/api'
 import { 
-  Cpu, 
-  Database, 
-  Layers, 
-  Server, 
+  Database,
+  Server,
   ShieldCheck, 
   Activity, 
-  ArrowUpRight,
   Search,
-  Filter,
-  MoreVertical,
   ExternalLink,
   AlertTriangle,
   Download
