@@ -138,7 +138,7 @@ const InfrastructurePage: React.FC = () => {
                   Array(5).fill(0).map((_, i) => (
                     <tr key={i}><td colSpan={6} className="py-8"><div className="h-4 bg-slate-100 animate-pulse rounded w-full" /></td></tr>
                   ))
-               ) : assets?.map((asset: any) => (
+               ) : (assets || [])?.map((asset: any) => (
                   <tr key={asset.id} className="group">
                      <td>
                         <div className="flex items-center gap-3">

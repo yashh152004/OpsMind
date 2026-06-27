@@ -9,7 +9,8 @@ import {
   Shield,
   Activity,
   Terminal,
-  Zap
+  Zap,
+  Database
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import { toast } from 'sonner'
@@ -165,5 +166,5 @@ const SetupWizard: React.FC = () => {
   )
 }
 
-import { Database } from 'lucide-react'
+
 export default SetupWizard

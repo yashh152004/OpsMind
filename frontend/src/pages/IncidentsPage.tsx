@@ -160,7 +160,7 @@ const IncidentsPage: React.FC = () => {
                ) : filteredIncidents?.map((incident: any) => (
                   <tr key={incident.id} className="group">
                      <td>
-                        <span className="font-mono text-xs font-bold text-accent">#INC-{incident.id.toString().slice(-4)}</span>
+                        <span className="font-mono text-xs font-bold text-accent">#INC-{(incident.id || '').toString().slice(-4)}</span>
                      </td>
                      <td>
                         <div className="text-[13px] font-bold text-primary truncate max-w-[300px]">

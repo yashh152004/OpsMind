@@ -149,11 +149,26 @@ class ApiClient {
     return response.data
   }
 
+  async acknowledgeAlert(id: number | string) {
+    const response = await this.client.post(`/alerts/${id}/acknowledge`)
+    return response.data
+  }
+
   /**
    * Infrastructure Endpoints
    */
   async getInfrastructureAssets() {
     const response = await this.client.get('/infrastructure/assets')
+    return response.data
+  }
+
+  async performInfrastructureScan() {
+    const response = await this.client.post('/infrastructure/scan')
+    return response.data
+  }
+
+  async getInfrastructureTopology() {
+    const response = await this.client.get('/infrastructure/topology')
     return response.data
   }
 
@@ -233,6 +248,11 @@ class ApiClient {
     return response.data
   }
 
+  async getAiInsights() {
+    const response = await this.client.get('/ai/insights')
+    return response.data
+  }
+
   /**
    * Demo & Simulation
    */
@@ -251,6 +271,30 @@ class ApiClient {
 
   async connectIntegration(data: any) {
     const response = await this.client.post('/integrations/connect', data)
+    return response.data
+  }
+
+  /**
+   * Summary & Dashboard Endpoints
+   */
+  async getDashboardStats() {
+    const response = await this.client.get('/summary/stats')
+    return response.data
+  }
+
+  /**
+   * Analytics Endpoints
+   */
+  async getAnalyticsTrends() {
+    const response = await this.client.get('/analytics/trends')
+    return response.data
+  }
+
+  /**
+   * Security Endpoints
+   */
+  async getSecurityFindings() {
+    const response = await this.client.get('/security/findings')
     return response.data
   }
 }

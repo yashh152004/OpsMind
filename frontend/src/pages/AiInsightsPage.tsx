@@ -63,7 +63,7 @@ const AiInsightsPage: React.FC = () => {
               <div className="flex flex-col md:flex-row gap-8">
                 <div className={cn(
                   "h-14 w-14 rounded bg-accent border border-border shrink-0 flex items-center justify-center transition-colors",
-                  insight.type === 'Critical' ? "text-destructive border-destructive/20 bg-destructive/5" : "text-primary"
+                  insight.type === 'Critical' ? "text-critical border-critical/20 bg-critical/5" : "text-primary"
                 )}>
                   <BrainCircuit className="h-7 w-7" />
                 </div>

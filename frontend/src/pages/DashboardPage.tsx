@@ -165,8 +165,8 @@ const DashboardPage: React.FC = () => {
                     { id: 1, type: 'Nominal', context: 'Infrastructure nodes operating within baseline constraints. No anomalies detected.', conf: '99.4%', status: 'STABLE' },
                     { id: 2, type: 'Warning', context: 'High CPU wait time in us-east-c shard. Potential storage bottleneck identified.', conf: '88.1%', status: 'ANALYZING' },
                     { id: 3, type: 'Critical', context: 'Memory exhaustion imminent on Auth-Service cluster. Auto-scaling recommended.', conf: '94.2%', status: 'RECOVERY' }
-                 ]).map((item: any) => (
-                    <tr key={item.id}>
+                 ]).map((item: any, idx: number) => (
+                    <tr key={item.id || idx}>
                        <td>
                           <span className={cn(
                             "status-badge",

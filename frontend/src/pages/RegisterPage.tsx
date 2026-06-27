@@ -125,7 +125,7 @@ const RegisterPage: React.FC = () => {
             </div>
 
             {registerError && (
-              <div className="bg-destructive/10 border border-destructive/20 p-3 rounded-md text-destructive text-xs animate-in slide-in-from-top-1">
+              <div className="bg-critical/10 border border-critical/20 p-3 rounded-md text-critical text-xs animate-in slide-in-from-top-1">
                 Cluster provisioning failed: Identity conflict detected.
               </div>
             )}

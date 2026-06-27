@@ -12,19 +12,21 @@ import {
   Lock
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
+import { useQuery } from '@tanstack/react-query'
+import { apiClient } from '@/services/api'
 
 const categories = ["Cloud Platforms", "Metrics & Logs", "Messaging", "Security"]
 
-const integrations = [
-  { id: 1, name: "Prometheus", source: "Metrics", icon: Activity, connected: true, health: "HEALTHY", lastSync: "2m ago" },
-  { id: 2, name: "AWS CloudWatch", source: "Cloud", icon: Cloud, connected: true, health: "HEALTHY", lastSync: "5m ago" },
-  { id: 3, name: "Elasticsearch", source: "Logs", icon: Database, connected: false, health: "NONE", lastSync: "Never" },
-  { id: 4, name: "Azure Monitor", source: "Cloud", icon: Cloud, connected: false, health: "NONE", lastSync: "Never" },
-]
+
 
 const IntegrationsPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState("All Sources")
   const [isProvisioning, setIsProvisioning] = useState(false)
+
+  const { data: integrations, isLoading } = useQuery({
+    queryKey: ['integrations'],
+    queryFn: () => apiClient.getIntegrations()
+  })
 
   return (
     <div className="space-y-8 page-transition pb-20">
@@ -60,54 +62,61 @@ const IntegrationsPage: React.FC = () => {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        {integrations.map((app) => (
-          <div key={app.id} className="enterprise-card group enterprise-card-hover flex flex-col">
-            <div className="p-6 flex-1 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="h-10 w-10 rounded bg-accent border border-border flex items-center justify-center group-hover:border-primary/50 transition-colors">
-                  <app.icon className="h-5 w-5 text-muted-foreground group-hover:text-primary" />
+        {isLoading ? (
+          Array(4).fill(0).map((_, i) => (
+            <div key={i} className="h-48 animate-pulse bg-slate-100 rounded-lg" />
+          ))
+        ) : (integrations || [])?.map((app: any) => {
+          const Icon = app.name.includes('AWS') ? Cloud : app.name.includes('Elastic') ? Database : app.name.includes('Prometheus') ? Activity : Terminal;
+          return (
+            <div key={app.id} className="enterprise-card group enterprise-card-hover flex flex-col">
+              <div className="p-6 flex-1 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="h-10 w-10 rounded bg-accent border border-border flex items-center justify-center group-hover:border-primary/50 transition-colors">
+                    <Icon className="h-5 w-5 text-muted-foreground group-hover:text-primary" />
+                  </div>
+                  {app.connected ? (
+                     <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                  ) : (
+                     <div className="h-2 w-2 rounded-full bg-muted" />
+                  )}
                 </div>
+                
+                <div>
+                   <h3 className="font-bold">{app.name}</h3>
+                   <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-1">{app.type || app.source}</p>
+                </div>
+
                 {app.connected ? (
-                   <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                   <div className="pt-2 border-t border-border/50">
+                      <div className="flex items-center justify-between text-[10px] uppercase font-bold text-muted-foreground">
+                         <span>Status</span>
+                         <span className="text-emerald-500">{app.health || 'HEALTHY'}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-[10px] uppercase font-bold text-muted-foreground mt-1">
+                         <span>Heartbeat</span>
+                         <span>{app.lastSync || 'Active'}</span>
+                      </div>
+                   </div>
                 ) : (
-                   <div className="h-2 w-2 rounded-full bg-muted" />
+                   <p className="text-xs text-muted-foreground pt-2 border-t border-border/50">Configuration required to establish data stream.</p>
                 )}
               </div>
-              
-              <div>
-                 <h3 className="font-bold">{app.name}</h3>
-                 <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest mt-1">{app.source}</p>
+
+              <div className="p-3 bg-accent/20 border-t border-border flex items-center justify-between">
+                 <button className="text-[10px] font-bold text-primary hover:underline">Documentation</button>
+                 {app.connected ? (
+                    <div className="flex gap-2">
+                      <button className="btn-ghost p-1.5"><RefreshCw className="h-3 w-3" /></button>
+                      <button className="btn-ghost p-1.5 text-critical"><Trash2 className="h-3 w-3" /></button>
+                    </div>
+                 ) : (
+                    <button className="btn-primary h-7 px-3 text-[10px] font-bold">Configure</button>
+                 )}
               </div>
-
-              {app.connected ? (
-                 <div className="pt-2 border-t border-border/50">
-                    <div className="flex items-center justify-between text-[10px] uppercase font-bold text-muted-foreground">
-                       <span>Status</span>
-                       <span className="text-emerald-500">{app.health}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-[10px] uppercase font-bold text-muted-foreground mt-1">
-                       <span>Heartbeat</span>
-                       <span>{app.lastSync}</span>
-                    </div>
-                 </div>
-              ) : (
-                 <p className="text-xs text-muted-foreground pt-2 border-t border-border/50">Configuration required to establish data stream.</p>
-              )}
             </div>
-
-            <div className="p-3 bg-accent/20 border-t border-border flex items-center justify-between">
-               <button className="text-[10px] font-bold text-primary hover:underline">Documentation</button>
-               {app.connected ? (
-                  <div className="flex gap-2">
-                    <button className="btn-ghost p-1.5"><RefreshCw className="h-3 w-3" /></button>
-                    <button className="btn-ghost p-1.5 text-destructive"><Trash2 className="h-3 w-3" /></button>
-                  </div>
-               ) : (
-                  <button className="btn-primary h-7 px-3 text-[10px] font-bold">Configure</button>
-               )}
-            </div>
-          </div>
-        ))}
+          );
+        })}
 
         {/* Custom Connector Card */}
         <div className="border border-dashed border-border rounded-lg p-6 flex flex-col items-center justify-center text-center space-y-4 hover:border-primary/50 transition-colors cursor-pointer group">

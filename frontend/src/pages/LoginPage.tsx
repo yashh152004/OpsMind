@@ -86,7 +86,7 @@ const LoginPage: React.FC = () => {
             </div>
 
             {loginError && (
-              <div className="bg-destructive/10 border border-destructive/20 p-3 rounded-md flex items-center gap-3 text-destructive text-xs animate-in slide-in-from-top-1">
+              <div className="bg-critical/10 border border-critical/20 p-3 rounded-md flex items-center gap-3 text-critical text-xs animate-in slide-in-from-top-1">
                 <Key className="h-4 w-4 shrink-0" />
                 <span>Identification failed. Invalid credentials or expired session.</span>
               </div>
