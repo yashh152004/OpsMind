@@ -187,6 +187,13 @@ class ApiClient {
     return response.data
   }
 
+  async exportTelemetry() {
+    const response = await this.client.get('/export/telemetry', {
+      responseType: 'blob'
+    })
+    return response.data
+  }
+
   /**
    * Settings (Phase 3)
    */
