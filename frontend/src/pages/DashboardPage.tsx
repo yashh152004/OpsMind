@@ -20,9 +20,11 @@ import {
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/services/api'
+import { useNavigate } from 'react-router-dom'
 import { cn } from '@/utils/cn'
 
 const DashboardPage: React.FC = () => {
+  const navigate = useNavigate()
   const { data: stats } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: () => apiClient.getDashboardStats(),
@@ -62,7 +64,7 @@ const DashboardPage: React.FC = () => {
           { label: 'SLA Fulfillment', val: '100.0%', color: 'text-primary', trend: 'STABLE', icon: ShieldCheck, href: '/analytics' },
         ].map(kpi => (
           <div key={kpi.label} 
-               onClick={() => window.location.href = kpi.href}
+               onClick={() => navigate(kpi.href)}
                className="enterprise-card p-4 hover-lift cursor-pointer group">
             <div className="flex justify-between items-start mb-2">
                <span className="text-metric-label group-hover:text-accent transition-colors">{kpi.label}</span>
@@ -81,7 +83,7 @@ const DashboardPage: React.FC = () => {
 
       <div className="grid gap-6 lg:grid-cols-12">
         {/* Main Performance Graph */}
-        <div className="enterprise-card lg:col-span-8 group cursor-pointer" onClick={() => window.location.href = '/analytics'}>
+        <div className="enterprise-card lg:col-span-8 group cursor-pointer" onClick={() => navigate('/analytics')}>
            <div className="enterprise-card-header">
               <span className="text-section-title flex items-center gap-2 group-hover:text-accent transition-colors">
                  <Activity className="h-3.5 w-3.5 text-accent" /> Infrastructure Health Trend
@@ -106,7 +108,7 @@ const DashboardPage: React.FC = () => {
         </div>
 
         {/* Severity Distribution */}
-        <div className="enterprise-card lg:col-span-4 group cursor-pointer" onClick={() => window.location.href = '/incidents'}>
+        <div className="enterprise-card lg:col-span-4 group cursor-pointer" onClick={() => navigate('/incidents')}>
            <div className="enterprise-card-header">
               <span className="text-section-title flex items-center gap-2 group-hover:text-accent transition-colors">
                  <AlertTriangle className="h-3.5 w-3.5 text-warning" /> Incident Severity

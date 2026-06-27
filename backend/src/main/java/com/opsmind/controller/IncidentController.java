@@ -33,6 +33,11 @@ public class IncidentController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/{id}/timeline")
+    public ResponseEntity<List<com.opsmind.model.IncidentTimeline>> getTimeline(@PathVariable Long id) {
+        return ResponseEntity.ok(activityService.getTimelineForIncident(id));
+    }
+
     @PostMapping
     public ResponseEntity<Incident> create(@RequestBody Incident incident) {
         incident.setCreatedAt(java.time.LocalDateTime.now());

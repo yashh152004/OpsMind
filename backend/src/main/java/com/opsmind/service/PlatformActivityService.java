@@ -11,13 +11,16 @@ public class PlatformActivityService {
     private final AuditLogRepository auditLogRepository;
     private final NotificationRepository notificationRepository;
     private final com.opsmind.repository.IncidentTimelineRepository timelineRepository;
+    private final org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
 
     public PlatformActivityService(AuditLogRepository auditLogRepository, 
                                    NotificationRepository notificationRepository,
-                                   com.opsmind.repository.IncidentTimelineRepository timelineRepository) {
+                                   com.opsmind.repository.IncidentTimelineRepository timelineRepository,
+                                   org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate) {
         this.auditLogRepository = auditLogRepository;
         this.notificationRepository = notificationRepository;
         this.timelineRepository = timelineRepository;
+        this.messagingTemplate = messagingTemplate;
     }
 
     public void logTimeline(Long incidentId, String eventType, String description, String user) {
@@ -35,10 +38,22 @@ public class PlatformActivityService {
         n.setSeverity(severity);
         n.setRead(false);
         n.setCreatedAt(java.time.LocalDateTime.now());
-        notificationRepository.save(n);
+        Notification saved = notificationRepository.save(n);
+        
+        // Push real-time notification to all connected clients
+        messagingTemplate.convertAndSend("/topic/notifications", saved);
+        
+        // If it's a high-severity event, push to alerts topic as well
+        if ("CRITICAL".equalsIgnoreCase(severity) || "P1".equalsIgnoreCase(severity)) {
+            messagingTemplate.convertAndSend("/topic/alerts", saved);
+        }
     }
 
     public java.util.List<AuditLog> getRecentLogs() {
         return auditLogRepository.findTop100ByOrderByTimestampDesc();
+    }
+
+    public java.util.List<com.opsmind.model.IncidentTimeline> getTimelineForIncident(Long incidentId) {
+        return timelineRepository.findByIncidentIdOrderByCreatedAtDesc(incidentId);
     }
 }
