@@ -10,11 +10,18 @@ import org.springframework.stereotype.Service;
 public class PlatformActivityService {
     private final AuditLogRepository auditLogRepository;
     private final NotificationRepository notificationRepository;
+    private final com.opsmind.repository.IncidentTimelineRepository timelineRepository;
 
     public PlatformActivityService(AuditLogRepository auditLogRepository, 
-                                   NotificationRepository notificationRepository) {
+                                   NotificationRepository notificationRepository,
+                                   com.opsmind.repository.IncidentTimelineRepository timelineRepository) {
         this.auditLogRepository = auditLogRepository;
         this.notificationRepository = notificationRepository;
+        this.timelineRepository = timelineRepository;
+    }
+
+    public void logTimeline(Long incidentId, String eventType, String description, String user) {
+        timelineRepository.save(new com.opsmind.model.IncidentTimeline(incidentId, eventType, description, user));
     }
 
     public void logAction(String action, String module, String user, String details) {

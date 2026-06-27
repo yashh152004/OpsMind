@@ -41,6 +41,7 @@ public class IncidentController {
         
         activityService.logAction("INCIDENT_DECLARED", "INCIDENTS", "system", "New incident declared: " + saved.getTitle());
         activityService.notify("Critical Incident", "New " + saved.getSeverity() + " incident reported: " + saved.getTitle(), saved.getSeverity());
+        activityService.logTimeline(saved.getId(), "DECLARED", "Incident initialized with severity " + saved.getSeverity(), "system");
         
         return ResponseEntity.ok(saved);
     }
@@ -53,7 +54,9 @@ public class IncidentController {
             if (body.containsKey("resolution")) {
                 incident.setResolution(body.get("resolution"));
             }
-            return ResponseEntity.ok(repository.save(incident));
+            Incident saved = repository.save(incident);
+            activityService.logTimeline(saved.getId(), "STATUS_CHANGE", "Incident status transitioned to " + newStatus, "system");
+            return ResponseEntity.ok(saved);
         }).orElse(ResponseEntity.notFound().build());
     }
 
@@ -75,6 +78,7 @@ public class IncidentController {
             }
             Incident saved = repository.save(incident);
             activityService.logAction("INCIDENT_RESOLVED", "INCIDENTS", "system", "Incident resolved: " + saved.getTitle());
+            activityService.logTimeline(saved.getId(), "RESOLVED", "Resolution confirmed: " + saved.getResolution(), "system");
             return ResponseEntity.ok(saved);
         }).orElse(ResponseEntity.notFound().build());
     }
