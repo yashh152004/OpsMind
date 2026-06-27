@@ -17,6 +17,8 @@ public class SreReasoningService {
     private final LogRepository logRepository;
     private final PlatformActivityService activityService;
     private final NotificationRepository notificationRepository;
+    private final SecurityFindingRepository securityRepository;
+    private final IntegrationRepository integrationRepository;
 
     public SreReasoningService(IncidentRepository incidentRepository,
                                 AlertRepository alertRepository,
@@ -26,7 +28,9 @@ public class SreReasoningService {
                                 SystemMetricRepository metricRepository,
                                 LogRepository logRepository,
                                 PlatformActivityService activityService,
-                                NotificationRepository notificationRepository) {
+                                NotificationRepository notificationRepository,
+                                SecurityFindingRepository securityRepository,
+                                IntegrationRepository integrationRepository) {
         this.incidentRepository = incidentRepository;
         this.alertRepository = alertRepository;
         this.infrastructureRepository = infrastructureRepository;
@@ -36,6 +40,8 @@ public class SreReasoningService {
         this.logRepository = logRepository;
         this.activityService = activityService;
         this.notificationRepository = notificationRepository;
+        this.securityRepository = securityRepository;
+        this.integrationRepository = integrationRepository;
     }
 
     public enum Intent {
@@ -51,8 +57,10 @@ public class SreReasoningService {
         context.put("risk_scores", insightService.calculateRiskScores());
         context.put("latest_metrics", metricRepository.findTop50ByMetricNameOrderByTimestampDesc("CPU_USAGE"));
         context.put("latest_logs", logRepository.findTop100ByOrderByTimestampDesc());
-        context.put("audit_logs", activityService.getRecentLogs()); // Now aware of platform activity
+        context.put("audit_logs", activityService.getRecentLogs()); 
         context.put("unread_notifications", notificationRepository.findByIsReadFalseOrderByCreatedAtDesc());
+        context.put("security_findings", securityRepository.findAll());
+        context.put("active_integrations", integrationRepository.findAll());
         
         // Delegating to specialized Python AI Engine
         Map<String, Object> aiResult = pythonAiClient.getIntelligence(query, context);

@@ -16,15 +16,18 @@ public class ExportController {
     private final AlertRepository alertRepository;
     private final InfrastructureRepository infrastructureRepository;
     private final AuditLogRepository auditLogRepository;
+    private final SecurityFindingRepository securityRepository;
 
     public ExportController(IncidentRepository incidentRepository,
                             AlertRepository alertRepository,
                             InfrastructureRepository infrastructureRepository,
-                            AuditLogRepository auditLogRepository) {
+                            AuditLogRepository auditLogRepository,
+                            SecurityFindingRepository securityRepository) {
         this.incidentRepository = incidentRepository;
         this.alertRepository = alertRepository;
         this.infrastructureRepository = infrastructureRepository;
         this.auditLogRepository = auditLogRepository;
+        this.securityRepository = securityRepository;
     }
 
     @GetMapping("/{module}")
@@ -84,9 +87,15 @@ public class ExportController {
                 csv.append("2026-06-26 10:00:00,MEM_USAGE,8.2,GB\n");
                 break;
             case "security":
-                csv.append("ID,Context,Finding,Severity,Status\n");
-                csv.append("1,Local-Host,Unpatched Kernel,HIGH,OPEN\n");
-                csv.append("2,Internal-Network,Port 22 exposed,CRITICAL,RESOLVED\n");
+                csv.append("ID,Title,Severity,Category,Resource,Status\n");
+                securityRepository.findAll().forEach(s -> 
+                    csv.append(s.getId()).append(",")
+                       .append(escapeCsv(s.getTitle())).append(",")
+                       .append(s.getSeverity()).append(",")
+                       .append(s.getCategory()).append(",")
+                       .append(escapeCsv(s.getResourceId())).append(",")
+                       .append(s.getStatus()).append("\n")
+                );
                 break;
             default:
                 return ResponseEntity.badRequest().build();

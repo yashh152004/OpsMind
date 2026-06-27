@@ -132,6 +132,11 @@ class ApiClient {
     return response.data
   }
 
+  async createOrganization(data: any) {
+    const response = await this.client.post('/organizations', data)
+    return response.data
+  }
+
   async resolveIncident(incidentId: string, resolution: string) {
     const response = await this.client.post(`/incidents/${incidentId}/resolve`, {
       resolution,
@@ -295,6 +300,11 @@ class ApiClient {
    */
   async getSecurityFindings() {
     const response = await this.client.get('/security/findings')
+    return response.data
+  }
+
+  async performSecurityScan() {
+    const response = await this.client.post('/security/scan')
     return response.data
   }
 }

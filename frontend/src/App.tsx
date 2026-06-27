@@ -21,6 +21,7 @@ import SetupWizard from '@/pages/SetupWizard'
 // Layouts
 import AuthLayout from '@/layouts/AuthLayout'
 import AppLayout from '@/layouts/AppLayout'
+import RealTimeSync from '@/components/RealTimeSync'
 
 // Hooks
 import { useRequireAuth } from '@/hooks'
@@ -57,6 +58,7 @@ const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
+        <RealTimeSync />
         <Routes>
           {/* Auth Routes */}
           <Route element={<AuthLayout />}>

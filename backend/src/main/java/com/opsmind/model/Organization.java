@@ -22,7 +22,7 @@ public class Organization {
     private String name;
 
     private String industry;
-    private String plan = "ENTERPRISE";
+    private String planType = "ENTERPRISE";
     
     private LocalDateTime createdAt;
     

@@ -56,7 +56,7 @@ public class SystemDataLoader implements ApplicationRunner {
         Organization org = Organization.builder()
                 .name("Global Finance Systems")
                 .industry("SRE Architecture")
-                .plan("ENTERPRISE")
+                .planType("ENTERPRISE")
                 .build();
         organizationRepository.save(org);
 

@@ -23,18 +23,17 @@ const SecurityPage: React.FC = () => {
 
   const handleDeepScan = async () => {
      setIsScanning(true)
-     toast.promise(
-       new Promise((resolve) => setTimeout(resolve, 2000)),
-       {
-         loading: 'Orchestrating deep vulnerability scan...',
-         success: () => {
-           setIsScanning(false)
-           refetch()
-           return 'Security scan finalized. 2 new CVE-2024 patterns identified.'
-         },
-         error: 'Security orchestration engine timed out.'
-       }
-     )
+     try {
+       const result = await apiClient.performSecurityScan()
+       toast.success('Security scan finalized.', {
+          description: `${result.findings_count} patterns identified.`
+       })
+       refetch()
+     } catch (err) {
+       toast.error('Security orchestration engine timed out.')
+     } finally {
+       setIsScanning(false)
+     }
   }
 
   return (
