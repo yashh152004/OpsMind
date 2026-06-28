@@ -2,6 +2,10 @@ import React, { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/services/api'
 import { 
+  Clock, 
+  ExternalLink, 
+  Plus,
+  Search,
   Download,
   Terminal,
   CheckCircle2,

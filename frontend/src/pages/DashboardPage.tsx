@@ -4,7 +4,7 @@ import {
   BarChart, Bar, Cell
 } from 'recharts'
 import { 
-  Activity, AlertTriangle, ShieldCheck, 
+  Activity, AlertTriangle, ShieldCheck, Cpu,
   Plus, Download, FileText, Layout, Info, TrendingUp, TrendingDown
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
@@ -90,7 +90,7 @@ const DashboardPage: React.FC = () => {
           { label: 'Active Incidents', val: stats?.activeIncidents || '0', color: 'text-primary', trend: 'STABLE', status: 'NOMINAL', icon: AlertTriangle, href: '/incidents' },
           { label: 'Avg System Latency', val: stats?.mttr || '12.4ms', color: 'text-accent', trend: '-2.1ms', status: 'IMPROVING', icon: Cpu, href: '/analytics' },
           { label: 'SLA Fulfillment', val: '100.0%', color: 'text-primary', trend: 'STABLE', status: 'COMPLIANT', icon: ShieldCheck, href: '/analytics' },
-        ].map(kpi => (
+        ].map(({ icon: Icon, ...kpi }) => (
           <div key={kpi.label} 
                onClick={() => navigate(kpi.href)}
                className="enterprise-card p-4 hover-lift cursor-pointer group hover:border-accent/50 transition-all">
@@ -99,7 +99,7 @@ const DashboardPage: React.FC = () => {
                   <span className="text-[10px] font-black uppercase tracking-[0.15em] text-muted group-hover:text-accent transition-colors">{kpi.label}</span>
                   <Info className="h-3 w-3 text-muted/20" />
                </div>
-               <kpi.icon className="h-4 w-4 text-muted/30 group-hover:text-accent group-hover:rotate-12 transition-all" />
+               <Icon className="h-4 w-4 text-muted/30 group-hover:text-accent group-hover:rotate-12 transition-all" />
             </div>
             <div className="flex items-end justify-between">
                <div className={cn("text-2xl font-black tracking-tighter", kpi.color)}>{kpi.val}</div>

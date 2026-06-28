@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   Layers,
   Terminal,
+  Layout,
   X
 } from 'lucide-react'
 import { cn } from '@/utils/cn'

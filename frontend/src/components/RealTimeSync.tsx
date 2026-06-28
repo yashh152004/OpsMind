@@ -22,14 +22,14 @@ const RealTimeSync: React.FC = () => {
         console.log('OpsMind Sync connected')
         
         // Listen for notification-driven refreshes
-        stompClient.subscribe('/topic/notifications', (message: IMessage) => {
+        stompClient.subscribe('/topic/notifications', (_message: IMessage) => {
            console.log('Global Sync: Notification received, invalidating queries...')
            queryClient.invalidateQueries({ queryKey: ['notifications'] })
            queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
         })
 
         // Listen for alert-driven refreshes
-        stompClient.subscribe('/topic/alerts', (message: IMessage) => {
+        stompClient.subscribe('/topic/alerts', (_message: IMessage) => {
            console.log('Global Sync: Alert received, invalidating streams...')
            queryClient.invalidateQueries({ queryKey: ['alerts'] })
            queryClient.invalidateQueries({ queryKey: ['incidents'] })

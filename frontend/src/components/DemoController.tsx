@@ -1,13 +1,9 @@
 import React, { useState } from 'react'
 import { 
   Play, 
-  Settings, 
   Zap, 
   Activity, 
   Database, 
-  ShieldAlert, 
-  ChevronUp, 
-  ChevronDown,
   Terminal,
   HelpCircle,
   X,
