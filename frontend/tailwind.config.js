@@ -49,6 +49,9 @@ export default {
         success: "hsl(var(--success))",
         warning: "hsl(var(--warning))",
         critical: "hsl(var(--critical))",
+        "surface": "hsl(var(--surface))",
+        "surface-alt": "hsl(var(--surface-alt))",
+        "border-strong": "hsl(var(--border-strong))",
       },
       borderRadius: {
         lg: "var(--radius)",

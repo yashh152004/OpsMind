@@ -32,10 +32,10 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Loading...</p>
+      <div className="flex h-screen items-center justify-center bg-white">
+        <div className="text-center space-y-4">
+          <div className="h-10 w-10 animate-spin border-4 border-black border-t-transparent mx-auto"></div>
+          <div className="text-[10px] font-black uppercase tracking-[0.3em] text-black">Initializing Shard...</div>
         </div>
       </div>
     )
@@ -94,7 +94,15 @@ const App: React.FC = () => {
       </Router>
 
       {/* Toast Notifications */}
-      <Toaster position="bottom-right" />
+      <Toaster 
+        position="bottom-right" 
+        expand={true} 
+        richColors 
+        theme="light"
+        toastOptions={{
+          className: 'font-geist font-bold text-[12px] uppercase tracking-widest border border-black rounded-none shadow-xl',
+        }}
+      />
     </QueryClientProvider>
   )
 }

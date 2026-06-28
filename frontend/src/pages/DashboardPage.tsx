@@ -5,7 +5,9 @@ import {
 } from 'recharts'
 import { 
   Activity, AlertTriangle, ShieldCheck, Cpu,
-  Plus, Download, FileText, Layout, Info, TrendingUp, TrendingDown
+  Plus, Download, FileText, Layout, Info, TrendingUp, TrendingDown,
+  ChevronRight, ArrowUpRight, BarChart3, Terminal, X,
+  Search, Globe, Database, Server, Settings as SettingsIcon, Bell, Zap
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/services/api'
@@ -13,6 +15,28 @@ import { useNavigate } from 'react-router-dom'
 import { cn } from '@/utils/cn'
 import Widget from '@/components/Widget'
 import { toast } from 'sonner'
+
+const DashboardSkeleton = () => (
+  <div className="space-y-10 p-8 animate-in fade-in duration-500 bg-white min-h-screen">
+    <div className="flex justify-between items-end pb-8 border-b border-border">
+      <div className="space-y-3">
+        <div className="h-10 w-72 skeleton" />
+        <div className="h-4 w-48 skeleton" />
+      </div>
+      <div className="flex gap-3">
+        <div className="h-10 w-28 skeleton" />
+        <div className="h-10 w-32 skeleton" />
+      </div>
+    </div>
+    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      {[1, 2, 3, 4].map(i => <div key={i} className="h-36 skeleton" />)}
+    </div>
+    <div className="grid gap-8 lg:grid-cols-12">
+      <div className="lg:col-span-8 h-[450px] skeleton" />
+      <div className="lg:col-span-4 h-[450px] skeleton" />
+    </div>
+  </div>
+)
 
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate()
@@ -22,245 +46,246 @@ const DashboardPage: React.FC = () => {
   const { data: stats, isLoading, isRefetching, refetch } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: () => apiClient.getDashboardStats(),
-    refetchInterval: 15000
+    refetchInterval: 10000 // Real-time pulse
   })
 
-  const handleExport = async (format: string) => {
+  if (isLoading) return <DashboardSkeleton />
+
+  const handleExport = async () => {
     setIsExporting(true)
     try {
-      const data = await apiClient.exportModule('incidents') // Defaulting to incidents report
+      const data = await apiClient.exportModule('incidents')
       const url = window.URL.createObjectURL(new Blob([data]))
       const link = document.createElement('a')
       link.href = url
-      link.setAttribute('download', `OpsMind_Status_Report_${new Date().toISOString().split('T')[0]}.${format}`)
+      link.setAttribute('download', `OpsMind_Audit_${new Date().toISOString().split('T')[0]}.csv`)
       document.body.appendChild(link)
       link.click()
-      toast.success(`Platform state exported as ${format.toUpperCase()}`)
+      toast.success("Operational audit exported.")
     } catch (e) {
-      toast.error("Export failed. Internal compute engine busy.")
+      toast.error("Export failure.")
     } finally {
       setIsExporting(false)
     }
   }
 
+  const kpis = [
+    { label: 'Uptime Integrity', val: stats?.uptime || '99.98%', color: 'text-primary', trend: '+0.01%', status: 'OPTIMIZED', icon: Globe, href: '/infrastructure' },
+    { label: 'Signal Disruptions', val: stats?.activeIncidents || '0', color: 'text-black', trend: 'NOMINAL', status: 'STABLE', icon: AlertTriangle, href: '/incidents' },
+    { label: 'Cluster Latency', val: stats?.mttr || '12ms', color: 'text-primary', trend: '-2.1ms', status: 'FAST', icon: Server, href: '/analytics' },
+    { label: 'Compliance Score', val: '100.0%', color: 'text-primary', trend: 'SECURE', status: 'VERIFIED', icon: ShieldCheck, href: '/security' },
+  ]
+
   return (
-    <div className="main-content-grid page-transition-fade space-y-6">
-      {/* Platform Orchestration Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-border">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-             <Layout className="h-5 w-5 text-accent" />
-             <h1 className="text-xl font-bold tracking-tight text-primary m-0">Executive Command Center</h1>
-          </div>
-          <div className="flex items-center gap-3">
-             <div className="flex items-center gap-1.5 px-2 py-0.5 bg-success/10 text-success rounded-[2px] text-[10px] font-black tracking-widest uppercase">
-                <span className="h-1 w-1 rounded-full bg-success animate-pulse" />
-                Live: 100% Connectivity
-             </div>
-             <span className="text-[10px] font-bold text-muted uppercase tracking-widest">Shard: us-east-1-cluster-alpha</span>
-          </div>
+    <div className="page-transition-fade space-y-10 p-10 bg-white min-h-screen">
+      {/* Enterprise Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 pb-10 border-b border-border">
+        <div className="space-y-2">
+           <h1 className="text-4xl font-black tracking-tighter text-black m-0 font-geist">Platform Command</h1>
+           <div className="flex items-center gap-4">
+              <p className="text-[11px] font-bold text-muted uppercase tracking-[0.2em] flex items-center gap-2">
+                 <Activity className="h-4 w-4 text-emerald-500" /> System Integrity Certified • us-east-1
+              </p>
+              <div className="h-1 w-1 rounded-full bg-border" />
+              <p className="text-[11px] font-bold text-muted uppercase tracking-[0.2em]">Shard: Ingress-01</p>
+           </div>
         </div>
-        <div className="flex items-center gap-2">
-            <div className="relative group/export">
-               <button className={cn("btn-secondary h-8 px-4 text-[10px] uppercase font-black tracking-widest group", isExporting && "opacity-50")}>
-                  {isExporting ? <Activity className="h-3.5 w-3.5 animate-spin mr-2" /> : <Download className="h-3.5 w-3.5 mr-2" />}
-                  Export Report
-               </button>
-               <div className="absolute top-full right-0 mt-1 bg-white border border-border shadow-2xl rounded-[2px] p-1 invisible group-hover/export:visible z-[100] min-w-[140px] animate-in fade-in slide-in-from-top-1 duration-200">
-                  {['pdf', 'excel', 'csv'].map(fmt => (
-                    <button key={fmt} onClick={() => handleExport(fmt)} className="w-full text-left px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest hover:bg-slate-50 text-secondary flex items-center justify-between">
-                       {fmt} <FileText className="h-3 w-3 opacity-30" />
-                    </button>
-                  ))}
-               </div>
-            </div>
-            <button 
+        <div className="flex items-center gap-3">
+           <button 
+             onClick={handleExport}
+             disabled={isExporting}
+             className="btn-secondary h-10 border-strong group"
+           >
+              {isExporting ? <Activity className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+              <span className="ml-2">Export State</span>
+           </button>
+           <button 
               onClick={() => setShowWidgetMarketplace(true)}
-              className="btn-primary h-8 px-4 text-[10px] uppercase font-black tracking-widest shadow-lg shadow-accent/20"
-            >
-               <Plus className="h-4 w-4 mr-1.5" /> Add Widget
-            </button>
+              className="btn-primary h-10 shadow-xl shadow-black/5"
+           >
+              <Plus className="h-4 w-4" />
+              <span className="ml-2">Provision Module</span>
+           </button>
         </div>
       </div>
 
-      {/* KPI Drill-down Matrix */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {[
-          { label: 'Platform Availability', val: stats?.uptime || '99.99%', color: 'text-success', trend: '+0.01%', status: 'UP', icon: Activity, href: '/infrastructure' },
-          { label: 'Active Incidents', val: stats?.activeIncidents || '0', color: 'text-primary', trend: 'STABLE', status: 'NOMINAL', icon: AlertTriangle, href: '/incidents' },
-          { label: 'Avg System Latency', val: stats?.mttr || '12.4ms', color: 'text-accent', trend: '-2.1ms', status: 'IMPROVING', icon: Cpu, href: '/analytics' },
-          { label: 'SLA Fulfillment', val: '100.0%', color: 'text-primary', trend: 'STABLE', status: 'COMPLIANT', icon: ShieldCheck, href: '/analytics' },
-        ].map(({ icon: Icon, ...kpi }) => (
+      {/* Primary KPI Matrix */}
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {kpis.map(({ icon: Icon, ...kpi }) => (
           <div key={kpi.label} 
                onClick={() => navigate(kpi.href)}
-               className="enterprise-card p-4 hover-lift cursor-pointer group hover:border-accent/50 transition-all">
-            <div className="flex justify-between items-start mb-1.5">
-               <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-black uppercase tracking-[0.15em] text-muted group-hover:text-accent transition-colors">{kpi.label}</span>
-                  <Info className="h-3 w-3 text-muted/20" />
+               className="enterprise-card p-6 cursor-pointer border-strong/40 group hover:border-black active:scale-[0.98] transition-all">
+            <div className="flex justify-between items-start mb-6">
+               <div className="h-10 w-10 bg-black text-white rounded flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
+                  <Icon className="h-5 w-5" />
                </div>
-               <Icon className="h-4 w-4 text-muted/30 group-hover:text-accent group-hover:rotate-12 transition-all" />
+               <span className={cn(
+                 "status-badge",
+                 kpi.status === 'OPTIMIZED' ? "badge-success" : 
+                 kpi.status === 'STABLE' ? "badge-info" : "badge-warning"
+               )}>{kpi.status}</span>
             </div>
-            <div className="flex items-end justify-between">
-               <div className={cn("text-2xl font-black tracking-tighter", kpi.color)}>{kpi.val}</div>
-               <div className="flex flex-col items-end">
-                  <div className={cn("flex items-center gap-0.5 text-[10px] font-black uppercase tracking-tighter", kpi.trend.startsWith('+') ? "text-success" : kpi.trend.startsWith('-') ? "text-critical" : "text-muted")}>
-                     {kpi.trend.startsWith('+') ? <TrendingUp className="h-3 w-3" /> : kpi.trend.startsWith('-') ? <TrendingDown className="h-3 w-3" /> : null}
+            <div className="space-y-1">
+               <div className="text-[11px] font-black uppercase tracking-[0.15em] text-muted">{kpi.label}</div>
+               <div className="flex items-end justify-between">
+                  <div className="text-3xl font-black tracking-tighter text-black">{kpi.val}</div>
+                  <div className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-sm">
                      {kpi.trend}
                   </div>
-                  <span className="text-[8px] font-bold text-muted/50 uppercase tracking-widest whitespace-nowrap">vs Previous 24h</span>
                </div>
-            </div>
-            <div className="mt-3 pt-3 border-t border-slate-50 flex items-center justify-between">
-               <span className="text-[9px] font-bold text-muted uppercase tracking-widest">{kpi.status} STATE</span>
-               <span className="text-[9px] font-black text-accent uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Analyze &rarr;</span>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-12">
-        {/* Main Performance Graph Widget */}
+      <div className="grid gap-10 lg:grid-cols-12">
+        {/* Core Telemetry Feed */}
         <div className="lg:col-span-8">
-          <Widget 
-            title="SRE Infrastructure Health Trend" 
-            icon={Activity} 
-            onRefresh={() => refetch()}
-            isLoading={isLoading || isRefetching}
-          >
-            <div className="h-[320px]">
+           <div className="flex items-center justify-between mb-6">
+              <div className="space-y-0.5">
+                 <h2 className="text-xl font-black tracking-tight text-black flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5" /> Cluster Ingress Stream
+                 </h2>
+                 <p className="text-[11px] font-bold text-muted uppercase tracking-widest">Weighted Signal Throughput • 24h Window</p>
+              </div>
+              <div className="flex items-center gap-2">
+                 <div className="h-2 w-2 rounded-full bg-black" />
+                 <span className="text-[10px] font-black uppercase tracking-widest">Live Flow</span>
+              </div>
+           </div>
+           <div className="h-[360px] p-6 border border-strong rounded-lg bg-surface-alt/20">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={stats?.performanceSeries || []}>
-                  <defs>
-                    <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#2563EB" stopOpacity={0.1}/>
-                      <stop offset="95%" stopColor="#2563EB" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E5E5" />
                   <XAxis dataKey="time" hide />
-                  <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748B', fontSize: 10, fontWeight: 'bold'}} />
+                  <YAxis axisLine={false} tickLine={false} tick={{fill: '#888', fontSize: 10, fontWeight: 900}} />
                   <Tooltip 
-                    contentStyle={{ borderRadius: '2px', border: '1px solid #E2E8F0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '11px', fontWeight: 'bold' }} 
+                    contentStyle={{ borderRadius: '0px', border: '1px solid #000', boxShadow: '10px 10px 0px rgba(0,0,0,0.05)', fontSize: '11px', fontWeight: 'bold' }} 
                   />
-                  <Area type="monotone" dataKey="value" stroke="#2563EB" strokeWidth={2} fill="url(#chartGradient)" />
+                  <Area type="stepAfter" dataKey="value" stroke="#000" strokeWidth={2} fill="#F5F5F5" />
                 </AreaChart>
               </ResponsiveContainer>
-            </div>
-          </Widget>
+           </div>
         </div>
 
-        {/* Severity Widget */}
+        {/* Tactical Triage Support */}
         <div className="lg:col-span-4">
-          <Widget 
-            title="Incident Severity Distribution" 
-            icon={AlertTriangle}
-            onRefresh={() => refetch()}
-            isLoading={isLoading}
-          >
-            <div className="h-[200px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={stats?.severityDistribution || []} layout="vertical">
-                  <XAxis type="number" hide />
-                  <YAxis dataKey="name" type="category" hide />
-                  <Bar dataKey="count" radius={[0, 2, 2, 0]} barSize={24}>
-                    {(stats?.severityDistribution || []).map((entry: any, index: number) => (
-                      <Cell key={`cell-${index}`} fill={entry.name === 'P1' ? '#EF4444' : entry.name === 'P2' ? '#F59E0B' : '#2563EB'} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="mt-4 space-y-2">
-               {(stats?.severityDistribution || [
-                 { name: 'P1', count: 0 }, { name: 'P2', count: 0 }, { name: 'P3', count: 0 }
-               ]).map((entry: any) => (
-                 <div key={entry.name} className="flex items-center justify-between p-2 rounded-sm hover:bg-slate-50 transition-colors">
-                    <div className="flex items-center gap-2">
-                       <span className={cn("h-2 w-2 rounded-[1px]", entry.name === 'P1' ? "bg-critical" : entry.name === 'P2' ? "bg-warning" : "bg-accent")} />
-                       <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">{entry.name} Critical</span>
-                    </div>
-                    <span className="metric-value text-[12px]">{entry.count}</span>
+           <div className="space-y-0.5 mb-6">
+              <h2 className="text-xl font-black tracking-tight text-black flex items-center gap-2">
+                 <AlertTriangle className="h-5 w-5" /> Alert Logic
+              </h2>
+              <p className="text-[11px] font-bold text-muted uppercase tracking-widest">Weighted Distribution Tiering</p>
+           </div>
+           <div className="space-y-4">
+              {(stats?.severityDistribution || []).map((entry: any) => (
+                <div key={entry.name} 
+                     onClick={() => navigate('/incidents')}
+                     className="p-5 border border-border-strong rounded hover:border-black hover:bg-surface-alt transition-all cursor-pointer group flex items-center justify-between">
+                   <div className="flex items-center gap-4">
+                      <div className={cn("h-2 w-2 rounded-full", 
+                         entry.name === 'P1' ? "bg-red-600" : 
+                         entry.name === 'P2' ? "bg-amber-500" : "bg-black")} 
+                      />
+                      <div className="flex flex-col">
+                         <span className="text-[12px] font-black text-black uppercase tracking-widest">{entry.name} Priority</span>
+                         <span className="text-[9px] font-bold text-muted uppercase">Global Command Required</span>
+                      </div>
+                   </div>
+                   <div className="text-2xl font-black text-black group-hover:translate-x-[-4px] transition-transform">{entry.count}</div>
+                </div>
+              ))}
+              
+              <div className="p-6 bg-black rounded text-white space-y-4">
+                 <div className="flex items-center gap-3">
+                    <Zap className="h-5 w-5 text-amber-400" />
+                    <span className="text-[11px] font-black uppercase tracking-[0.2em]">Autonomous SRE Status</span>
                  </div>
-               ))}
-            </div>
-          </Widget>
+                 <p className="text-[12px] font-medium leading-relaxed opacity-60">
+                    AI Agent currently monitoring 14,291 signals. No automated remediation required in the last 120 minutes.
+                 </p>
+                 <button onClick={() => navigate('/ai-insights')} className="w-full h-10 border border-white/20 hover:bg-white hover:text-black rounded text-[10px] font-black uppercase tracking-widest transition-all">
+                    View Agent Logic
+                 </button>
+              </div>
+           </div>
         </div>
       </div>
 
-      {/* AI Operational Intelligence Platform */}
-      <Widget title="AI Operational Intelligence Orchestrator" icon={ShieldCheck}>
-         <div className="enterprise-table-container border-none shadow-none">
-           <table className="enterprise-table">
-              <thead>
-                 <tr>
-                    <th className="w-32">Classification</th>
-                    <th>Intelligence Reasoning & Root Cause Analysis</th>
-                    <th className="w-24 text-right">Confidence</th>
-                    <th className="w-32 text-right">Operational State</th>
-                 </tr>
-              </thead>
-              <tbody>
-                 {(stats?.riskProfiles || [
-                    { id: 1, type: 'Nominal', context: 'Infrastructure nodes operating within baseline constraints. Predictive models suggest 99.9% availability for next 24h.', conf: '99.4%', status: 'STEADY' },
-                    { id: 2, type: 'Warning', context: 'Unusual query latency pattern detected in DB-Shard-B. Matching patterns for potential indexing degradation.', conf: '88.1%', status: 'OBSERVING' },
-                    { id: 3, type: 'Critical', context: 'Security finding SEC-948: Unauthenticated access attempt blocked from unknown IP range in us-west-2.', conf: '94.2%', status: 'BLOCKED' }
-                 ]).map((item: any, idx: number) => (
-                    <tr key={item.id || idx} className="hover:bg-slate-50/50 transition-colors">
-                       <td>
-                          <span className={cn(
-                            "status-badge",
-                            item.type === 'Critical' ? "badge-critical" : item.type === 'Warning' ? "badge-warning" : "badge-success"
-                          )}>{item.type}</span>
-                       </td>
-                       <td className="text-[12px] font-medium text-secondary py-3">{item.context}</td>
-                       <td className="metric-value text-[11px] text-right">{item.conf}</td>
-                       <td className="text-right">
-                          <span className="text-[10px] font-black text-muted uppercase tracking-[0.2em]">{item.status}</span>
-                       </td>
-                    </tr>
-                 ))}
-              </tbody>
-           </table>
+      {/* Intelligence & Audit Feed */}
+      <div className="space-y-6">
+         <div className="flex items-center justify-between border-b border-border pb-4">
+            <h2 className="text-xl font-black tracking-tight text-black flex items-center gap-2">
+               <Globe className="h-5 w-5" /> Strategic Infrastructure Matrix
+            </h2>
+            <button onClick={() => navigate('/infrastructure')} className="text-[10px] font-black text-muted hover:text-black uppercase tracking-widest flex items-center gap-2 transition-colors">
+               Full Topology <ChevronRight className="h-4 w-4" />
+            </button>
          </div>
-      </Widget>
-
-      {/* Widget Marketplace Modal Placeholder */}
+         <div className="enterprise-table-container">
+            <table className="enterprise-table">
+               <thead>
+                  <tr>
+                     <th>Entity Origin</th>
+                     <th>Intelligence Reasoning & Live Context</th>
+                     <th className="text-right">Risk Score</th>
+                     <th className="w-40 text-right">Action</th>
+                  </tr>
+               </thead>
+               <tbody>
+                  {(stats?.riskProfiles || []).map((item: any, idx: number) => (
+                     <tr key={idx} className="group">
+                        <td className="font-black uppercase tracking-widest whitespace-nowrap">{item.type} Signal</td>
+                        <td className="py-4 font-medium text-muted leading-relaxed italic pr-10">
+                           {item.context}
+                        </td>
+                        <td className="text-right">
+                           <span className="font-mono text-lg font-black text-black">{item.conf}</span>
+                        </td>
+                        <td className="text-right">
+                           <button onClick={() => navigate('/ai-chat')} className="h-8 px-4 border border-black rounded text-[10px] font-black uppercase tracking-widest hover:bg-black hover:text-white transition-all">
+                              Deep Analysis
+                           </button>
+                        </td>
+                     </tr>
+                  ))}
+               </tbody>
+            </table>
+         </div>
+      </div>
+      
+      {/* Widget Provisioning Modal */}
       {showWidgetMarketplace && (
-        <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-[#0F172A]/40 backdrop-blur-sm animate-in fade-in duration-200">
-           <div className="w-full max-w-2xl bg-white rounded-[2px] shadow-2xl border border-border overflow-hidden animate-in zoom-in-95 duration-200">
-              <div className="px-6 py-4 border-b border-border bg-slate-50 flex items-center justify-between">
-                 <div>
-                    <h2 className="text-sm font-black uppercase tracking-widest text-primary">Widget Inventory Orchestrator</h2>
-                    <p className="text-[10px] text-muted font-medium mt-0.5 uppercase tracking-widest">Select operational modules to pin to console</p>
+        <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xl animate-in fade-in duration-300">
+           <div className="w-full max-w-2xl bg-white rounded border border-black shadow-[20px_20px_0px_rgba(0,0,0,0.1)] overflow-hidden scale-100 animate-in zoom-in-95 duration-200">
+              <div className="px-8 py-6 border-b border-border flex items-center justify-between">
+                 <div className="space-y-1">
+                    <h2 className="text-xl font-black uppercase tracking-tighter text-black">Module Provisioning</h2>
+                    <p className="text-[11px] text-muted font-bold uppercase tracking-widest">Deploy new intelligence modules to command console</p>
                  </div>
-                 <button onClick={() => setShowWidgetMarketplace(false)} className="text-muted hover:text-primary transition-colors">
-                    <AlertTriangle className="h-5 w-5 rotate-45" />
+                 <button onClick={() => setShowWidgetMarketplace(false)} className="p-2 hover:bg-surface-alt rounded-full transition-colors">
+                    <X className="h-6 w-6" />
                  </button>
               </div>
-              <div className="p-6 grid grid-cols-2 gap-4">
+              <div className="p-10 grid grid-cols-2 gap-6">
                  {[
-                   { name: 'Infrastructure Topology', desc: 'Real-time node dependency mapping', icon: Activity },
-                   { name: 'Alert Correlation', desc: 'Weighted alert stream analytics', icon: ShieldCheck },
-                   { name: 'Financial Ops', desc: 'Cloud spent vs performance ratio', icon: Layout },
-                   { name: 'Security Posture', desc: 'CVE compliance & risk score', icon: ShieldCheck },
-                   { name: 'Network Latency', desc: 'Regional P99 threshold monitoring', icon: Cpu },
-                   { name: 'AI Forecast', desc: 'Capacity planning simulation', icon: TrendingUp }
-                 ].map(w => (
-                   <div key={w.name} className="p-4 border border-border rounded-[2px] hover:border-accent cursor-pointer group transition-all">
-                      <div className="flex items-center gap-3 mb-2">
-                         <div className="h-8 w-8 bg-slate-50 rounded-[2px] flex items-center justify-center text-muted group-hover:bg-accent group-hover:text-white transition-all">
-                            <w.icon className="h-4 w-4" />
-                         </div>
-                         <span className="text-[11px] font-black uppercase tracking-widest text-primary">{w.name}</span>
+                   { name: 'Node Topology', icon: Terminal },
+                   { name: 'Alert Correlation', icon: Activity },
+                   { name: 'Financial Ops', icon: Layout },
+                   { name: 'Security Posture', icon: ShieldCheck },
+                   { name: 'Network Latency', icon: Server },
+                   { name: 'AI Forecast', icon: Zap }
+                 ].map(({ icon: Icon, ...w }) => (
+                   <div key={w.name} className="p-6 border border-border rounded hover:border-black cursor-pointer group transition-all hover:bg-surface-alt flex flex-col items-center text-center gap-4">
+                      <div className="h-12 w-12 bg-black text-white rounded flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                         <Icon className="h-6 w-6" />
                       </div>
-                      <p className="text-[10px] text-muted leading-relaxed font-medium">{w.desc}</p>
+                      <span className="text-[11px] font-black uppercase tracking-widest text-black">{w.name}</span>
                    </div>
                  ))}
               </div>
-              <div className="px-6 py-4 bg-slate-50 border-t border-border flex justify-end gap-3">
-                 <button onClick={() => setShowWidgetMarketplace(false)} className="btn-secondary h-9 px-6 text-[10px] font-black uppercase tracking-widest">Cancel</button>
-                 <button onClick={() => setShowWidgetMarketplace(false)} className="btn-primary h-9 px-6 text-[10px] font-black uppercase tracking-widest">Provision Widgets</button>
+              <div className="px-8 py-6 bg-surface-alt border-t border-border flex justify-end gap-3">
+                 <button onClick={() => setShowWidgetMarketplace(false)} className="btn-secondary">Abort</button>
+                 <button onClick={() => setShowWidgetMarketplace(false)} className="btn-primary">Provision Strategy</button>
               </div>
            </div>
         </div>

@@ -113,10 +113,8 @@ class ApiClient {
   /**
    * Incident Endpoints
    */
-  async getIncidents(organizationId: string | number) {
-    const response = await this.client.get('/incidents', {
-      params: { organizationId },
-    })
+  async searchIncidents(params: { q?: string, status?: string, severity?: string, page?: number, size?: number, sort?: string }) {
+    const response = await this.client.get('/incidents/search', { params })
     return response.data
   }
 

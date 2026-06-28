@@ -1,15 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { 
-  Send, 
-  Terminal, 
-  History, 
-  Settings2, 
-  Trash2, 
-  Zap, 
-  PlusCircle,
-  Users,
-  ShieldCheck,
-  Activity
+  Send, Terminal, History, Settings2, Trash2, Zap, PlusCircle,
+  Users, ShieldCheck, Activity, Search, Command, ArrowRight, CornerDownLeft
 } from 'lucide-react'
 import { apiClient } from '@/services/api'
 import { useLocation } from 'react-router-dom'
@@ -28,12 +20,10 @@ const AiChatPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
 
-  // Handle auto-triggering a message from navigation state (like RCA)
   useEffect(() => {
     const state = location.state as { initialMessage?: string }
     if (state?.initialMessage) {
         setInput(state.initialMessage)
-        // We delay slightly to ensure the component is fully ready
         setTimeout(() => {
             const sendBtn = document.getElementById('ai-send-btn')
             sendBtn?.click()
@@ -67,18 +57,9 @@ const AiChatPage: React.FC = () => {
       }
       setMessages(prev => [...prev, assistantMessage])
     } catch (error: any) {
-      console.error('Chat error:', error);
-      
-      const serverMessage = error.response?.data?.message || error.message;
-      const displayContent = `CRITICAL_FAILURE: Connection to backend failed.\n\n` +
-        `Error: ${serverMessage}\n` +
-        `Status: ${error.response?.status || 'Network Error'}\n` +
-        `URL: ${error.config?.url || 'Unknown'}\n\n` +
-        `Please verify that the backend is running on http://localhost:8080 and that CORS is allowed.`;
-
       const errorMessage: Message = {
         role: 'assistant',
-        content: displayContent,
+        content: `FATAL_ERROR: Connection to reasoning engine interrupted.`,
         timestamp: new Date()
       }
       setMessages(prev => [...prev, errorMessage])
@@ -88,74 +69,81 @@ const AiChatPage: React.FC = () => {
   }
 
   return (
-    <div className="h-[calc(100vh-8rem)] flex gap-4 overflow-hidden -mt-2">
-      {/* Search Space / History Sidebar */}
-      <div className="w-80 flex flex-col gap-4 hidden lg:flex">
-         <div className="bg-white border border-slate-200 h-full flex flex-col rounded-2xl shadow-sm">
-            <div className="p-4 border-b border-slate-100 flex items-center justify-between">
-               <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
-                 <History className="h-3 w-3" /> Core Investigation History
+    <div className="h-[calc(100vh-8rem)] flex gap-6 overflow-hidden p-8 bg-white min-h-screen -m-8">
+      {/* Investigation History Sidebar */}
+      <div className="w-80 flex flex-col gap-4 hidden lg:flex shrink-0">
+         <div className="bg-white border border-strong h-full flex flex-col rounded shadow-sm">
+            <div className="p-4 border-b border-border flex items-center justify-between bg-surface-alt/50">
+               <h3 className="text-[10px] font-black uppercase tracking-widest text-muted flex items-center gap-2 border-none mb-0 pb-0">
+                 <History className="h-4 w-4" /> REASONING_HISTORY
                </h3>
-               <button className="text-blue-600 p-1.5 hover:bg-blue-50 rounded-lg transition-colors"><PlusCircle className="h-4 w-4" /></button>
+               <button className="text-black p-1 hover:bg-black hover:text-white rounded transition-all transition-colors border border-border-strong"><PlusCircle className="h-3.5 w-3.5" /></button>
             </div>
-            <div className="flex-1 p-3 space-y-2 overflow-y-auto">
-               <div className="p-3 bg-blue-50/50 border border-blue-100 rounded-xl text-xs font-bold text-blue-700">
-                 Analytic: Auth-Service Memory Gradient
-               </div>
-               <div className="p-3 hover:bg-slate-50 rounded-xl text-xs text-slate-500 font-bold cursor-pointer transition-colors border border-transparent hover:border-slate-100">
-                 Incident #4902: RCA Correlation
-               </div>
-               <div className="p-3 hover:bg-slate-50 rounded-xl text-xs text-slate-500 font-bold cursor-pointer transition-colors border border-transparent hover:border-slate-100">
-                 Node-09: Cluster Saturation Logic
-               </div>
+            <div className="flex-1 p-3 space-y-1 overflow-y-auto scrollbar-none">
+               {[
+                 "Auth-Service Memory Gradient",
+                 "Incident #4902: RCA Correlation",
+                 "Node-09: Cluster Saturation",
+                 "Global Traffic Anomaly",
+                 "Security Posture Scan - v4"
+               ].map((title, i) => (
+                 <div key={i} className={cn(
+                   "p-3 rounded text-[11px] font-bold cursor-pointer transition-all border border-transparent",
+                   i === 0 ? "bg-black text-white" : "text-muted hover:bg-surface-alt hover:border-border-strong"
+                 )}>
+                   {title}
+                 </div>
+               ))}
             </div>
-            <div className="p-4 border-t border-slate-100 bg-slate-50/50 rounded-b-2xl">
-               <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                  <ShieldCheck className="h-3 w-3" /> E2E_ENCRYPTION_ACTIVE
+            <div className="p-4 border-t border-border bg-surface-alt/30">
+               <div className="flex items-center gap-2 text-[10px] font-black text-muted uppercase tracking-widest italic">
+                  <ShieldCheck className="h-3.5 w-3.5" /> SECURE_ENCLAVE_ACTIVE
                </div>
             </div>
          </div>
       </div>
 
-      {/* Main Terminal Area */}
-      <div className="flex-1 flex flex-col gap-4 overflow-hidden">
+      {/* Primary Intelligence Core */}
+      <div className="flex-1 flex flex-col gap-6 overflow-hidden">
         {/* Terminal Header */}
-        <div className="bg-[#0F172A] p-5 flex items-center justify-between rounded-2xl shadow-xl shadow-slate-900/10 border-b-4 border-b-blue-600">
-           <div className="flex items-center gap-4">
-              <div className="h-10 w-10 bg-slate-800 flex items-center justify-center rounded-xl border border-slate-700">
-                <Terminal className="h-5 w-5 text-blue-400" />
+        <div className="bg-[#0B0B0B] p-6 flex items-center justify-between rounded shadow-2xl border-b-2 border-b-black">
+           <div className="flex items-center gap-5">
+              <div className="h-10 w-10 bg-white text-black flex items-center justify-center rounded shadow-lg">
+                <Terminal className="h-5 w-5" />
               </div>
-              <div>
-                <h2 className="font-black text-white text-sm uppercase tracking-widest">AI_SRE_COPILOT_V3</h2>
-                <div className="flex items-center gap-2 mt-1">
-                   <span className="h-2 w-2 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                   <p className="text-[10px] uppercase font-bold text-slate-400 tracking-tighter">
-                      Subsystem: Unified Reasoning Engine Active
-                   </p>
+              <div className="space-y-1">
+                <h2 className="font-black text-white text-[13px] uppercase tracking-[0.2em] font-geist m-0">REASONING_CORE_V3</h2>
+                <div className="flex items-center gap-3">
+                   <div className="flex items-center gap-1.5">
+                      <span className="h-1.5 w-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                      <p className="text-[10px] uppercase font-bold text-white/40 tracking-widest">SUB_SYSTEM: INGRESS_LOGIC_ACTIVE</p>
+                   </div>
                 </div>
               </div>
            </div>
            <div className="flex items-center gap-2">
-              <button className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-all"><Settings2 className="h-4 w-4" /></button>
-              <button className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all" onClick={() => setMessages([])}>
+              <button className="h-9 w-9 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/5 rounded transition-all"><Settings2 className="h-4 w-4" /></button>
+              <button className="h-9 w-9 flex items-center justify-center text-white/40 hover:text-red-500 hover:bg-red-500/10 rounded transition-all" onClick={() => setMessages([])}>
                 <Trash2 className="h-4 w-4" />
               </button>
            </div>
         </div>
 
         {/* Message Stream */}
-        <div className="flex-1 bg-white border border-slate-200 flex flex-col overflow-hidden rounded-2xl shadow-sm">
-          <div ref={scrollRef} className="flex-1 overflow-y-auto p-8 space-y-8 scroll-smooth">
+        <div className="flex-1 bg-white border border-strong flex flex-col overflow-hidden rounded shadow-sm">
+          <div ref={scrollRef} className="flex-1 overflow-y-auto p-10 space-y-10 scroll-smooth scrollbar-none">
             {messages.length === 0 && (
-              <div className="h-full flex flex-col items-center justify-center text-center space-y-6">
-                 <div className="h-20 w-20 bg-slate-50 flex items-center justify-center rounded-3xl border border-slate-100 shadow-sm">
-                    <Zap className="h-10 w-10 text-blue-600/30" />
+              <div className="h-full flex flex-col items-center justify-center text-center space-y-8">
+                 <div className="h-20 w-20 bg-surface-alt flex items-center justify-center rounded border border-border-strong shadow-lg">
+                    <Zap className="h-10 w-10 text-black" />
                  </div>
-                 <div>
-                    <h3 className="font-black text-xl text-[#0F172A] tracking-tight">Intelligence Operational Surface</h3>
-                    <p className="text-sm text-slate-400 max-w-sm mt-2 font-medium">I am integrated with real-time telemetry, log streams, and infrastructure context. State your query for autonomous reasoning.</p>
+                 <div className="space-y-2">
+                    <h3 className="font-black text-2xl text-black tracking-tighter uppercase font-geist">Intelligence Operational Surface</h3>
+                    <p className="text-[12px] text-muted max-w-sm mt-2 font-medium uppercase tracking-widest leading-relaxed">
+                       Integrated with real-time telemetry, log streams, and infrastructure context.
+                    </p>
                  </div>
-                 <div className="grid grid-cols-2 gap-3 w-full max-w-md">
+                 <div className="columns-2 gap-4 w-full max-w-xl">
                     {["/rca latest_incident", "/predict_outages", "/summarize_logs", "/infra_health"].map(cmd => (
                       <button 
                         key={cmd}
@@ -163,10 +151,10 @@ const AiChatPage: React.FC = () => {
                           setInput(cmd);
                           setTimeout(handleSend, 100);
                         }}
-                        className="p-3 border border-slate-100 bg-slate-50 rounded-xl text-left hover:border-blue-300 hover:bg-blue-50 transition-all group"
+                        className="w-full mb-4 p-4 border border-border-strong bg-white rounded text-left hover:border-black hover:bg-surface-alt transition-all group"
                       >
-                         <div className="text-[10px] font-black text-slate-400 group-hover:text-blue-600 mb-1">COMMAND</div>
-                         <div className="text-xs font-mono font-bold text-[#0F172A]">{cmd}</div>
+                         <div className="text-[9px] font-black text-muted group-hover:text-black mb-1.5 uppercase tracking-widest border-l border-border-strong pl-2">TACTICAL_CMD</div>
+                         <div className="text-[12px] font-mono font-black text-black">{cmd}</div>
                       </button>
                     ))}
                  </div>
@@ -175,76 +163,87 @@ const AiChatPage: React.FC = () => {
 
             {messages.map((msg, i) => (
               <div key={i} className={cn(
-                "flex gap-5",
-                msg.role === 'user' ? "flex-row-reverse" : "max-w-[90%]"
+                "flex gap-6",
+                msg.role === 'user' ? "flex-row-reverse" : "max-w-[85%]"
               )}>
                  <div className={cn(
-                   "h-9 w-9 rounded-xl flex items-center justify-center shrink-0 border shadow-sm",
-                   msg.role === 'user' ? "bg-slate-50 border-slate-200" : "bg-[#0F172A] border-slate-800"
+                   "h-10 w-10 rounded shrink-0 flex items-center justify-center shadow-lg border",
+                   msg.role === 'user' ? "bg-white border-black" : "bg-black text-white border-black"
                  )}>
-                   {msg.role === 'user' ? <Users className="h-4 w-4 text-slate-500" /> : <Activity className="h-4 w-4 text-blue-400" />}
+                   {msg.role === 'user' ? <Users className="h-4 w-4" /> : <Activity className="h-4 w-4" />}
                  </div>
                  <div className={cn(
-                   "p-5 rounded-2xl border min-w-[200px]",
+                   "p-6 rounded border space-y-3",
                    msg.role === 'user' 
-                    ? "bg-[#2563EB] text-white border-blue-600 shadow-lg shadow-blue-600/10" 
-                    : "bg-slate-50 border-slate-100"
+                    ? "bg-black text-white border-black shadow-xl" 
+                    : "bg-surface-alt border-strong"
                  )}>
-                   <div className={cn(
-                     "text-[10px] font-black uppercase tracking-[0.2em] mb-2 opacity-60",
-                     msg.role === 'user' ? "text-blue-100" : "text-slate-400"
-                   )}>
-                     {msg.role === 'user' ? 'Operator_SRE' : 'SYSTEM_REASONING_ENGINE'}
-                   </div>
-                   <div className={cn(
-                     "text-sm leading-relaxed whitespace-pre-wrap font-medium",
-                     msg.role === 'assistant' ? "text-[#0F172A]" : "text-white"
-                   )}>
-                     {msg.content}
-                   </div>
+                    <div className={cn(
+                      "text-[9px] font-black uppercase tracking-[0.2em] italic border-b pb-2",
+                      msg.role === 'user' ? "text-white/40 border-white/10" : "text-black/30 border-black/5"
+                    )}>
+                      {msg.role === 'user' ? 'OPERATOR: JD' : 'ENGINE: SRE-AI-CORE'}
+                    </div>
+                    <div className={cn(
+                      "text-[13px] leading-relaxed whitespace-pre-wrap font-medium",
+                      msg.role === 'assistant' ? "text-black pr-10" : "text-white"
+                    )}>
+                      {msg.content}
+                    </div>
+                    <div className={cn(
+                       "text-[8px] font-black opacity-40 uppercase tracking-widest",
+                       msg.role === 'user' ? "text-right" : ""
+                    )}>
+                       {new Date(msg.timestamp).toLocaleTimeString()}
+                    </div>
                  </div>
               </div>
             ))}
 
             {isLoading && (
-              <div className="flex gap-5 max-w-[90%]">
-                 <div className="h-9 w-9 rounded-xl bg-[#0F172A] border border-slate-800 flex items-center justify-center animate-pulse shadow-sm">
-                   <Activity className="h-4 w-4 text-blue-400" />
+              <div className="flex gap-6 max-w-[85%] animate-in fade-in slide-in-from-left-4">
+                 <div className="h-10 w-10 rounded bg-black flex items-center justify-center shadow-lg animate-pulse">
+                   <Activity className="h-4 w-4 text-white" />
                  </div>
-                 <div className="bg-slate-50 border border-slate-100 p-5 rounded-2xl flex items-center gap-4">
+                 <div className="bg-surface-alt border border-strong p-6 rounded flex items-center gap-6">
                     <LoaderDots />
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Executing Reasoning Chain...</span>
+                    <span className="text-[10px] font-black text-black uppercase tracking-[0.3em] italic">Synthesizing_Context...</span>
                  </div>
               </div>
             )}
           </div>
 
-          {/* Prompt Entry */}
-          <div className="p-6 bg-slate-50/50 border-t border-slate-100">
-             <div className="relative">
+          {/* Prompt Entry Core */}
+          <div className="p-8 bg-surface-alt/50 border-t border-strong">
+             <div className="relative group">
                 <textarea
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSend())}
                   rows={2}
-                  className="w-full bg-white border border-slate-200 rounded-2xl pl-6 pr-14 py-4 text-sm font-medium text-[#0F172A] focus:ring-4 focus:ring-blue-600/5 focus:border-blue-600 outline-none transition-all resize-none shadow-sm placeholder:text-slate-400"
+                  className="w-full bg-white border border-strong rounded px-6 py-5 text-[14px] font-bold text-black focus:border-black outline-none transition-all resize-none shadow-sm placeholder:text-muted/40 font-geist"
                   placeholder="Enter operational query or investigation command..."
                 />
                 <button 
                   id="ai-send-btn"
                   onClick={handleSend}
                   disabled={!input.trim() || isLoading}
-                  className="absolute right-3 top-3 p-3 bg-[#2563EB] text-white rounded-xl hover:bg-blue-700 disabled:opacity-50 transition-all shadow-lg shadow-blue-600/20"
+                  className="absolute right-4 bottom-4 h-10 w-10 bg-black text-white rounded flex items-center justify-center hover:opacity-90 disabled:opacity-20 transition-all shadow-xl"
                 >
-                  <Send className="h-5 w-5" />
+                  <Send className="h-4 w-4" />
                 </button>
              </div>
-             <div className="mt-3 flex items-center gap-6">
-                <div className="text-[10px] text-slate-400 font-bold flex items-center gap-2">
-                   <kbd className="px-1.5 py-0.5 bg-white border border-slate-200 rounded text-[9px]">SHIFT + ENTER</kbd> New Line
+             <div className="mt-4 flex items-center justify-between">
+                <div className="flex items-center gap-6">
+                   <div className="text-[10px] text-muted font-bold flex items-center gap-2 uppercase tracking-widest">
+                      <CornerDownLeft className="h-3 w-3" /> Shift + Enter for newline
+                   </div>
+                   <div className="text-[10px] text-muted font-bold flex items-center gap-2 uppercase tracking-widest">
+                      <div className="h-1 w-1 bg-black rounded-full" /> Domain-Specific Intelligence Enabled
+                   </div>
                 </div>
-                <div className="text-[10px] text-slate-400 font-bold flex items-center gap-2">
-                   <div className="h-1.5 w-1.5 bg-blue-600 rounded-full" /> Domain-Specific Intelligence Enabled
+                <div className="text-[9px] font-black text-black uppercase tracking-widest bg-black/5 px-2 py-1 rounded">
+                   v4.2.9_STABLE
                 </div>
              </div>
           </div>
@@ -257,7 +256,7 @@ const AiChatPage: React.FC = () => {
 const LoaderDots = () => (
   <div className="flex gap-1">
      {[0, 1, 2].map(i => (
-       <div key={i} className="h-1 w-1 bg-primary rounded-full animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+       <div key={i} className="h-1.5 w-1.5 bg-black rounded-full animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
      ))}
   </div>
 )

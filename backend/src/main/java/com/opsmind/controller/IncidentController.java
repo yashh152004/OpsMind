@@ -46,8 +46,21 @@ public class IncidentController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<Incident>> search(@RequestParam String q) {
-        return ResponseEntity.ok(service.searchIncidents(q));
+    public ResponseEntity<org.springframework.data.domain.Page<Incident>> search(
+            @RequestParam(required = false, defaultValue = "") String q,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String severity,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "createdAt,desc") String sort) {
+        
+        String[] sortParts = sort.split(",");
+        org.springframework.data.domain.Sort sorting = sortParts[1].equalsIgnoreCase("desc") 
+            ? org.springframework.data.domain.Sort.by(sortParts[0]).descending()
+            : org.springframework.data.domain.Sort.by(sortParts[0]).ascending();
+            
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size, sorting);
+        return ResponseEntity.ok(repository.advancedSearch(q, status, severity, pageable));
     }
 
     @GetMapping("/{id}")

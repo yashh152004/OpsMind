@@ -49,6 +49,11 @@ public class AiController {
         }
     }
 
+    @GetMapping("/insights")
+    public ResponseEntity<java.util.List<Map<String, Object>>> getInsights() {
+        return ResponseEntity.ok(sreReasoningService.getAutonomousInsights());
+    }
+
     @GetMapping("/health")
     public ResponseEntity<Map<String, Object>> health() {
         return ResponseEntity.ok(Map.of(
