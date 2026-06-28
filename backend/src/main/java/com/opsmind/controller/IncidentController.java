@@ -62,9 +62,15 @@ public class IncidentController {
         return ResponseEntity.ok(activityService.getTimelineForIncident(id));
     }
 
-    @PostMapping
-    public ResponseEntity<Incident> declare(@RequestBody Incident incident) {
-        return ResponseEntity.ok(service.declareIncident(incident));
+    @GetMapping("/{id}/attachments")
+    public ResponseEntity<List<com.opsmind.model.IncidentAttachment>> getAttachments(@PathVariable Long id) {
+        return ResponseEntity.ok(service.getAttachments(id));
+    }
+
+    @PostMapping("/{id}/attachments")
+    public ResponseEntity<Void> addAttachment(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        service.addAttachment(id, body.get("fileName"), body.get("fileUrl"), body.get("type"), body.getOrDefault("operator", "system"));
+        return ResponseEntity.ok().build();
     }
 
     @PutMapping("/{id}/status")

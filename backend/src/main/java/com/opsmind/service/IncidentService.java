@@ -11,10 +11,31 @@ import java.util.List;
 public class IncidentService {
     private final IncidentRepository repository;
     private final PlatformActivityService activityService;
+    private final com.opsmind.repository.IncidentAttachmentRepository attachmentRepository;
 
-    public IncidentService(IncidentRepository repository, PlatformActivityService activityService) {
+    public IncidentService(IncidentRepository repository, 
+                           PlatformActivityService activityService,
+                           com.opsmind.repository.IncidentAttachmentRepository attachmentRepository) {
         this.repository = repository;
         this.activityService = activityService;
+        this.attachmentRepository = attachmentRepository;
+    }
+
+    @Transactional
+    public void addAttachment(Long incidentId, String fileName, String fileUrl, String type, String operator) {
+        attachmentRepository.save(com.opsmind.model.IncidentAttachment.builder()
+                .incidentId(incidentId)
+                .fileName(fileName)
+                .fileUrl(fileUrl)
+                .fileType(type)
+                .uploadedBy(operator)
+                .build());
+        
+        activityService.logTimeline(incidentId, "ATTACHMENT_ADDED", "Evidence linked: " + fileName, operator);
+    }
+
+    public List<com.opsmind.model.IncidentAttachment> getAttachments(Long incidentId) {
+        return attachmentRepository.findByIncidentId(incidentId);
     }
 
     @Transactional
