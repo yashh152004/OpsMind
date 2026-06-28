@@ -23,8 +23,13 @@ public class PlatformActivityService {
         this.messagingTemplate = messagingTemplate;
     }
 
-    public void logTimeline(Long incidentId, String eventType, String description, String user) {
-        timelineRepository.save(new com.opsmind.model.IncidentTimeline(incidentId, eventType, description, user));
+    public void logTimeline(Long incidentId, String eventType, String content, String operator) {
+        timelineRepository.save(com.opsmind.model.IncidentTimeline.builder()
+                .incidentId(incidentId)
+                .eventType(eventType)
+                .content(content)
+                .operator(operator)
+                .build());
     }
 
     public void logAction(String action, String module, String user, String details) {
@@ -54,6 +59,6 @@ public class PlatformActivityService {
     }
 
     public java.util.List<com.opsmind.model.IncidentTimeline> getTimelineForIncident(Long incidentId) {
-        return timelineRepository.findByIncidentIdOrderByCreatedAtDesc(incidentId);
+        return timelineRepository.findByIncidentIdOrderByTimestampDesc(incidentId);
     }
 }

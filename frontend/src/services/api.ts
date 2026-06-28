@@ -137,10 +137,37 @@ class ApiClient {
     return response.data
   }
 
-  async resolveIncident(incidentId: string, resolution: string) {
+  async resolveIncident(incidentId: string | number, resolution: string) {
     const response = await this.client.post(`/incidents/${incidentId}/resolve`, {
       resolution,
     })
+    return response.data
+  }
+
+  async updateIncidentStatus(incidentId: string | number, status: string, note?: string, operator?: string) {
+    const response = await this.client.put(`/incidents/${incidentId}/status`, {
+      status,
+      note,
+      operator
+    })
+    return response.data
+  }
+
+  async assignIncident(incidentId: string | number, userId: string, operator?: string) {
+    const response = await this.client.post(`/incidents/${incidentId}/assign`, {
+      userId,
+      operator
+    })
+    return response.data
+  }
+
+  async getIncidentTimeline(incidentId: string | number) {
+    const response = await this.client.get(`/incidents/${incidentId}/timeline`)
+    return response.data
+  }
+
+  async bulkResolveIncidents(ids: (string | number)[]) {
+    const response = await this.client.post('/incidents/bulk-resolve', ids)
     return response.data
   }
 

@@ -1,6 +1,8 @@
 package com.opsmind.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
@@ -8,32 +10,29 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "incident_timeline")
 @Data
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class IncidentTimeline {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "incident_id", nullable = false)
+    @Column(name = "incident_id")
     private Long incidentId;
 
     @Column(nullable = false)
-    private String eventType; // DECLARED, STATUS_CHANGE, ASSIGNED, RESOLVED, COMMENT_ADDED
+    private String eventType; // STATUS_CHANGE, COMMENT, ALERT_LINKED, RCA_GENERATED
 
     @Column(columnDefinition = "TEXT")
-    private String description;
+    private String content;
 
-    @Column(name = "created_by")
-    private String createdBy;
+    private String operator; // User who triggered the event
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private LocalDateTime timestamp;
 
-    public IncidentTimeline(Long incidentId, String eventType, String description, String createdBy) {
-        this.incidentId = incidentId;
-        this.eventType = eventType;
-        this.description = description;
-        this.createdBy = createdBy;
-        this.createdAt = LocalDateTime.now();
+    @PrePersist
+    protected void onCreate() {
+        timestamp = LocalDateTime.now();
     }
 }

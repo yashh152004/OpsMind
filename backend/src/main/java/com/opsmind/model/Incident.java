@@ -31,21 +31,40 @@ public class Incident {
     private String severity; // P1, P2, P3, P4
 
     @Column(nullable = false)
-    private String status; // OPEN, INVESTIGATING, IDENTIFIED, MITIGATING, RESOLVED, CLOSED
+    private String priority; // HIGHEST, HIGH, LOW, LOWEST
+
+    @Column(nullable = false)
+    private String status; // DRAFT, OPEN, INVESTIGATING, IDENTIFIED, MITIGATING, MONITORING, RESOLVED, CLOSED, ARCHIVED
 
     private String serviceName;
+    private String environment; // PRODUCTION, STAGING, DEV
+    private String cluster; // us-east-1, cluster-alpha, etc
+    private String category; // INFRA, APP, SECURITY, NETWORK
+
+    @Column(name = "owner_id")
+    private String owner;
     
     private String assignedTo;
+    private String assignedTeam;
+    
+    @Column(columnDefinition = "TEXT")
+    private String impact;
+    
+    @Column(columnDefinition = "TEXT")
+    private String rootCause;
+    
+    private String tags; // Comma separated tags
     
     private String resolution;
     
     private LocalDateTime detectedAt;
+    private LocalDateTime estimatedResolutionTime;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
+        if (createdAt == null) createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
     }
 
