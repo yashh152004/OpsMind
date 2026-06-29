@@ -15,6 +15,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.servlet.handler.HandlerMappingIntrospector;
 
 import java.util.Arrays;
 import java.util.List;
@@ -45,11 +47,11 @@ public class SecurityConfiguration {
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests((authorize) ->
                         authorize
-                                .requestMatchers("/auth/**").permitAll()
-                                .requestMatchers("/ai/**").permitAll()
-                                .requestMatchers("/system/**").permitAll()
-                                .requestMatchers("/simulator/**").permitAll()
-                                .requestMatchers("/error").permitAll()
+                                .requestMatchers(AntPathRequestMatcher.antMatcher("/auth/**")).permitAll()
+                                .requestMatchers(AntPathRequestMatcher.antMatcher("/ai/**")).permitAll()
+                                .requestMatchers(AntPathRequestMatcher.antMatcher("/system/**")).permitAll()
+                                .requestMatchers(AntPathRequestMatcher.antMatcher("/simulator/**")).permitAll()
+                                .requestMatchers(AntPathRequestMatcher.antMatcher("/error")).permitAll()
                                 .anyRequest().authenticated()
                 ).sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -58,6 +60,11 @@ public class SecurityConfiguration {
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    @Bean(name = "mvcHandlerMappingIntrospector")
+    public HandlerMappingIntrospector mvcHandlerMappingIntrospector() {
+        return new HandlerMappingIntrospector();
     }
 
     @Bean

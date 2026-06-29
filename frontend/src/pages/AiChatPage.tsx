@@ -311,7 +311,7 @@ export default function AiChatPage() {
                     {activeConversation ? activeConversation.title : 'NEW_INVESTIGATION'}
                  </h1>
                  <div className="text-[9px] text-muted-foreground font-medium uppercase tracking-[0.2em]">
-                    SECURE_ENDPOINT_SHARD_0x{activeConversationId?.slice(-8).toUpperCase() || 'UNINITIALIZED'}
+                    SECURE_ENDPOINT_SHARD_0x{activeConversationId?.toString().slice(-8).toUpperCase() || 'UNINITIALIZED'}
                  </div>
               </div>
            </div>
