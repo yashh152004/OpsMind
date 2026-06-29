@@ -290,6 +290,11 @@ class ApiClient {
     return response.data
   }
 
+  async getConversations() {
+    const response = await this.client.get('/ai/conversations')
+    return response.data
+  }
+
   async createConversation(title?: string) {
     const response = await this.client.post('/ai/conversations', { title })
     return response.data

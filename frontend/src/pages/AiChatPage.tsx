@@ -26,7 +26,7 @@ interface Message {
 }
 
 interface Conversation {
-  id: string;
+  id: string | number;
   title: string;
   updatedAt: string;
   pinned: boolean;
@@ -47,7 +47,7 @@ function BellIcon(props: any) {
 }
 
 export default function AiChatPage() {
-  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const [activeConversationId, setActiveConversationId] = useState<string | number | null>(null);
   const [inputValue, setInputValue] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
