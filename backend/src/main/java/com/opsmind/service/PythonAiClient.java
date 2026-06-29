@@ -36,8 +36,10 @@ public class PythonAiClient {
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
             ResponseEntity<Map> response = restTemplate.postForEntity(pythonServiceUrl, entity, Map.class);
 
-            if (response.getStatusCode() == HttpStatus.OK) {
-                return (Map<String, Object>) response.getBody();
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> body = (Map<String, Object>) response.getBody();
+                return body;
             }
         } catch (Exception e) {
             logger.error("Failed to connect to Python AI Engine. Error: {}", e.getMessage());

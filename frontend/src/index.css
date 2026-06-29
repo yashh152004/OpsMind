@@ -4,6 +4,16 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+     display: none;
+  }
+  .no-scrollbar {
+     -ms-overflow-style: none;
+     scrollbar-width: none;
+  }
+}
+
 @layer base {
   :root {
     /* Pure Monochrome Enterprise Design System (Linear/GitHub Style) */
@@ -140,6 +150,23 @@
   
   .skeleton {
     @apply bg-surface-alt animate-pulse rounded;
+  }
+
+  /* Hexagon Mask for Branding */
+  .mask-hexagon {
+    clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+  }
+
+  /* Professional Scrollbars */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-neutral-200 rounded-full transition-colors hover:bg-neutral-300;
   }
 }
 

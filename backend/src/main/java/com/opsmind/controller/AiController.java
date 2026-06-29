@@ -1,56 +1,116 @@
 package com.opsmind.controller;
 
+import com.opsmind.model.Conversation;
+import com.opsmind.model.User;
+import com.opsmind.service.AuthService;
+import com.opsmind.service.ConversationService;
 import com.opsmind.service.SreReasoningService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
-/**
- * OpsMind AI Reasoning Controller
- * Re-architected to use internally developed Domain Reasoning Engine.
- * No external LLM dependencies.
- */
 @RestController
 @RequestMapping("/ai")
 public class AiController {
 
     private final SreReasoningService sreReasoningService;
+    private final ConversationService conversationService;
+    private final AuthService authService;
 
-    public AiController(SreReasoningService sreReasoningService) {
+    public AiController(SreReasoningService sreReasoningService,
+                        ConversationService conversationService,
+                        AuthService authService) {
         this.sreReasoningService = sreReasoningService;
+        this.conversationService = conversationService;
+        this.authService = authService;
     }
 
-    @PostMapping("/chat")
-    public ResponseEntity<Map<String, Object>> chat(@RequestBody Map<String, String> request) {
-        String userMessage = request.get("message");
-        if (userMessage == null || userMessage.trim().isEmpty()) {
-            return ResponseEntity.badRequest().body(Map.of(
-                "success", false,
-                "message", "Query cannot be empty"
-            ));
-        }
-        
-        try {
-            // Processing via Native Domain Reasoning Engine
-            String response = sreReasoningService.investigate(userMessage);
+    @GetMapping("/conversations")
+    public ResponseEntity<List<Conversation>> getConversations() {
+        User user = authService.getCurrentUser();
+        return ResponseEntity.ok(conversationService.getUserConversations(user));
+    }
 
-            return ResponseEntity.ok(Map.of(
-                "success", true,
-                "response", response,
-                "engine", "OpsMind-Native-SRE-Reasoning-v1"
-            ));
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of(
-                "success", false,
-                "message", "An Internal error occurred within the Native Reasoning Engine",
-                "error", e.getMessage()
-            ));
+    @PostMapping("/conversations")
+    public ResponseEntity<Conversation> createConversation(@RequestBody Map<String, String> request) {
+        User user = authService.getCurrentUser();
+        String title = request.getOrDefault("title", "New Investigation");
+        return ResponseEntity.ok(conversationService.createConversation(user, title));
+    }
+
+    @GetMapping("/conversations/{id}/messages")
+    public ResponseEntity<List<com.opsmind.model.ChatMessage>> getMessages(@PathVariable Long id) {
+        Optional<Conversation> conv = conversationService.getConversation(id);
+        return conv.map(conversation -> ResponseEntity.ok(conversation.getMessages()))
+                   .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @PostMapping(value = "/conversations/{id}/stream", produces = "text/event-stream")
+    public org.springframework.web.servlet.mvc.method.annotation.SseEmitter streamMessage(@PathVariable Long id, @RequestBody Map<String, String> request) {
+        String content = request.get("content");
+        org.springframework.web.servlet.mvc.method.annotation.SseEmitter emitter = new org.springframework.web.servlet.mvc.method.annotation.SseEmitter(300000L);
+        
+        Optional<Conversation> conversationOpt = conversationService.getConversation(id);
+        if (conversationOpt.isEmpty()) {
+            emitter.completeWithError(new RuntimeException("Conversation not found"));
+            return emitter;
         }
+
+        Conversation conversation = conversationOpt.get();
+        conversationService.saveMessage(conversation, "USER", content);
+
+        new Thread(() -> {
+            try {
+                StringBuilder fullResponse = new StringBuilder();
+                sreReasoningService.streamInvestigate(content, conversation.getMessages(), chunk -> {
+                    try {
+                        emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().data(chunk));
+                        fullResponse.append(chunk);
+                    } catch (Exception e) {
+                        emitter.completeWithError(e);
+                    }
+                });
+                
+                // Save full response at the end
+                conversationService.saveMessage(conversation, "ASSISTANT", fullResponse.toString());
+                emitter.complete();
+            } catch (Exception e) {
+                emitter.completeWithError(e);
+            }
+        }).start();
+
+        return emitter;
+    }
+
+    @PatchMapping("/conversations/{id}/rename")
+    public ResponseEntity<Void> rename(@PathVariable Long id, @RequestBody Map<String, String> request) {
+        conversationService.renameConversation(id, request.get("title"));
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/conversations/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        conversationService.deleteConversation(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/conversations/{id}/pin")
+    public ResponseEntity<Void> togglePin(@PathVariable Long id) {
+        conversationService.togglePin(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/conversations/{id}/archive")
+    public ResponseEntity<Void> archive(@PathVariable Long id) {
+        conversationService.archiveConversation(id);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/insights")
-    public ResponseEntity<java.util.List<Map<String, Object>>> getInsights() {
+    public ResponseEntity<List<Map<String, Object>>> getInsights() {
         return ResponseEntity.ok(sreReasoningService.getAutonomousInsights());
     }
 
@@ -63,4 +123,3 @@ public class AiController {
         ));
     }
 }
-

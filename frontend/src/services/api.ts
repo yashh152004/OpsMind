@@ -278,7 +278,7 @@ class ApiClient {
   }
 
   /**
-   * AI Endpoints
+   * AI & Copilot Endpoints
    */
   async getChatResponse(message: string) {
     const response = await this.client.post<{ response: string }>('/ai/chat', { message })
@@ -288,6 +288,66 @@ class ApiClient {
   async getAiInsights() {
     const response = await this.client.get('/ai/insights')
     return response.data
+  }
+
+  async createConversation(title?: string) {
+    const response = await this.client.post('/ai/conversations', { title })
+    return response.data
+  }
+
+  async getConversationMessages(id: number | string) {
+    const response = await this.client.get(`/ai/conversations/${id}/messages`)
+    return response.data
+  }
+
+  async sendConversationMessage(id: number | string, content: string) {
+    const response = await this.client.post(`/ai/conversations/${id}/messages`, { content })
+    return response.data
+  }
+
+  streamConversationMessage(id: number | string, content: string, onChunk: (chunk: string) => void) {
+    const { accessToken } = useAuthStore.getState();
+    return fetch(`${API_BASE_URL}/ai/conversations/${id}/stream`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`
+      },
+      body: JSON.stringify({ content })
+    }).then(async response => {
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      if (!reader) return;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value);
+        // SSE format: data: <content>\n\n
+        const lines = chunk.split('\n');
+        for (const line of lines) {
+           if (line.startsWith('data:')) {
+              onChunk(line.replace('data:', ''));
+           }
+        }
+      }
+    });
+  }
+
+  async renameConversation(id: number | string, title: string) {
+    await this.client.patch(`/ai/conversations/${id}/rename`, { title })
+  }
+
+  async deleteConversation(id: number | string) {
+    await this.client.delete(`/ai/conversations/${id}`)
+  }
+
+  async togglePinConversation(id: number | string) {
+    await this.client.post(`/ai/conversations/${id}/pin`)
+  }
+
+  async archiveConversation(id: number | string) {
+    await this.client.post(`/ai/conversations/${id}/archive`)
   }
 
   /**

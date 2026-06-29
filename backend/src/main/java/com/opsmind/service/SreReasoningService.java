@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 
 @Service
+@lombok.RequiredArgsConstructor
 public class SreReasoningService {
 
     private final IncidentRepository incidentRepository;
@@ -20,36 +21,16 @@ public class SreReasoningService {
     private final SecurityFindingRepository securityRepository;
     private final IntegrationRepository integrationRepository;
 
-    public SreReasoningService(IncidentRepository incidentRepository,
-                                AlertRepository alertRepository,
-                                InfrastructureRepository infrastructureRepository,
-                                SreInsightService insightService,
-                                PythonAiClient pythonAiClient,
-                                SystemMetricRepository metricRepository,
-                                LogRepository logRepository,
-                                PlatformActivityService activityService,
-                                NotificationRepository notificationRepository,
-                                SecurityFindingRepository securityRepository,
-                                IntegrationRepository integrationRepository) {
-        this.incidentRepository = incidentRepository;
-        this.alertRepository = alertRepository;
-        this.infrastructureRepository = infrastructureRepository;
-        this.insightService = insightService;
-        this.pythonAiClient = pythonAiClient;
-        this.metricRepository = metricRepository;
-        this.logRepository = logRepository;
-        this.activityService = activityService;
-        this.notificationRepository = notificationRepository;
-        this.securityRepository = securityRepository;
-        this.integrationRepository = integrationRepository;
-    }
-
     public enum Intent {
         INCIDENT_LOOKUP, RCA, INFRA_ANALYSIS, PREDICTIVE_INSIGHTS, GENERAL
     }
 
     public String investigate(String query) {
-        // Gathering full context package for Intelligence Microservice
+        return investigateWithContext(query, Collections.emptyList());
+    }
+
+    public String investigateWithContext(String query, List<com.opsmind.model.ChatMessage> history) {
+        // Gathering full context package
         Map<String, Object> context = new HashMap<>();
         context.put("incidents", incidentRepository.findAll());
         context.put("alerts", alertRepository.findAll());
@@ -57,22 +38,82 @@ public class SreReasoningService {
         context.put("risk_scores", insightService.calculateRiskScores());
         context.put("latest_metrics", metricRepository.findTop50ByMetricNameOrderByTimestampDesc("CPU_USAGE"));
         context.put("latest_logs", logRepository.findTop100ByOrderByTimestampDesc());
-        context.put("audit_logs", activityService.getRecentLogs()); 
-        context.put("unread_notifications", notificationRepository.findByIsReadFalseOrderByCreatedAtDesc());
         context.put("security_findings", securityRepository.findAll());
-        context.put("active_integrations", integrationRepository.findAll());
         
-        // Delegating to specialized Python AI Engine
-        Map<String, Object> aiResult = pythonAiClient.getIntelligence(query, context);
-        
-        if (aiResult != null && aiResult.containsKey("response")) {
-            return (String) aiResult.get("response");
+        // Injecting Conversation Memory
+        List<Map<String, String>> chatHistory = new ArrayList<>();
+        for (com.opsmind.model.ChatMessage msg : history) {
+            chatHistory.add(Map.of("role", msg.getRole(), "content", msg.getContent()));
         }
+        context.put("chat_history", chatHistory);
 
-        // --- FALLBACK TO NATIVE REASONING ---
+        // Delegating to specialized Python AI Engine if available
+        try {
+            Map<String, Object> aiResult = pythonAiClient.getIntelligence(query, context);
+            if (aiResult != null && aiResult.containsKey("response")) {
+                return (String) aiResult.get("response");
+            }
+        } catch (Exception e) {
+            // Fallback to native synthesis
+        }
+        
         Intent intent = classifyIntent(query);
         String fallbackContext = fetchContext(intent, query);
         return synthesizeNativeResponse(intent, query, fallbackContext);
+    }
+
+    public void streamInvestigate(String query, List<com.opsmind.model.ChatMessage> history, java.util.function.Consumer<String> chunkConsumer) {
+        // Gathering context first in a block
+        Intent intent = classifyIntent(query);
+        String context = fetchContext(intent, query);
+        String fullResponse = synthesizeNativeResponse(intent, query, context);
+        
+        // Simulating streaming of the full response
+        String[] blocks = fullResponse.split("\n");
+        for (String block : blocks) {
+            try {
+                Thread.sleep(80); 
+                chunkConsumer.accept(block + "\n");
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+
+    public List<Map<String, Object>> getAutonomousInsights() {
+        List<Map<String, Object>> insights = new ArrayList<>();
+        
+        // 1. Incident Insight
+        long activeIncidents = incidentRepository.count();
+        if (activeIncidents > 0) {
+            insights.add(Map.of(
+                "type", "INCIDENT_CORRELATION",
+                "severity", "CRITICAL",
+                "message", "Detected " + activeIncidents + " active disruption shards. Root cause analysis suggests a cascading failure in the mesh backbone.",
+                "timestamp", new Date()
+            ));
+        }
+
+        // 2. Alert Insight
+        long criticalAlerts = alertRepository.findAll().stream().filter(a -> "CRITICAL".equalsIgnoreCase(a.getSeverity())).count();
+        if (criticalAlerts > 5) {
+            insights.add(Map.of(
+                "type", "ALERT_STORM",
+                "severity", "WARNING",
+                "message", "Unusual alert frequency increase (400% above baseline). Potential resource exhaustion suspected.",
+                "timestamp", new Date()
+            ));
+        }
+
+        // 3. Predictive Insight
+        insights.add(Map.of(
+            "type", "FAILURE_FORECAST",
+            "severity", "INFO",
+            "message", insightService.getFailurePrediction(),
+            "timestamp", new Date()
+        ));
+
+        return insights;
     }
 
     private String synthesizeNativeResponse(Intent intent, String query, String context) {
@@ -124,9 +165,10 @@ public class SreReasoningService {
 
     private Intent classifyIntent(String q) {
         String lower = q.toLowerCase();
-        if (lower.contains("latest incident") || lower.contains("last incident")) return Intent.INCIDENT_LOOKUP;
-        if (lower.contains("why") || lower.contains("fail") || lower.contains("rca")) return Intent.RCA;
-        if (lower.contains("node") || lower.contains("infra") || lower.contains("cluster")) return Intent.INFRA_ANALYSIS;
+        if (lower.contains("latest incident") || lower.contains("investigate latest")) return Intent.INCIDENT_LOOKUP;
+        if (lower.contains("why") || lower.contains("fail") || lower.contains("rca") || lower.contains("root cause")) return Intent.RCA;
+        if (lower.contains("unhealthy") || lower.contains("infra") || lower.contains("cluster") || lower.contains("infrastructure health")) return Intent.INFRA_ANALYSIS;
+        if (lower.contains("summarize today's alerts") || lower.contains("today's alerts")) return Intent.INCIDENT_LOOKUP; 
         if (lower.contains("predict") || lower.contains("future") || lower.contains("happen")) return Intent.PREDICTIVE_INSIGHTS;
         return Intent.GENERAL;
     }

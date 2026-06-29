@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { 
-  User, Shield, Globe, Slack, Webhook, Lock, ChevronRight, Camera,
+  User, Shield, Globe, MessageSquare, Webhook, Lock, ChevronRight, Camera,
   Mail, Phone, Briefcase, History, AlertTriangle, LogOut, Building,
   Plus, Eye, EyeOff, Key, Terminal, CreditCard, Bell, Layout, Settings as SettingsIcon, ShieldCheck, Download
 } from 'lucide-react'
@@ -258,7 +258,7 @@ const SettingsPage: React.FC = () => {
 
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {[
-                          { id: 'slack', name: 'Slack_HQ', icon: Slack, desc: 'Signal propagation to #ops-war-room', status: 'ACTIVE' },
+                          { id: 'slack', name: 'Slack_HQ', icon: MessageSquare, desc: 'Signal propagation to #ops-war-room', status: 'ACTIVE' },
                           { id: 'pd', name: 'Pager_Duty', icon: Shield, desc: 'Critical tier escalation logic', status: 'ALERT' },
                           { id: 'webhook', name: 'Custom_Sink', icon: Globe, desc: 'Enterprise gRPC telemetry sink', status: 'NOMINAL' },
                           { id: 'teams', name: 'MS_Teams', icon: Mail, desc: 'Organization collab synchronization', status: 'OFFLINE' },
