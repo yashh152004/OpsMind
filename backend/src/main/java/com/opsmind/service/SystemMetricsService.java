@@ -94,6 +94,7 @@ public class SystemMetricsService {
             Incident incident = Incident.builder()
                     .title("Autonomous Detection: " + name)
                     .severity("P1")
+                    .priority("HIGHEST")
                     .status("INVESTIGATING")
                     .serviceName("Local-Machine")
                     .description(message + ". Orchestrated by OpsMind Telemetry Engine.")
