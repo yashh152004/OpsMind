@@ -68,6 +68,7 @@ public class AlertService {
         incident.setTitle("INCIDENT: " + alert.getAlertName());
         incident.setDescription("Automatically created due to critical alert: " + alert.getMessage());
         incident.setSeverity("P1");
+        incident.setPriority("HIGHEST");
         incident.setStatus("OPEN");
         incident.setServiceName(alert.getSource());
         incident.setCreatedAt(LocalDateTime.now());

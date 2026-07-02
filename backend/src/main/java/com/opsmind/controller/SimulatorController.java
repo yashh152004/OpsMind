@@ -69,6 +69,16 @@ public class SimulatorController {
         Incident incident = new Incident();
         incident.setTitle(title);
         incident.setSeverity(severity);
+        
+        // Map severity to priority
+        String priority = switch (severity) {
+            case "P1" -> "HIGHEST";
+            case "P2" -> "HIGH";
+            case "P3" -> "LOW";
+            default -> "LOWEST";
+        };
+        incident.setPriority(priority);
+        
         incident.setServiceName(service);
         incident.setDescription(desc);
         incident.setStatus("OPEN");
