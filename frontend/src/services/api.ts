@@ -355,11 +355,16 @@ class ApiClient {
     await this.client.post(`/ai/conversations/${id}/archive`)
   }
 
+  async health() {
+    const response = await this.client.get('/ai/health')
+    return response.data
+  }
+
   /**
    * Demo & Simulation
    */
   async triggerSimulation(type: string) {
-    const response = await this.client.post(`/simulator/trigger/${type}`)
+    const response = await this.client.post(`/simulator/trigger/${type}`, { type })
     return response.data
   }
 

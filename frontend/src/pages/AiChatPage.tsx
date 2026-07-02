@@ -69,12 +69,7 @@ export default function AiChatPage() {
 
   const { data: engineStatus } = useQuery({
     queryKey: ['ai-status'],
-    queryFn: async () => ({
-      status: 'OPERATIONAL',
-      shards: 12,
-      latency: '240ms',
-      version: '4.2.0-LTS'
-    }),
+    queryFn: async () => apiClient.health(),
     refetchInterval: 30000
   });
 
@@ -84,7 +79,7 @@ export default function AiChatPage() {
     onSuccess: (newConv) => {
       queryClient.invalidateQueries({ queryKey: ['ai-conversations'] });
       setActiveConversationId(newConv.id);
-      toast.success("New investigation shard initialized");
+      toast.success("Investigation shard initialized");
     }
   });
 
@@ -122,38 +117,42 @@ export default function AiChatPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['ai-conversations'] })
   });
 
+  const [isSending, setIsSending] = useState(false);
   const [streamingContent, setStreamingContent] = useState<string | null>(null);
 
-  // --- Handlers ---
-  const handleSend = async () => {
-    if (!inputValue.trim()) return;
+  const handleSend = async (contentOverride?: string) => {
+    const finalContent = contentOverride || inputValue.trim();
+    if (!finalContent || isSending) return;
     
-    const content = inputValue;
+    setIsSending(true);
     setInputValue("");
     
     let convId = activeConversationId;
     
-    if (!convId) {
-      const newConv = await createConvMutation.mutateAsync(content.slice(0, 30) + "...");
-      convId = newConv.id;
-    }
-
-    // Set temporary streaming state
-    setStreamingContent("");
-    
     try {
+      if (!convId) {
+        const newConv = await createConvMutation.mutateAsync(finalContent.slice(0, 30) + "...");
+        convId = newConv.id;
+        setActiveConversationId(convId);
+      }
+
+      setStreamingContent("");
+      
       let fullText = "";
-      await apiClient.streamConversationMessage(convId!, content, (chunk) => {
+      await apiClient.streamConversationMessage(convId!.toString(), finalContent, (chunk) => {
         fullText += chunk;
         setStreamingContent(fullText);
       });
-      // Once done, invalidate messages and clear streaming state
+      
       setStreamingContent(null);
       queryClient.invalidateQueries({ queryKey: ['ai-messages', convId] });
       queryClient.invalidateQueries({ queryKey: ['ai-conversations'] });
-    } catch (error) {
-      toast.error("Stream interrupted.");
+    } catch (error: any) {
+      console.error("AI_PIPELINE_ERROR:", error);
+      toast.error(error.response?.data?.message || "Signal lost. Attempting to reconnect...");
       setStreamingContent(null);
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -162,18 +161,12 @@ export default function AiChatPage() {
       e.preventDefault();
       handleSend();
     }
-    if (e.ctrlKey && e.key === 'l') {
-      e.preventDefault();
-      setActiveConversationId(null);
-    }
   };
 
-  // Scroll to bottom on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, sendMessageMutation.isPending]);
+  }, [messages, streamingContent]);
 
-  // Auto-expand textarea
   useEffect(() => {
      if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
@@ -187,343 +180,311 @@ export default function AiChatPage() {
   );
 
   return (
-    <div className="flex h-[calc(100vh-64px)] overflow-hidden bg-[#F9F9F9] text-[#0B0B0B] font-geist selection:bg-black selection:text-white">
-      {/* --- Left Inner: Reasoning History --- */}
+    <div className="flex h-[calc(100vh-64px)] overflow-hidden bg-[#F8F9FA] text-[#1A1A1A] font-sans">
+      {/* Sidebar */}
       <aside className={cn(
-        "w-80 border-r border-[#E5E5E5] bg-white flex flex-col transition-all duration-300",
-        !isSidebarOpen && "w-0 overflow-hidden"
+        "bg-white border-r border-[#E9ECEF] flex flex-col transition-all duration-300 shadow-sm z-20",
+        isSidebarOpen ? "w-80" : "w-0 overflow-hidden"
       )}>
-        <div className="p-6 space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground">Reasoning_History</h2>
-            <button 
-              onClick={() => createConvMutation.mutate("New Investigation")}
-              className="p-1.5 hover:bg-neutral-100 rounded-md transition-colors"
-              title="New Investigation (Ctrl+N)"
-            >
-              <Plus className="h-4 w-4" />
-            </button>
-          </div>
-
-          <div className="relative group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-            <input 
-              type="text"
-              placeholder="Filter shards..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#F5F5F5] border-none rounded-lg py-2.5 pl-10 pr-4 text-[13px] focus:ring-1 focus:ring-black transition-all"
-            />
-          </div>
+        <div className="p-6 pb-2">
+           <button 
+             onClick={() => createConvMutation.mutate("New Investigation")}
+             className="w-full flex items-center justify-between px-4 py-3 bg-black text-white rounded-xl font-bold text-sm tracking-tight hover:bg-neutral-800 transition-all shadow-lg shadow-black/10 group"
+           >
+             <div className="flex items-center gap-2">
+               <Plus className="h-4 w-4 group-hover:rotate-90 transition-transform duration-300" />
+               <span>New Investigation</span>
+             </div>
+             <div className="flex items-center gap-1 bg-white/20 px-1.5 py-0.5 rounded text-[10px] font-mono">
+                <Command className="h-3 w-3" /> N
+             </div>
+           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-3 pb-6 space-y-1">
-          {isHistoryLoading ? (
-            Array(5).fill(0).map((_, i) => (
-              <div key={i} className="h-14 bg-neutral-50 rounded-lg animate-pulse mx-3" />
-            ))
-          ) : (
-            filteredConversations?.map((conv: any) => (
-              <button
-                key={conv.id}
-                onClick={() => setActiveConversationId(conv.id)}
-                className={cn(
-                  "w-full group px-4 py-3.5 rounded-xl text-left transition-all duration-200 border border-transparent flex flex-col gap-1 relative",
-                  activeConversationId === conv.id 
-                    ? "bg-white border-[#E5E5E5] shadow-sm" 
-                    : "hover:bg-neutral-50"
-                )}
-              >
-                <div className="flex items-center justify-between">
-                  <span className={cn(
-                    "text-[13px] font-black uppercase tracking-tight truncate",
-                    activeConversationId === conv.id ? "text-black" : "text-muted-foreground"
-                  )}>
-                    {conv.title}
-                  </span>
-                  {conv.pinned && <Pin className="h-3 w-3 text-black shrink-0" />}
-                </div>
-                <div className="flex items-center justify-between">
-                   <span className="text-[10px] font-medium text-muted-foreground/60 uppercase tracking-widest italic">
-                     {conv.updatedAt ? format(new Date(conv.updatedAt), 'MMM d, HH:mm') : 'SYNC_PENDING'}
-                   </span>
-                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); pinMutation.mutate(conv.id); }}
-                        className={cn("p-1 transition-colors", conv.pinned ? "text-black" : "hover:text-black")}
-                      >
-                        <Pin className="h-3 w-3" />
-                      </button>
-                      <button 
-                        onClick={(e) => { 
-                          e.stopPropagation(); 
-                          const newTitle = prompt("Rename Shard", conv.title);
-                          if (newTitle) renameMutation.mutate({ id: conv.id, title: newTitle });
-                        }}
-                        className="p-1 hover:text-black"
-                      >
-                        <Edit3 className="h-3 w-3" />
-                      </button>
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); archiveMutation.mutate(conv.id); }}
-                        className="p-1 hover:text-black"
-                      >
-                        <Archive className="h-3 w-3" />
-                      </button>
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); deleteConvMutation.mutate(conv.id); }}
-                        className="p-1 hover:text-red-600"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                   </div>
-                </div>
-              </button>
-            ))
-          )}
+        <div className="p-4 px-6 space-y-4">
+           <div className="relative group">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-neutral-400 group-focus-within:text-black transition-colors" />
+              <input 
+                type="text"
+                placeholder="Search conversations..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-[#F1F3F5] border-none rounded-xl py-2.5 pl-10 pr-4 text-sm focus:ring-2 focus:ring-black/5 focus:bg-white transition-all placeholder:text-neutral-400"
+              />
+           </div>
         </div>
 
-        {/* Engine Status Footnote */}
-        <div className="p-6 border-t border-[#E5E5E5] bg-[#FAFAFA]">
-           <div className="flex items-center gap-3">
-              <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+        <div className="flex-1 overflow-y-auto px-4 pb-6 custom-scrollbar">
+           <div className="space-y-1">
+              {isHistoryLoading ? (
+                Array(6).fill(0).map((_, i) => (
+                  <div key={i} className="h-16 bg-neutral-50 rounded-xl animate-pulse mx-2" />
+                ))
+              ) : (
+                filteredConversations?.map((conv: any) => (
+                  <div key={conv.id} className="group relative">
+                    <button
+                      onClick={() => setActiveConversationId(conv.id)}
+                      className={cn(
+                        "w-full px-4 py-4 rounded-xl text-left transition-all duration-200 flex flex-col gap-1.5 border border-transparent",
+                        activeConversationId === conv.id 
+                          ? "bg-white border-[#E9ECEF] shadow-md ring-1 ring-black/5" 
+                          : "hover:bg-white hover:border-[#E9ECEF] hover:shadow-sm"
+                      )}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className={cn(
+                          "text-sm font-bold tracking-tight truncate max-w-[180px]",
+                          activeConversationId === conv.id ? "text-black" : "text-neutral-600"
+                        )}>
+                          {conv.title}
+                        </span>
+                        {conv.pinned && <Pin className="h-3 w-3 text-black fill-black" />}
+                      </div>
+                      <div className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-wider text-neutral-400">
+                         <span>{conv.updatedAt ? format(new Date(conv.updatedAt), 'MMM d, HH:mm') : 'Draft'}</span>
+                         <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onClick={(e) => { e.stopPropagation(); pinMutation.mutate(conv.id); }} className="hover:text-black"><Pin className="h-3.5 w-3.5" /></button>
+                            <button onClick={(e) => { e.stopPropagation(); deleteConvMutation.mutate(conv.id); }} className="hover:text-red-500"><Trash2 className="h-3.5 w-3.5" /></button>
+                         </div>
+                      </div>
+                    </button>
+                  </div>
+                ))
+              )}
+           </div>
+        </div>
+
+        <div className="p-4 bg-[#F8F9FA] border-t border-[#E9ECEF]">
+           <div className="flex items-center gap-3 px-2">
+              <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
               <div className="flex-1">
-                 <div className="text-[10px] font-black uppercase tracking-widest leading-none">OpsMind_Engine_v4</div>
-                 <div className="text-[9px] text-muted-foreground mt-1 uppercase tracking-tighter">Latency: {engineStatus?.latency || '...'} | Shards: {engineStatus?.shards || '...'}</div>
+                 <div className="text-[10px] font-bold text-black uppercase tracking-widest leading-none">Security_Shard_v4</div>
+                 <div className="text-[9px] text-neutral-500 mt-1.5 font-medium">Latency: {engineStatus?.latency || '342ms'} | Engine: Operational</div>
               </div>
            </div>
         </div>
       </aside>
 
-      {/* --- Main Chat Workspace --- */}
-      <main className="flex-1 flex flex-col min-w-0 bg-white relative">
-        {/* Workspace Header */}
-        <header className="h-16 border-b border-[#E5E5E5] px-8 flex items-center justify-between shrink-0">
+      {/* Main Workspace */}
+      <main className="flex-1 flex flex-col min-w-0 bg-white relative shadow-2xl z-10">
+        <header className="h-16 border-b border-[#E9ECEF] px-8 flex items-center justify-between bg-white/80 backdrop-blur-md sticky top-0 z-30">
            <div className="flex items-center gap-4">
               <button 
                 onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
-                className="p-2 hover:bg-neutral-100 rounded-lg transition-colors lg:hidden"
+                className="p-2 hover:bg-[#F1F3F5] rounded-xl transition-colors"
               >
-                <MoreVertical className="h-5 w-5" />
+                <MoreVertical className="h-5 w-5 text-neutral-600" />
               </button>
               <div className="flex flex-col">
-                 <h1 className="text-[14px] font-black uppercase tracking-widest">
+                 <h1 className="text-sm font-black uppercase tracking-widest text-black">
                     {activeConversation ? activeConversation.title : 'NEW_INVESTIGATION'}
                  </h1>
-                 <div className="text-[9px] text-muted-foreground font-medium uppercase tracking-[0.2em]">
-                    SECURE_ENDPOINT_SHARD_0x{activeConversationId?.toString().slice(-8).toUpperCase() || 'UNINITIALIZED'}
+                 <div className="text-[9px] font-bold text-neutral-400 flex items-center gap-1.5 uppercase tracking-widest">
+                    <Terminal className="h-2.5 w-2.5" /> SHARD_0x{activeConversationId?.toString().slice(-8).toUpperCase() || 'UNSYNCED'}
                  </div>
               </div>
            </div>
            
-           <div className="flex items-center gap-3">
-              <div className="flex -space-x-2">
-                 <div className="h-7 w-7 rounded-full border-2 border-white bg-black flex items-center justify-center text-[10px] text-white font-black">SRE</div>
-                 <div className="h-7 w-7 rounded-full border-2 border-white bg-neutral-200 flex items-center justify-center text-[10px] text-black font-black">AI</div>
+           <div className="flex items-center gap-4">
+              <div className="hidden sm:flex items-center gap-2 bg-[#F1F3F5] px-3 py-1.5 rounded-full border border-[#E9ECEF]">
+                 <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                 <span className="text-[10px] font-bold text-neutral-600 uppercase tracking-widest">Real-time Stream</span>
               </div>
-              <div className="h-8 w-px bg-[#E5E5E5] mx-2" />
-              <button className="p-2 hover:bg-neutral-100 rounded-full transition-colors">
+              <button className="p-2 hover:bg-[#F1F3F5] rounded-full transition-colors text-neutral-500 hover:text-black">
                 <Share2 className="h-4 w-4" />
               </button>
-              <button className="p-2 hover:bg-neutral-100 rounded-full transition-colors">
+              <button className="p-2 hover:bg-[#F1F3F5] rounded-full transition-colors text-neutral-500 hover:text-black">
                 <MoreVertical className="h-4 w-4" />
               </button>
            </div>
         </header>
 
-        {/* Message Stream */}
-        <section className="flex-1 overflow-y-auto custom-scrollbar bg-white">
-           <div className="max-w-4xl mx-auto px-8 py-12 space-y-12 min-h-full flex flex-col">
+        <section className="flex-1 overflow-y-auto custom-scrollbar scroll-smooth">
+           <div className="max-w-4xl mx-auto px-6 py-12 space-y-10 min-h-full">
               {!activeConversationId && !messages?.length ? (
-                /* Empty State */
-                <div className="flex-1 flex flex-col items-center justify-center text-center space-y-8 animate-in fade-in zoom-in duration-500">
-                    <div className="h-20 w-20 bg-black flex items-center justify-center mask-hexagon">
-                       <Sparkles className="h-10 w-10 text-white animate-pulse" />
+                <div className="flex-1 flex flex-col items-center justify-center pt-20 text-center space-y-10">
+                    <div className="relative">
+                       <div className="absolute inset-0 bg-black blur-3xl opacity-10 animate-pulse" />
+                       <div className="h-24 w-24 bg-black rounded-[2.5rem] flex items-center justify-center relative shadow-2xl ring-4 ring-black/5">
+                          <Sparkles className="h-12 w-12 text-white" />
+                       </div>
                     </div>
-                    <div className="space-y-3">
-                       <h2 className="text-3xl font-black tracking-tight font-geist">OpsMind Intelligence Copilot</h2>
-                       <p className="text-[#666] text-lg max-w-lg leading-relaxed">
-                          Your enterprise SRE partner. Real-time context retrieval, predictive reasoning, and autonomous platform investigation.
+                    <div className="space-y-4">
+                       <h2 className="text-4xl font-black tracking-tight text-black">SRE Intelligence Copilot</h2>
+                       <p className="text-neutral-500 text-lg max-w-lg font-medium leading-relaxed">
+                          Enterprise-grade reasoning for the modern observability stack. Investigate incidents, analyze infrastructure, and predict failures.
                        </p>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3 w-full max-w-xl">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-2xl px-4">
                        {STARTER_PROMPTS.map((p) => (
                          <button
                            key={p.id}
-                           onClick={() => { setInputValue(p.text); textareaRef.current?.focus(); }}
-                           className="flex items-center gap-3 p-4 bg-white border border-strong rounded-xl hover:border-black hover:bg-neutral-50 transition-all text-left group"
+                           onClick={() => handleSend(p.text)}
+                           className="flex items-center gap-4 p-5 bg-white border border-[#E9ECEF] rounded-2xl hover:border-black hover:shadow-xl hover:shadow-black/5 transition-all text-left group animate-in fade-in slide-in-from-bottom-4 duration-500"
                          >
-                            <p.icon className="h-4 w-4 text-muted-foreground group-hover:text-black" />
-                            <span className="text-[13px] font-bold text-neutral-700 group-hover:text-black">{p.text}</span>
+                            <div className="h-10 w-10 bg-[#F1F3F5] rounded-xl flex items-center justify-center group-hover:bg-black transition-colors">
+                               <p.icon className="h-5 w-5 text-neutral-600 group-hover:text-white" />
+                            </div>
+                            <div className="flex-1">
+                               <span className="block text-sm font-bold text-black">{p.text}</span>
+                               <span className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">Execute Query</span>
+                            </div>
+                            <ChevronRight className="h-4 w-4 text-neutral-300 group-hover:text-black group-hover:translate-x-1 transition-all" />
                          </button>
                        ))}
                     </div>
-
-                    <div className="pt-8 flex flex-col items-center gap-4">
-                       <div className="flex items-center gap-6 px-8 py-3 bg-neutral-100 rounded-full">
-                          <div className="flex items-center gap-2">
-                             <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                             <span className="text-[10px] font-black uppercase tracking-widest">Platform_Healthy</span>
-                          </div>
-                          <div className="h-3 w-px bg-neutral-300" />
-                          <div className="flex items-center gap-2">
-                             <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Latency: 42ms</span>
-                          </div>
-                       </div>
-                       <p className="text-[10px] text-muted-foreground font-mono">ID: OPS-AI-82910-K8S-CTX</p>
-                    </div>
                 </div>
               ) : (
-                /* Message List */
-                <>
-                  <AnimatePresence mode="popLayout">
-                    {messages?.map((msg: any) => (
-                      <motion.div
-                        key={msg.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className={cn(
-                          "flex gap-6 p-1 group",
-                          msg.role === 'ASSISTANT' ? "items-start" : "items-start"
-                        )}
-                      >
-                         <div className={cn(
-                           "h-9 w-9 rounded-xl flex items-center justify-center shrink-0 shadow-sm",
-                           msg.role === 'USER' ? "bg-neutral-100 text-[#0B0B0B] border border-[#E5E5E5]" : "bg-black text-white"
-                         )}>
-                            {msg.role === 'USER' ? <UserIcon size={18} /> : <Sparkles size={18} />}
-                         </div>
-                         
-                         <div className="flex-1 space-y-4 pt-1.5 min-w-0">
-                            <div className="flex items-center justify-between">
-                               <div className="flex items-center gap-3">
-                                  <span className="text-[12px] font-black uppercase tracking-widest">
-                                     {msg.role === 'USER' ? 'SRE_OPERATOR' : 'OPSMIND_AI'}
-                                  </span>
-                                  <span className="text-[10px] text-muted-foreground italic lowercase">
-                                     {msg.createdAt ? format(new Date(msg.createdAt), 'HH:mm:ss') : '--:--'}
-                                  </span>
-                               </div>
-                               <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
-                                  <button className="p-1 hover:text-black transition-colors" title="Copy"><Copy className="h-3.5 w-3.5" /></button>
-                                  {msg.role === 'ASSISTANT' && (
-                                    <>
-                                       <button className="p-1 hover:text-black transition-colors"><ThumbsUp className="h-3.5 w-3.5" /></button>
-                                       <button className="p-1 hover:text-black transition-colors"><ThumbsDown className="h-3.5 w-3.5" /></button>
-                                       <button className="p-1 hover:text-black transition-colors"><Download className="h-3.5 w-3.5" /></button>
-                                    </>
-                                  )}
-                               </div>
-                            </div>
-                            
-                            <div className="prose prose-neutral max-w-none text-[15px] leading-relaxed text-[#0B0B0B]">
-                               <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                 {msg.content}
-                               </ReactMarkdown>
-                            </div>
-                         </div>
-                      </motion.div>
-                    ))}
-                    {streamingContent !== null && (
-                      <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="flex gap-6 p-1"
-                      >
-                         <div className="h-9 w-9 rounded-xl bg-black flex items-center justify-center shrink-0">
-                            <Sparkles size={18} className="text-white animate-pulse" />
-                         </div>
-                         <div className="flex-1 space-y-4 pt-1.5">
-                            <div className="flex items-center gap-3">
-                               <span className="text-[12px] font-black uppercase tracking-widest">OPSMIND_AI</span>
-                               <span className="text-[10px] text-emerald-600 font-black animate-pulse uppercase tracking-[0.2em]">Contextualizing_Reality...</span>
-                            </div>
-                            <div className="prose prose-neutral max-w-none text-[15px] leading-relaxed text-[#0B0B0B]">
-                               <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                 {streamingContent || "..."}
-                               </ReactMarkdown>
-                            </div>
-                         </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                  <div ref={messagesEndRef} className="h-4" />
-                </>
+                <div className="space-y-10">
+                   {messages?.map((msg: any) => (
+                     <motion.div
+                       key={msg.id}
+                       initial={{ opacity: 0, y: 10 }}
+                       animate={{ opacity: 1, y: 0 }}
+                       className="group flex flex-col gap-3"
+                     >
+                        <div className="flex items-center gap-3 px-1">
+                           <div className={cn(
+                             "h-6 w-6 rounded-lg flex items-center justify-center text-[10px] font-black tracking-tighter",
+                             msg.role === 'USER' ? "bg-black text-white" : "bg-[#F1F3F5] text-black"
+                           )}>
+                              {msg.role === 'USER' ? 'SRE' : 'AI'}
+                           </div>
+                           <span className="text-[11px] font-black uppercase tracking-widest text-[#999]">
+                              {msg.role === 'USER' ? 'Operator' : 'OpsMind Core'}
+                           </span>
+                           <span className="text-[10px] text-neutral-400 font-medium">
+                              {msg.createdAt ? format(new Date(msg.createdAt), 'HH:mm:ss') : '--:--:--'}
+                           </span>
+                        </div>
+                        
+                        <div className={cn(
+                          "relative p-6 rounded-3xl text-[15px] leading-relaxed border transition-all",
+                          msg.role === 'USER' 
+                            ? "bg-[#F8F9FA] border-[#E9ECEF] text-black ml-10 shadow-sm" 
+                            : "bg-white border-[#E9ECEF] mr-10 shadow-md group-hover:shadow-lg"
+                        )}>
+                           <div className="prose prose-neutral max-w-none prose-sm sm:prose-base dark:prose-invert">
+                              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                {msg.content}
+                              </ReactMarkdown>
+                           </div>
+                           
+                           {msg.role === 'ASSISTANT' && (
+                             <div className="absolute -bottom-10 right-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                                <button className="p-2 hover:bg-[#F1F3F5] rounded-lg transition-colors" title="Copy"><Copy className="h-3.5 w-3.5" /></button>
+                                <button className="p-2 hover:bg-[#F1F3F5] rounded-lg transition-colors"><ThumbsUp className="h-3.5 w-3.5" /></button>
+                                <button className="p-2 hover:bg-[#F1F3F5] rounded-lg transition-colors"><ThumbsDown className="h-3.5 w-3.5" /></button>
+                                <button className="p-2 hover:bg-[#F1F3F5] rounded-lg transition-colors"><RefreshCcw className="h-3.5 w-3.5" /></button>
+                             </div>
+                           )}
+                        </div>
+                     </motion.div>
+                   ))}
+                   
+                   {streamingContent !== null && (
+                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-3">
+                        <div className="flex items-center gap-3 px-1">
+                           <div className="h-6 w-6 rounded-lg bg-[#F1F3F5] flex items-center justify-center text-black">
+                              <Sparkles size={12} className="animate-pulse" />
+                           </div>
+                           <span className="text-[11px] font-black uppercase tracking-widest text-emerald-600 animate-pulse">Reasoning_In_Progress...</span>
+                        </div>
+                        <div className="bg-white border border-[#E9ECEF] p-6 rounded-3xl mr-10 shadow-lg ring-2 ring-emerald-500/5">
+                           <div className="prose prose-neutral max-w-none prose-sm sm:prose-base">
+                              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                {streamingContent || "Initializing semantic mesh..."}
+                              </ReactMarkdown>
+                           </div>
+                        </div>
+                     </motion.div>
+                   )}
+                   <div ref={messagesEndRef} className="h-20" />
+                </div>
               )}
            </div>
         </section>
 
-        {/* --- DOCKED MESSAGE COMPOSER --- */}
-        <footer className="shrink-0 border-t border-[#E5E5E5] bg-white p-6 shadow-[0_-10px_30px_-15px_rgba(0,0,0,0.05)]">
+        {/* Input Bar */}
+        <footer className="p-6 bg-white border-t border-[#E9ECEF] z-30">
            <div className="max-w-4xl mx-auto space-y-4">
-              {/* Quick Actions Bar */}
-              <div className="flex items-center justify-between">
-                 <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-                    <ActionBadge icon={Paperclip} label="Log" />
-                    <ActionBadge icon={ImageIcon} label="Capture" />
+              <div className="flex items-center justify-between px-2">
+                 <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
+                    <ActionBadge icon={Paperclip} label="Logs" />
+                    <ActionBadge icon={Globe} label="Infra" />
+                    <ActionBadge icon={Shield} label="Security" />
                     <ActionBadge icon={FileJson} label="JSON" />
-                    <ActionBadge icon={FileText} label="Schema" />
-                    <div className="w-px h-4 bg-[#E5E5E5] mx-2" />
-                    <ActionBadge icon={Mic} label="Voice" />
+                    <div className="h-4 w-px bg-[#E9ECEF] mx-2" />
+                    <ActionBadge icon={Mic} label="Voice Analysis" />
                  </div>
-                 
-                 <div className="flex items-center gap-4">
+                 <div className="flex items-center gap-6">
                     <button 
                       onClick={() => { setInputValue(""); setActiveConversationId(null); }}
-                      className="text-[11px] font-black uppercase tracking-widest text-[#999] hover:text-red-600 flex items-center gap-2 transition-colors"
+                      className="text-[10px] font-black uppercase tracking-widest text-neutral-400 hover:text-red-600 flex items-center gap-2 transition-colors"
                     >
-                       <RefreshCcw className="h-3 w-3" /> Clear_Shard
+                       <X className="h-3 w-3" /> Reset_Investigation
                     </button>
+                    <div className="text-[10px] font-bold text-neutral-300 uppercase tracking-widest hidden sm:block">
+                       Engine: Standard_Reasoning
+                    </div>
                  </div>
               </div>
 
-              {/* Input Workspace */}
               <div className={cn(
-                "relative bg-[#F5F5F5] border border-transparent rounded-2xl transition-all duration-300",
-                "focus-within:bg-white focus-within:ring-2 focus-within:ring-black/10 focus-within:border-black",
-                streamingContent !== null && "opacity-60 pointer-events-none"
+                "relative group bg-[#F8F9FA] rounded-[1.5rem] border-2 border-[#E9ECEF] transition-all duration-300",
+                "focus-within:bg-white focus-within:border-black focus-within:shadow-2xl focus-within:shadow-black/5",
+                streamingContent !== null && "opacity-50 pointer-events-none"
               )}>
                  <textarea
                    ref={textareaRef}
                    value={inputValue}
                    onChange={(e) => setInputValue(e.target.value)}
                    onKeyDown={handleKeyDown}
-                   placeholder="Ask about an incident, infrastructure health, or root cause analysis..."
-                   className="w-full bg-transparent border-none rounded-2xl py-5 pl-6 pr-24 text-[15px] font-medium leading-relaxed resize-none focus:ring-0 placeholder:text-neutral-400 placeholder:italic"
+                   placeholder="Ask anything about your platform's health..."
+                   className="w-full bg-transparent border-none rounded-3xl py-5 pl-7 pr-24 text-[16px] font-medium leading-relaxed resize-none focus:ring-0 placeholder:text-neutral-400 placeholder:italic"
                    rows={1}
                  />
                  
-                 <div className="absolute right-3 bottom-3 flex items-center gap-2">
-                    {streamingContent !== null ? (
-                      <button 
-                        className="h-10 px-4 bg-red-600 text-white rounded-xl font-black text-[11px] uppercase tracking-widest flex items-center gap-2"
-                      >
-                         <StopCircle className="h-4 w-4" /> Stop
-                      </button>
+                 <div className="absolute right-4 bottom-4">
+                    {isSending || streamingContent !== null ? (
+                      <div className="flex items-center gap-3">
+                         <div className="flex gap-1">
+                            <span className="w-1 h-1 bg-black rounded-full animate-bounce [animation-delay:-0.3s]" />
+                            <span className="w-1 h-1 bg-black rounded-full animate-bounce [animation-delay:-0.15s]" />
+                            <span className="w-1 h-1 bg-black rounded-full animate-bounce" />
+                         </div>
+                         <button 
+                           onClick={() => setStreamingContent(null)}
+                           className="h-10 w-10 flex items-center justify-center bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors"
+                         >
+                            <StopCircle className="h-5 w-5" />
+                         </button>
+                      </div>
                     ) : (
                       <button
-                        onClick={handleSend}
-                        disabled={!inputValue.trim()}
+                        onClick={() => handleSend()}
+                        disabled={!inputValue.trim() || isSending}
                         className={cn(
-                          "h-10 w-10 flex items-center justify-center rounded-xl transition-all",
+                          "h-12 w-12 flex items-center justify-center rounded-xl transition-all shadow-xl",
                           inputValue.trim() 
-                            ? "bg-black text-white shadow-lg shadow-black/20 scale-100" 
-                            : "bg-neutral-200 text-neutral-400 scale-90 opacity-50"
+                            ? "bg-black text-white hover:scale-105 active:scale-95 shadow-black/20" 
+                            : "bg-neutral-200 text-neutral-400 cursor-not-allowed opacity-50"
                         )}
                       >
-                         <Send className="h-4.5 w-4.5" />
+                         <Send className="h-5 w-5" />
                       </button>
                     )}
                  </div>
               </div>
               
               <div className="flex items-center justify-center gap-6">
-                 <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
-                    <Command className="h-3 w-3" /> <span className="underline">Enter</span> to send
+                 <div className="flex items-center gap-2 text-[10px] text-neutral-400 font-bold uppercase tracking-widest">
+                    <Command className="h-3 w-3" /> <span className="text-black">Enter</span> to transmit
                  </div>
-                 <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-bold uppercase tracking-widest">
-                    <span className="underline">Shift + Enter</span> for newline
+                 <div className="flex items-center gap-2 text-[10px] text-neutral-400 font-bold uppercase tracking-widest">
+                    <span className="text-black">Shift + Enter</span> for newline
                  </div>
               </div>
            </div>

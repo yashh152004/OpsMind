@@ -43,17 +43,19 @@ public class ConversationService {
     }
 
     @Transactional
-    public void saveMessage(Conversation conversation, String role, String content) {
+    public ChatMessage saveMessage(Conversation conversation, String role, String content) {
         ChatMessage message = ChatMessage.builder()
                 .conversation(conversation)
                 .role(role)
                 .content(content)
+                .createdAt(java.time.LocalDateTime.now())
                 .build();
-        chatMessageRepository.save(message);
+        ChatMessage saved = chatMessageRepository.save(message);
         
         // Update conversation timestamp
         conversation.setUpdatedAt(java.time.LocalDateTime.now());
         conversationRepository.save(conversation);
+        return saved;
     }
 
     @Transactional

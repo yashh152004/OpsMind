@@ -72,4 +72,9 @@ public class Incident {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
+    public Long getId() { return id; }
+    public String getTitle() { return title; }
+    public String getStatus() { return status; }
+    public String getServiceName() { return serviceName; }
 }

@@ -37,4 +37,8 @@ public class Alert {
     protected void onCreate() {
         timestamp = LocalDateTime.now();
     }
+
+    public String getAlertName() { return alertName; }
+    public String getMessage() { return message; }
+    public String getSeverity() { return severity; }
 }

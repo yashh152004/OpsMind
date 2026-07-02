@@ -22,6 +22,7 @@ public class ChatMessage {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "conversation_id")
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private Conversation conversation;
 
     private String role; // 'USER' or 'ASSISTANT'
@@ -29,10 +30,19 @@ public class ChatMessage {
     @Column(columnDefinition = "TEXT")
     private String content;
 
+    @com.fasterxml.jackson.annotation.JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createdAt;
 
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public String getContent() {
+        return content;
     }
 }

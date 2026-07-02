@@ -19,6 +19,11 @@ public class SystemDataLoader implements ApplicationRunner {
     private final AlertRepository alertRepository;
     private final InfrastructureRepository infrastructureRepository;
     private final SecurityFindingRepository securityFindingRepository;
+    private final ConversationRepository conversationRepository;
+    private final ChatMessageRepository chatMessageRepository;
+    private final IncidentTimelineRepository timelineRepository;
+    private final IncidentAttachmentRepository attachmentRepository;
+    private final CommentRepository commentRepository;
     private final PasswordEncoder passwordEncoder;
 
     public SystemDataLoader(OrganizationRepository organizationRepository,
@@ -27,6 +32,11 @@ public class SystemDataLoader implements ApplicationRunner {
                             AlertRepository alertRepository,
                             InfrastructureRepository infrastructureRepository,
                             SecurityFindingRepository securityFindingRepository,
+                            ConversationRepository conversationRepository,
+                            ChatMessageRepository chatMessageRepository,
+                            IncidentTimelineRepository timelineRepository,
+                            IncidentAttachmentRepository attachmentRepository,
+                            CommentRepository commentRepository,
                             PasswordEncoder passwordEncoder) {
         this.organizationRepository = organizationRepository;
         this.userRepository = userRepository;
@@ -34,18 +44,31 @@ public class SystemDataLoader implements ApplicationRunner {
         this.alertRepository = alertRepository;
         this.infrastructureRepository = infrastructureRepository;
         this.securityFindingRepository = securityFindingRepository;
+        this.conversationRepository = conversationRepository;
+        this.chatMessageRepository = chatMessageRepository;
+        this.timelineRepository = timelineRepository;
+        this.attachmentRepository = attachmentRepository;
+        this.commentRepository = commentRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        // Force-refreshing the estate for the Enterprise Transformation
-        organizationRepository.deleteAll();
-        userRepository.deleteAll();
+        // Safe deletion order (Children -> Parents)
+        chatMessageRepository.deleteAll();
+        conversationRepository.deleteAll();
+        
+        commentRepository.deleteAll();
+        attachmentRepository.deleteAll();
+        timelineRepository.deleteAll();
+        
         incidentRepository.deleteAll();
         alertRepository.deleteAll();
         infrastructureRepository.deleteAll();
         securityFindingRepository.deleteAll();
+        
+        userRepository.deleteAll();
+        organizationRepository.deleteAll();
         
         setupDemoEnvironment();
     }
@@ -60,7 +83,7 @@ public class SystemDataLoader implements ApplicationRunner {
                 .build();
         organizationRepository.save(org);
 
-        // 2. Create User
+        // 2. Create Users
         User demoUser = User.builder()
                 .firstName("Principal")
                 .lastName("Engineer")
@@ -71,6 +94,17 @@ public class SystemDataLoader implements ApplicationRunner {
                 .status("ACTIVE")
                 .build();
         userRepository.save(demoUser);
+
+        User devUser = User.builder()
+                .firstName("Yash")
+                .lastName("Kumar")
+                .email("yashwardhankumar15@gmail.com")
+                .password(passwordEncoder.encode("OpsMind2026!"))
+                .organizationName("Global Finance Systems")
+                .role("ADMIN")
+                .status("ACTIVE")
+                .build();
+        userRepository.save(devUser);
 
         // 3. Complex Infrastructure (K8s Cluster)
         infrastructureRepository.saveAll(Arrays.asList(

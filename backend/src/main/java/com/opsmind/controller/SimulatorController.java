@@ -27,11 +27,21 @@ public class SimulatorController {
         this.activityService = activityService;
     }
 
-    @PostMapping("/trigger")
-    public ResponseEntity<Map<String, String>> triggerFailure(@RequestBody Map<String, String> body) {
-        String type = body.getOrDefault("type", "generic");
+    @PostMapping({"/trigger", "/trigger/{type}"})
+    public ResponseEntity<Map<String, String>> triggerFailure(
+            @PathVariable(required = false) String type,
+            @RequestBody(required = false) Map<String, String> body) {
         
-        switch (type) {
+        final String effectiveType;
+        if (type != null) {
+            effectiveType = type;
+        } else if (body != null && body.containsKey("type")) {
+            effectiveType = body.get("type");
+        } else {
+            effectiveType = "generic";
+        }
+        
+        switch (effectiveType) {
             case "database_crash":
                 createIncident("CRITICAL: Database Primary Node Unreachable", "P1", "database-core", "Connection timeout on port 3306. Pool exhaustion detected.");
                 createAlert("DB_CONNECTION_FAILURE", "MySQL read/write operations failing at 98% rate.");

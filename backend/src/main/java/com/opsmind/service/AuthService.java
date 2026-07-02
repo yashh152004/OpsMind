@@ -72,10 +72,26 @@ public class AuthService {
 
     public User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new RuntimeException("NOT_AUTHENTICATED: Logic shard requires valid session.");
+        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getName())) {
+            throw new RuntimeException("NOT_AUTHENTICATED: Logic shard requires valid session. Please re-login.");
         }
-        return userRepository.findByEmail(authentication.getName())
-                .orElseThrow(() -> new RuntimeException("USER_NOT_FOUND: Identity sync failure."));
+        
+        String email = authentication.getName();
+        System.out.println("[AUTH_DEBUG] Attempting to find user by email: '" + email + "'");
+        
+        return userRepository.findByEmail(email)
+                .orElseGet(() -> {
+                    System.out.println("[AUTH_DEBUG] JIT Provisioning for email: '" + email + "'");
+                    User recoveredUser = User.builder()
+                            .firstName("Provisioned")
+                            .lastName("Operator")
+                            .email(email)
+                            .password("SYSTEM_PROVISIONED")
+                            .organizationName("Default Global")
+                            .role("ADMIN")
+                            .status("ACTIVE")
+                            .build();
+                    return userRepository.save(recoveredUser);
+                });
     }
 }

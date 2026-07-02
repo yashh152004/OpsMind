@@ -26,4 +26,8 @@ public class InfrastructureAsset {
     private String region;
     private String provider; // AWS, GCP, ON_PREM
     private Double healthScore;
+
+    public String getName() { return name; }
+    public String getStatus() { return status; }
+    public Double getHealthScore() { return healthScore; }
 }
