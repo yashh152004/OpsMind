@@ -237,6 +237,25 @@ class ApiClient {
     return response.data
   }
 
+  async getOrganization() {
+    const response = await this.client.get('/organizations/me')
+    return response.data
+  }
+
+  async updateOrganization(data: any) {
+    const response = await this.client.put('/organizations/me', data)
+    return response.data
+  }
+
+  async changePassword(data: any) {
+    const response = await this.client.post('/auth/password/change', data)
+    return response.data
+  }
+
+  async revokeAccess(userId: string | number) {
+    await this.client.delete(`/users/${userId}`)
+  }
+
   /**
    * Storage (Phase 2)
    */

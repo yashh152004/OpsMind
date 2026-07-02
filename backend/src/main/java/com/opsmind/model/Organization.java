@@ -22,6 +22,10 @@ public class Organization {
     private String name;
 
     private String industry;
+    private String slug;
+    private String description;
+    private String website;
+    private String logoUrl;
     private String planType = "ENTERPRISE";
     
     private LocalDateTime createdAt;

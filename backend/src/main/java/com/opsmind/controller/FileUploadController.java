@@ -31,12 +31,14 @@ public class FileUploadController {
         }
 
         try {
-            String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+            String originalName = file.getOriginalFilename() != null ? file.getOriginalFilename() : "upload";
+            String sanitizedName = originalName.replaceAll("\\s+", "_");
+            String fileName = UUID.randomUUID().toString() + "_" + sanitizedName;
             Path path = Paths.get(UPLOAD_DIR + fileName);
             Files.copy(file.getInputStream(), path);
 
-            // In a real production app, this would be an S3 URL or similar
-            String fileUrl = "http://localhost:8080/api/storage/files/" + fileName;
+            // Return a relative URL that the frontend can use or an encoded absolute one
+            String fileUrl = "/api/storage/files/" + java.net.URLEncoder.encode(fileName, java.nio.charset.StandardCharsets.UTF_8.toString());
             
             return ResponseEntity.ok(Map.of("url", fileUrl, "fileName", fileName));
         } catch (IOException e) {

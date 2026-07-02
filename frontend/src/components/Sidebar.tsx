@@ -6,6 +6,14 @@ import {
   Circle, Search, Star, Clock, Pin
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
+import { useAuthStore } from '@/stores/auth'
+
+interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+  isCollapsed: boolean;
+  onToggleCollapse: () => void;
+}
 
 const navigation = [
   { group: "Operational", items: [
@@ -26,14 +34,9 @@ const navigation = [
   ]}
 ]
 
-interface SidebarProps {
-  isOpen: boolean;
-  onClose: () => void;
-  isCollapsed: boolean;
-  onToggleCollapse: () => void;
-}
-
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isCollapsed, onToggleCollapse }) => {
+  const { user } = useAuthStore()
+
   return (
     <>
       <div 
@@ -59,7 +62,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isCollapsed, onToggl
               <div className="flex flex-col">
                  <span className="font-bold text-[13px] tracking-tight text-white">OpsMind</span>
                  <div className="flex items-center gap-1 cursor-pointer">
-                    <span className="text-[10px] font-medium text-white/40 uppercase tracking-wider">Production</span>
+                    <span className="text-[10px] font-medium text-white/40 uppercase tracking-wider">
+                      {user?.organizationName || 'Production'}
+                    </span>
                     <ChevronDown className="h-2.5 w-2.5 text-white/20" />
                  </div>
               </div>
@@ -127,10 +132,20 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isCollapsed, onToggl
              <div className="p-4 space-y-4">
                 <div className="flex items-center justify-between group cursor-pointer">
                    <div className="flex items-center gap-2.5">
-                      <div className="h-8 w-8 rounded bg-white/10 flex items-center justify-center text-[11px] font-bold text-white">JD</div>
+                      <div className="h-8 w-8 rounded bg-white/10 overflow-hidden flex items-center justify-center text-[11px] font-bold text-white border border-white/10">
+                        {user?.avatarUrl ? (
+                          <img src={user.avatarUrl} alt="" className="h-full w-full object-cover" />
+                        ) : (
+                          <span>{(user?.firstName?.[0] || 'U') + (user?.lastName?.[0] || 'N')}</span>
+                        )}
+                      </div>
                       <div className="flex flex-col">
-                         <span className="text-[12px] font-bold text-white">John Doe</span>
-                         <span className="text-[10px] font-medium text-white/30">Free Tier</span>
+                         <span className="text-[12px] font-bold text-white truncate max-w-[120px]">
+                            {user?.firstName} {user?.lastName}
+                         </span>
+                         <span className="text-[10px] font-medium text-white/30">
+                            {user?.role || 'Operator'}
+                         </span>
                       </div>
                    </div>
                    <Settings className="h-4 w-4 text-white/10 group-hover:text-white/40 transition-colors" />
@@ -138,7 +153,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isCollapsed, onToggl
              </div>
            )}
            {isCollapsed && (
-             <div className="p-3 flex justify-center">
+             <div className="p-3 flex items-center flex-col gap-4">
+                <div className="h-8 w-8 rounded bg-white/10 overflow-hidden flex items-center justify-center text-[10px] font-bold text-white mb-2 border border-white/10">
+                   {user?.avatarUrl ? (
+                      <img src={user.avatarUrl} alt="" className="h-full w-full object-cover" />
+                   ) : (
+                      <span>{(user?.firstName?.[0] || 'U') + (user?.lastName?.[0] || 'N')}</span>
+                   )}
+                </div>
                 <button onClick={onToggleCollapse} className="h-8 w-8 flex items-center justify-center rounded hover:bg-white/5 text-white/30 hover:text-white transition-all">
                    <Layout className="h-4 w-4 rotate-180" />
                 </button>

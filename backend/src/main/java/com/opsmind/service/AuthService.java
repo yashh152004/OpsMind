@@ -22,6 +22,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final com.opsmind.repository.OrganizationRepository organizationRepository;
+    private final PlatformActivityService activityService;
 
     public AuthResponse login(LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
@@ -93,5 +94,15 @@ public class AuthService {
                             .build();
                     return userRepository.save(recoveredUser);
                 });
+    }
+
+    public void changePassword(String currentPassword, String newPassword) {
+        User user = getCurrentUser();
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new RuntimeException("INVALID_CREDENTIALS: Original password mismatch.");
+        }
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        activityService.logAction("PASSWORD_CHANGED", "SECURITY", user.getEmail(), "Authentication credentials rotated.");
     }
 }

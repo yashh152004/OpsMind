@@ -12,33 +12,35 @@ import java.util.List;
 @RequestMapping("/users")
 public class UserController {
     private final UserRepository repository;
+    private final com.opsmind.service.AuthService authService;
     private final PlatformActivityService activityService;
 
-    public UserController(UserRepository repository, PlatformActivityService activityService) {
+    public UserController(UserRepository repository, com.opsmind.service.AuthService authService, PlatformActivityService activityService) {
         this.repository = repository;
+        this.authService = authService;
         this.activityService = activityService;
     }
 
     @GetMapping("/me")
     public ResponseEntity<User> getCurrentUser() {
-        String email = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
-        return repository.findByEmail(email).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+        return ResponseEntity.ok(authService.getCurrentUser());
     }
 
     @PutMapping("/me")
     public ResponseEntity<User> updateProfile(@RequestBody User profileData) {
-        String email = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
-        return repository.findByEmail(email).map(user -> {
-            user.setFirstName(profileData.getFirstName());
-            user.setLastName(profileData.getLastName());
-            user.setTitle(profileData.getTitle());
-            user.setDepartment(profileData.getDepartment());
-            user.setPhone(profileData.getPhone());
-            user.setTimezone(profileData.getTimezone());
-            user.setLanguage(profileData.getLanguage());
-            user.setAvatarUrl(profileData.getAvatarUrl());
-            return ResponseEntity.ok(repository.save(user));
-        }).orElse(ResponseEntity.notFound().build());
+        User user = authService.getCurrentUser();
+        user.setFirstName(profileData.getFirstName());
+        user.setLastName(profileData.getLastName());
+        user.setTitle(profileData.getTitle());
+        user.setDepartment(profileData.getDepartment());
+        user.setPhone(profileData.getPhone());
+        user.setTimezone(profileData.getTimezone());
+        user.setLanguage(profileData.getLanguage());
+        user.setAvatarUrl(profileData.getAvatarUrl());
+        
+        User saved = repository.save(user);
+        activityService.logAction("PROFILE_UPDATED", "IDENTITY", user.getEmail(), "Personal credentials synchronized.");
+        return ResponseEntity.ok(saved);
     }
 
     @GetMapping

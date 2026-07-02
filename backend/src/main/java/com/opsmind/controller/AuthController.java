@@ -38,6 +38,14 @@ public class AuthController {
         return ResponseEntity.ok("Logged out");
     }
 
+    @PostMapping("/password/change")
+    public ResponseEntity<String> changePassword(@RequestBody Map<String, String> request) {
+        String currentPassword = request.get("currentPassword");
+        String newPassword = request.get("newPassword");
+        authService.changePassword(currentPassword, newPassword);
+        return ResponseEntity.ok("CREDENTIALS_ROTATED");
+    }
+
     @PostMapping("/refresh")
     public ResponseEntity<Map<String, String>> refresh(@RequestBody Map<String, String> request) {
         return ResponseEntity.ok(Map.of(
