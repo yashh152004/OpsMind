@@ -48,6 +48,21 @@ public class AiController {
                    .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @PostMapping("/conversations/{id}/messages")
+    public ResponseEntity<com.opsmind.model.ChatMessage> sendMessage(@PathVariable Long id, @RequestBody Map<String, String> request) {
+        String content = request.get("content");
+        Optional<Conversation> convOpt = conversationService.getConversation(id);
+        if (convOpt.isEmpty()) return ResponseEntity.notFound().build();
+        
+        Conversation conversation = convOpt.get();
+        conversationService.saveMessage(conversation, "USER", content);
+        
+        String response = sreReasoningService.investigateWithContext(content, conversation.getMessages());
+        com.opsmind.model.ChatMessage savedResponse = conversationService.saveMessage(conversation, "ASSISTANT", response);
+        
+        return ResponseEntity.ok(savedResponse);
+    }
+
     @PostMapping(value = "/conversations/{id}/stream", produces = "text/event-stream")
     public org.springframework.web.servlet.mvc.method.annotation.SseEmitter streamMessage(@PathVariable Long id, @RequestBody Map<String, String> request) {
         String content = request.get("content");
