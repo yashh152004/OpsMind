@@ -178,7 +178,7 @@ export default function AiChatPage() {
            <div className="space-y-1">
               {isHistoryLoading ? (
                 Array(5).fill(0).map((_, i) => (
-                  <div key={i} className="h-14 skeleton-ui mx-2 rounded-lg opacity-40" />
+                  <div key={i} className="h-14 skeleton-ui mx-2 rounded-lg opacity-80" />
                 ))
               ) : (
                 filteredConversations?.map((conv: any) => (
@@ -201,9 +201,9 @@ export default function AiChatPage() {
                         </span>
                         {conv.pinned && <Pin className="h-2.5 w-2.5 text-foreground fill-foreground" />}
                       </div>
-                      <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-muted opacity-60">
+                      <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-secondary">
                          <span>{conv.updatedAt ? format(new Date(conv.updatedAt), 'MMM d') : 'Draft'}</span>
-                         <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                         <div className="flex items-center gap-1.5 opacity-100 group-hover:opacity-100 transition-opacity">
                             <button onClick={(e) => { e.stopPropagation(); pinMutation.mutate(conv.id); }} className="hover:text-foreground transition-colors"><Pin className="h-3 w-3" /></button>
                             <button onClick={(e) => { e.stopPropagation(); deleteConvMutation.mutate(conv.id); }} className="hover:text-red-500 transition-colors"><Trash2 className="h-3 w-3" /></button>
                          </div>
@@ -311,7 +311,7 @@ export default function AiChatPage() {
                            )}>
                               {msg.role === 'USER' ? 'SRE' : 'AI'}
                            </div>
-                           <span className="text-[11px] font-bold uppercase tracking-widest text-foreground/70">
+                           <span className="text-[11px] font-bold uppercase tracking-widest text-foreground">
                               {msg.role === 'USER' ? 'Operator Signal' : 'OpsMind Core Response'}
                            </span>
                            <span className="text-[10px] text-muted font-bold">
@@ -392,7 +392,7 @@ export default function AiChatPage() {
               <div className={cn(
                 "relative group bg-surface rounded-xl border border-border-strong transition-all duration-200",
                 "focus-within:border-foreground focus-within:shadow-xl",
-                streamingContent !== null && "opacity-50 pointer-events-none"
+                streamingContent !== null && "opacity-90 pointer-events-none"
               )}>
                  <textarea
                    ref={textareaRef}
@@ -400,7 +400,7 @@ export default function AiChatPage() {
                    onChange={(e) => setInputValue(e.target.value)}
                    onKeyDown={handleKeyDown}
                    placeholder="Consult OpsMind Core for telemetry reasoning..."
-                   className="w-full bg-transparent border-none rounded-xl py-4 pl-6 pr-24 text-[15px] font-medium leading-relaxed resize-none focus:ring-0 placeholder:text-muted/50"
+                   className="w-full bg-transparent border-none rounded-xl py-4 pl-6 pr-24 text-[15px] font-medium leading-relaxed resize-none focus:ring-0 placeholder:text-secondary"
                    rows={1}
                  />
                  

@@ -136,11 +136,11 @@ const DashboardPage: React.FC = () => {
                  kpi.status === 'FAST' || kpi.status === 'SECURE' ? "badge-info" : "badge-warning"
                )}>{kpi.status}</span>
             </div>
-            <div className="mt-4 space-y-1">
-               <div className="text-[12px] font-medium text-muted tracking-wide">{kpi.label}</div>
+             <div className="mt-4 space-y-1">
+               <div className="text-[12px] font-bold text-secondary uppercase tracking-widest">{kpi.label}</div>
                <div className="flex items-end justify-between">
-                  <div className="text-2xl font-bold tracking-tight text-foreground">{kpi.val}</div>
-                  <div className="text-[11px] font-bold text-emerald-600 flex items-center gap-0.5">
+                  <div className="text-2xl font-black tracking-tight text-foreground">{kpi.val}</div>
+                  <div className="text-[11px] font-black text-emerald-700 flex items-center gap-0.5">
                      <TrendingUp className="h-3 w-3" />
                      {kpi.trend}
                   </div>
@@ -176,16 +176,16 @@ const DashboardPage: React.FC = () => {
                         </linearGradient>
                      </defs>
                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
-                     <XAxis 
+                       <XAxis 
                        dataKey="time" 
                        axisLine={false} 
                        tickLine={false} 
-                       tick={{fill: 'var(--muted)', fontSize: 10}} 
+                       tick={{fill: 'var(--foreground)', fontSize: 10, fontWeight: 700}} 
                      />
                      <YAxis 
                        axisLine={false} 
                        tickLine={false} 
-                       tick={{fill: 'var(--muted)', fontSize: 10}} 
+                       tick={{fill: 'var(--foreground)', fontSize: 10, fontWeight: 700}} 
                      />
                      <Tooltip 
                        contentStyle={{ 

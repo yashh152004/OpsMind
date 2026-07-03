@@ -103,7 +103,7 @@ const IntegrationsPage: React.FC = () => {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {isLoading ? (
           Array(8).fill(0).map((_, i) => (
-            <div key={i} className="h-48 skeleton-ui opacity-40 rounded-xl" />
+            <div key={i} className="h-48 skeleton-ui opacity-80 rounded-xl" />
           ))
         ) : (integrations || [])?.map((app: any) => {
           const Icon = app.name.includes('AWS') ? Cloud : app.name.includes('Elastic') ? Database : app.name.includes('Prometheus') ? Activity : Terminal;
@@ -128,7 +128,7 @@ const IntegrationsPage: React.FC = () => {
                 <div>
                    <h3 className="text-[14px] font-bold text-foreground m-0">{app.name}</h3>
                    <div className="text-[10px] text-muted font-bold uppercase tracking-widest mt-0.5 flex items-center gap-1.5 italic">
-                      Shard Source <span className="opacity-40">•</span> {app.type || app.source}
+                      Shard Source <span className="opacity-80">•</span> {app.type || app.source}
                    </div>
                 </div>
 
@@ -163,7 +163,7 @@ const IntegrationsPage: React.FC = () => {
 
         {/* Available Template Card */}
         {["Slack Payload", "PagerDuty", "Elastic Search", "CloudWatch"].map(plat => (
-          <div key={plat} className="card-enterprise border-dashed opacity-50 grayscale hover:opacity-100 hover:grayscale-0 cursor-pointer flex flex-col items-center justify-center p-8 text-center space-y-4 group transition-all">
+          <div key={plat} className="card-enterprise border-dashed opacity-90 grayscale hover:opacity-100 hover:grayscale-0 cursor-pointer flex flex-col items-center justify-center p-8 text-center space-y-4 group transition-all">
              <div className="h-12 w-12 rounded-xl bg-surface-alt border border-border flex items-center justify-center group-hover:bg-foreground group-hover:text-background transition-all">
                 <Globe className="h-6 w-6" />
              </div>

@@ -134,7 +134,7 @@ const InfrastructurePage: React.FC = () => {
                   <tbody>
                      {isLoading ? (
                         Array(5).fill(0).map((_, i) => (
-                          <tr key={i}><td colSpan={6} className="py-8"><div className="h-4 skeleton-ui w-full opacity-40 mx-auto rounded" /></td></tr>
+                          <tr key={i}><td colSpan={6} className="py-8"><div className="h-4 skeleton-ui w-full opacity-80 mx-auto rounded" /></td></tr>
                         ))
                      ) : (assets || [])?.map((asset: any) => (
                         <tr key={asset.id} className="group">
@@ -155,7 +155,7 @@ const InfrastructurePage: React.FC = () => {
                               </span>
                            </td>
                            <td>
-                              <div className="text-[12px] font-bold text-foreground/80 uppercase tracking-tight">{asset.provider} <span className="opacity-40 ml-1">/</span> <span className="text-muted ml-1">{asset.region}</span></div>
+                              <div className="text-[12px] font-bold text-foreground uppercase tracking-tight">{asset.provider} <span className="opacity-80 ml-1">/</span> <span className="text-muted ml-1">{asset.region}</span></div>
                            </td>
                            <td>
                               <div className="flex items-center gap-3 pr-6">

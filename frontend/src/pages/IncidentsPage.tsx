@@ -167,14 +167,14 @@ const IncidentsPage: React.FC = () => {
                   Array(10).fill(0).map((_, i) => (
                     <tr key={i}>
                        <td colSpan={7} className="py-8">
-                          <div className="h-4 skeleton-ui w-full opacity-50" />
+                          <div className="h-4 skeleton-ui w-full opacity-90" />
                        </td>
                     </tr>
                   ))
                ) : incidents.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="py-24 text-center">
-                       <Activity className="h-10 w-10 text-muted/20 mx-auto mb-4" />
+                       <Activity className="h-10 w-10 text-border mx-auto mb-4" />
                        <div className="text-[13px] font-bold text-foreground mb-1">Clear Skies</div>
                        <p className="text-[12px] text-muted">No incidents matching your current filters.</p>
                     </td>
@@ -202,7 +202,7 @@ const IncidentsPage: React.FC = () => {
                               {incident.title}
                            </div>
                            <div className="text-[11px] text-muted font-medium flex items-center gap-1.5">
-                              <span className="text-foreground/80">{incident.serviceName}</span>
+                              <span className="text-foreground">{incident.serviceName}</span>
                               <span className="text-border">•</span>
                               <span>{incident.cluster}</span>
                            </div>
@@ -365,9 +365,9 @@ const IncidentsPage: React.FC = () => {
                      <div className="space-y-4 relative before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-px before:bg-border">
                         <div className="relative pl-8">
                            <div className="absolute left-0 top-1 h-[22px] w-[22px] bg-background border border-border rounded-full flex items-center justify-center font-bold text-[8px]">AM</div>
-                           <div className="text-[13px] font-bold text-foreground">Incident declared by monitoring system</div>
-                           <div className="text-[11px] text-muted">Acknowledge response initiated in us-east-1.</div>
-                           <div className="mt-1 text-[10px] font-bold text-muted/60 uppercase">10:42 AM</div>
+                           <div className="text-[13px] font-black text-foreground">Incident declared by monitoring system</div>
+                           <div className="text-[11px] text-secondary font-bold">Acknowledge response initiated in us-east-1.</div>
+                           <div className="mt-1 text-[10px] font-black text-muted uppercase tracking-widest">10:42 AM</div>
                         </div>
                      </div>
                   </section>

@@ -58,14 +58,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isCollapsed, onToggl
             <div className="h-8 w-8 bg-white rounded-[4px] flex items-center justify-center shadow-[0_0_15px_rgba(255,255,255,0.1)]">
                <Activity className="h-5 w-5 text-black" />
             </div>
-            {!isCollapsed && (
+             {!isCollapsed && (
               <div className="flex flex-col">
-                 <span className="font-semibold text-[14px] tracking-tight text-white leading-none">OpsMind</span>
+                 <span className="font-bold text-[14px] tracking-tight text-white leading-none">OpsMind</span>
                  <div className="flex items-center gap-1 mt-1 cursor-pointer group">
-                    <span className="text-[11px] font-medium text-neutral-500 group-hover:text-neutral-300 transition-colors uppercase tracking-widest">
+                    <span className="text-[11px] font-bold text-neutral-400 group-hover:text-white transition-colors uppercase tracking-widest">
                       {user?.organizationName || 'Production'}
                     </span>
-                    <ChevronDown className="h-3 w-3 text-neutral-600 group-hover:text-neutral-400" />
+                    <ChevronDown className="h-3 w-3 text-neutral-500 group-hover:text-white" />
                  </div>
               </div>
             )}
@@ -103,11 +103,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isCollapsed, onToggl
                     key={item.name}
                     to={item.href}
                     className={({ isActive }) => cn(
-                      "group flex items-center gap-3 h-9 text-[13px] font-medium rounded-[4px] transition-all relative",
+                      "group flex items-center gap-3 h-9 text-[13px] font-bold rounded-[4px] transition-all relative",
                       isCollapsed ? "justify-center" : "px-3",
                       isActive 
                         ? "bg-neutral-800 text-white shadow-sm border border-neutral-700" 
-                        : "text-neutral-400 hover:bg-neutral-900/50 hover:text-white"
+                        : "text-neutral-300 hover:bg-neutral-900/80 hover:text-white"
                     )}
                   >
                     {({ isActive }) => (

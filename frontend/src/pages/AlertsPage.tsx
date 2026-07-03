@@ -124,12 +124,12 @@ const AlertsPage: React.FC = () => {
                <tbody>
                   {isLoading ? (
                      Array(6).fill(0).map((_, i) => (
-                       <tr key={i}><td colSpan={5} className="py-10"><div className="h-5 skeleton-ui w-full opacity-40 mx-auto rounded" /></td></tr>
+                       <tr key={i}><td colSpan={5} className="py-10"><div className="h-5 skeleton-ui w-full opacity-80 mx-auto rounded" /></td></tr>
                      ))
                   ) : !filteredAlerts?.length ? (
                      <tr>
                         <td colSpan={5} className="py-32 text-center">
-                           <div className="flex flex-col items-center gap-4 opacity-40">
+                           <div className="flex flex-col items-center gap-4 opacity-80">
                               <BellOff className="h-12 w-12 text-muted" />
                               <div className="space-y-1">
                                  <h3 className="text-sm font-bold uppercase tracking-widest text-foreground m-0">Zero Telemetry Hazards</h3>
@@ -170,7 +170,7 @@ const AlertsPage: React.FC = () => {
                               <div className="truncate space-y-0.5">
                                  <div className="text-[14px] font-bold text-foreground truncate group-hover:underline">{alert.alertName}</div>
                                  <div className="text-[10px] text-muted font-bold uppercase tracking-widest flex items-center gap-1.5">
-                                    {alert.source} <span className="opacity-40">•</span> <span className="font-mono lowercase opacity-60">shard-{alert.id.slice(-4)}</span>
+                                    {alert.source} <span className="opacity-80">•</span> <span className="font-mono lowercase opacity-100">shard-{alert.id.slice(-4)}</span>
                                  </div>
                               </div>
                            </div>
@@ -178,8 +178,8 @@ const AlertsPage: React.FC = () => {
                         <td className="py-4">
                            <div className="p-3 bg-surface-alt/40 border border-border rounded-lg group-hover:border-foreground/20 transition-all">
                               <div className="flex items-start gap-3">
-                                 <BrainCircuit className="h-4 w-4 text-foreground/40 mt-0.5 shrink-0" />
-                                 <p className="text-[13px] font-medium text-muted leading-relaxed italic">
+                                 <BrainCircuit className="h-4 w-4 text-foreground/60 mt-0.5 shrink-0" />
+                                 <p className="text-[13px] font-bold text-secondary leading-relaxed italic">
                                     {alert.message || "Analyzing signal metadata topology... No immediate remediation required."}
                                  </p>
                               </div>
@@ -232,12 +232,12 @@ const AlertsPage: React.FC = () => {
              </div>
              <div className="space-y-1">
                 <h4 className="text-lg font-bold tracking-tight m-0">Ingress Shard Integrity Verified</h4>
-                <p className="text-[11px] font-medium opacity-60 uppercase tracking-widest">Global Telemetry Stream • Latency 0.8ms • CRC Validated</p>
+                <p className="text-[11px] font-medium opacity-100 uppercase tracking-widest">Global Telemetry Stream • Latency 0.8ms • CRC Validated</p>
              </div>
           </div>
           <div className="flex items-center gap-10">
              <div className="flex flex-col items-end">
-                <span className="text-[10px] font-bold opacity-40 uppercase tracking-widest">Uptime Heartbeat</span>
+                <span className="text-[10px] font-bold opacity-80 uppercase tracking-widest">Uptime Heartbeat</span>
                 <span className="text-xl font-mono font-bold">99.999%</span>
              </div>
              <div className="h-8 w-px bg-background opacity-10" />

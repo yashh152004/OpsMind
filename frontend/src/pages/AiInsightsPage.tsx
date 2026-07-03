@@ -125,9 +125,9 @@ const AiInsightsPage: React.FC = () => {
                      <span className="text-[10px] font-bold uppercase tracking-widest text-muted">{kpi.trend}</span>
                   </div>
                   <div className="space-y-1">
-                     <div className="text-[11px] font-bold text-muted uppercase tracking-widest">{kpi.label}</div>
+                     <div className="text-[11px] font-bold text-secondary uppercase tracking-widest">{kpi.label}</div>
                      <div className="text-3xl font-black text-foreground tracking-tighter">{kpi.val}</div>
-                     <div className="text-[10px] font-medium text-muted-foreground uppercase mt-2">{kpi.desc}</div>
+                     <div className="text-[11px] font-bold text-muted uppercase mt-2">{kpi.desc}</div>
                   </div>
                </div>
             ))}
@@ -144,25 +144,25 @@ const AiInsightsPage: React.FC = () => {
                            <stop offset="95%" stopColor="#000" stopOpacity={0} />
                         </linearGradient>
                      </defs>
-                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#EEE" />
+                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-strong)" />
                      <XAxis
                         dataKey="time"
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fill: '#111', fontSize: 10, fontWeight: 700 }}
+                        tick={{ fill: 'var(--foreground)', fontSize: 10, fontWeight: 900 }}
                         interval={3}
                      />
                      <YAxis
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fill: '#111', fontSize: 10, fontWeight: 700 }}
+                        tick={{ fill: 'var(--foreground)', fontSize: 10, fontWeight: 900 }}
                      />
                      <Tooltip
                         contentStyle={{ borderRadius: '4px', border: '2px solid #000', boxShadow: '0 8px 30px rgba(0,0,0,0.1)', fontSize: '12px', fontWeight: 'bold' }}
                      />
-                     <Legend wrapperStyle={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.1em', paddingTop: '20px' }} />
-                     <Area type="monotone" dataKey="prediction" stroke="#000" strokeWidth={3} fillOpacity={1} fill="url(#colorRisk)" name="PROBABILITY" />
-                     <Area type="monotone" dataKey="risk" stroke="#999" strokeWidth={2} strokeDasharray="5 5" fill="none" name="VARIANCE" />
+                     <Legend wrapperStyle={{ fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.15em', paddingTop: '20px' }} />
+                     <Area type="monotone" dataKey="prediction" stroke="#000" strokeWidth={4} fillOpacity={1} fill="url(#colorRisk)" name="PROBABILITY" />
+                     <Area type="monotone" dataKey="risk" stroke="#555" strokeWidth={2} strokeDasharray="5 5" fill="none" name="VARIANCE" />
                   </AreaChart>
                </ResponsiveContainer>
             </ChartContainer>
@@ -170,25 +170,25 @@ const AiInsightsPage: React.FC = () => {
             <ChartContainer title="Anomaly Frequency Trend" subtitle="Cluster-wide signal deviations">
                <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={seriesData}>
-                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#EEE" />
+                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-strong)" />
                      <XAxis
                         dataKey="time"
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fill: '#111', fontSize: 10, fontWeight: 700 }}
+                        tick={{ fill: 'var(--foreground)', fontSize: 10, fontWeight: 900 }}
                         interval={3}
                      />
                      <YAxis
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fill: '#111', fontSize: 10, fontWeight: 700 }}
+                        tick={{ fill: 'var(--foreground)', fontSize: 10, fontWeight: 900 }}
                      />
                      <Tooltip
                         contentStyle={{ borderRadius: '4px', border: '2px solid #000', fontSize: '12px', fontWeight: 'bold' }}
                      />
-                     <Legend wrapperStyle={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.1em', paddingTop: '20px' }} />
+                     <Legend wrapperStyle={{ fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.15em', paddingTop: '20px' }} />
                      <Bar dataKey="anomaly" fill="#000" radius={[2, 2, 0, 0]} name="SIGNALS" />
-                     <Bar dataKey="alertDensity" fill="#CCC" radius={[2, 2, 0, 0]} name="ALERTS" />
+                     <Bar dataKey="alertDensity" fill="#666" radius={[2, 2, 0, 0]} name="ALERTS" />
                   </BarChart>
                </ResponsiveContainer>
             </ChartContainer>
@@ -296,7 +296,7 @@ const AiInsightsPage: React.FC = () => {
                         <span className="text-[12px] font-bold uppercase tracking-widest">Autonomous Guard</span>
                      </div>
                      <h4 className="text-[20px] font-black tracking-tight m-0 text-white leading-tight">Shielding Policy Active</h4>
-                     <p className="text-[13px] text-white/50 leading-relaxed">
+                     <p className="text-[13px] text-white font-bold leading-relaxed">
                         Intelligence Engine has full authorization to deploy L1 shards. 18 anomalies mitigated automatically today.
                      </p>
                      <button className="w-full h-10 bg-white text-black font-bold text-[11px] uppercase tracking-widest hover:opacity-90">Review Logs</button>

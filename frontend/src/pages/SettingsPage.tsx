@@ -173,7 +173,7 @@ const SettingsPage: React.FC = () => {
                 >
                   <tab.icon className={cn("h-4 w-4", activeTab === tab.id ? "text-foreground" : "text-muted")} />
                   <span>{tab.label}</span>
-                  {activeTab === tab.id && <ChevronRight className="h-4 w-4 ml-auto opacity-40" />}
+                  {activeTab === tab.id && <ChevronRight className="h-4 w-4 ml-auto opacity-80" />}
                 </button>
               ))}
            </div>
@@ -206,7 +206,7 @@ const SettingsPage: React.FC = () => {
                                 {profileForm.avatarUrl ? (
                                     <img src={profileForm.avatarUrl} alt="" className="h-full w-full object-cover" />
                                 ) : (
-                                    <User className="h-8 w-8 text-muted/30" />
+                                    <User className="h-8 w-8 text-border" />
                                 )}
                                 <div className="absolute inset-0 bg-foreground/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-background">
                                    <Camera className="h-5 w-5" />
@@ -239,7 +239,7 @@ const SettingsPage: React.FC = () => {
                              </div>
                              <div className="space-y-1.5">
                                  <label className="label-enterprise">Login Email</label>
-                                 <input disabled className="input-enterprise h-10 bg-surface-alt cursor-not-allowed opacity-60 font-medium italic" value={user?.email || ''} />
+                                 <input disabled className="input-enterprise h-10 bg-surface-alt cursor-not-allowed opacity-100 font-medium italic" value={user?.email || ''} />
                              </div>
                        </div>
                     </div>
@@ -294,7 +294,7 @@ const SettingsPage: React.FC = () => {
                                  <tbody>
                                      {isUsersLoading ? (
                                         Array(3).fill(0).map((_, i) => (
-                                          <tr key={i}><td colSpan={4} className="py-8"><div className="h-5 skeleton-ui w-full opacity-50" /></td></tr>
+                                          <tr key={i}><td colSpan={4} className="py-8"><div className="h-5 skeleton-ui w-full opacity-90" /></td></tr>
                                         ))
                                      ) : (users as any[])?.map(u => (
                                          <tr key={u.email} className="group">
@@ -309,7 +309,7 @@ const SettingsPage: React.FC = () => {
                                                    </div>
                                                 </div>
                                              </td>
-                                             <td><span className="text-[11px] font-bold uppercase tracking-tight text-foreground/70">{u.role}</span></td>
+                                             <td><span className="text-[11px] font-bold uppercase tracking-tight text-foreground">{u.role}</span></td>
                                              <td className="text-center font-bold text-[10px] uppercase tracking-widest text-emerald-600 italic">{u.status}</td>
                                              <td className="text-right">
                                                  {u.email !== user?.email && (
@@ -344,7 +344,7 @@ const SettingsPage: React.FC = () => {
 
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {isIntegrationsLoading ? (
-                           Array(4).fill(0).map((_, i) => <div key={i} className="h-24 skeleton-ui opacity-40 rounded-xl" />)
+                           Array(4).fill(0).map((_, i) => <div key={i} className="h-24 skeleton-ui opacity-80 rounded-xl" />)
                         ) : (
                            (integrations as any[])?.map(int => (
                              <div key={int.id} className="p-5 border border-border rounded-xl hover:border-foreground transition-all group flex items-center justify-between bg-surface-alt/20">
@@ -361,7 +361,7 @@ const SettingsPage: React.FC = () => {
                                       </div>
                                     </div>
                                 </div>
-                                <button className="p-2 hover:bg-white rounded-md transition-all opacity-40 group-hover:opacity-100">
+                                <button className="p-2 hover:bg-white rounded-md transition-all opacity-80 group-hover:opacity-100">
                                    <ChevronRight className="h-4 w-4 text-foreground" />
                                 </button>
                              </div>
@@ -369,7 +369,7 @@ const SettingsPage: React.FC = () => {
                         )}
                         {/* Empty states for major platforms */}
                         {['Slack Command', 'PagerDuty', 'CloudWatch'].map(plat => (
-                           <div key={plat} className="p-5 border border-dashed border-border rounded-xl opacity-40 grayscale flex items-center justify-between group hover:opacity-100 transition-all cursor-pointer">
+                           <div key={plat} className="p-5 border border-dashed border-border rounded-xl opacity-80 grayscale flex items-center justify-between group hover:opacity-100 transition-all cursor-pointer">
                               <div className="flex items-center gap-4">
                                  <div className="h-10 w-10 bg-neutral-100 rounded-lg flex items-center justify-center">
                                     <Globe className="h-5 w-5 text-neutral-400" />
@@ -468,7 +468,7 @@ const SettingsPage: React.FC = () => {
                            <tbody>
                               {isAuditLoading ? (
                                  Array(8).fill(0).map((_, i) => (
-                                   <tr key={i}><td colSpan={4} className="py-6"><div className="h-4 skeleton-ui w-full opacity-40 mx-auto" /></td></tr>
+                                   <tr key={i}><td colSpan={4} className="py-6"><div className="h-4 skeleton-ui w-full opacity-80 mx-auto" /></td></tr>
                                  ))
                               ) : (auditLogs as any[])?.length === 0 ? (
                                  <tr><td colSpan={4} className="py-20 text-center text-muted font-bold italic text-[13px]">No audit historical shards found.</td></tr>
@@ -476,7 +476,7 @@ const SettingsPage: React.FC = () => {
                                 <tr key={log.id}>
                                    <td className="font-bold text-foreground py-3 italic">{log.action}</td>
                                    <td><span className="text-[10px] font-bold uppercase tracking-widest text-muted bg-surface-alt px-1.5 py-0.5 rounded border border-border">{log.module}</span></td>
-                                   <td className="text-[13px] font-medium text-foreground/80 leading-relaxed italic">{log.details}</td>
+                                   <td className="text-[13px] font-medium text-foreground leading-relaxed italic">{log.details}</td>
                                    <td className="text-right text-[11px] font-bold text-muted font-mono leading-tight">
                                       {new Date(log.timestamp).toLocaleDateString()}<br/>
                                       {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}

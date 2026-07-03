@@ -113,10 +113,10 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
       {/* Breadcrumbs / Context HUD */}
       <div className="flex items-center gap-4 text-[13px] font-medium text-muted">
          <div className="flex items-center gap-1.5 cursor-pointer hover:text-foreground transition-colors group">
-            <span className="text-foreground/40 group-hover:text-foreground transition-colors">prod-cluster</span>
-            <span className="text-border">/</span>
-            <span className="text-foreground font-semibold">us-east-1</span>
-            <ChevronDown className="h-3.5 w-3.5 mt-0.5 opacity-40 group-hover:opacity-100" />
+            <span className="text-secondary group-hover:text-foreground transition-colors">prod-cluster</span>
+            <span className="text-border-strong">/</span>
+            <span className="text-foreground font-black">us-east-1</span>
+            <ChevronDown className="h-3.5 w-3.5 mt-0.5 text-muted group-hover:text-foreground" />
          </div>
          <div className="w-px h-3 bg-border hidden sm:block" />
          <div className="hidden sm:flex items-center gap-2">
@@ -135,12 +135,12 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full bg-surface-alt/50 border border-border rounded-[var(--radius)] pl-10 pr-12 h-9 text-[13px] text-foreground placeholder:text-muted/60 transition-all focus:ring-2 focus:ring-foreground/5 focus:border-foreground-strong focus:bg-white outline-none"
+            className="w-full bg-surface-alt/50 border border-border rounded-[var(--radius)] pl-10 pr-12 h-9 text-[13px] text-foreground placeholder:text-secondary transition-all focus:ring-2 focus:ring-foreground/5 focus:border-foreground-strong focus:bg-white outline-none"
             placeholder="Search across your infrastructure..."
           />
           <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-             <kbd className="flex items-center gap-0.5 px-1.5 py-0.5 bg-white border border-border shadow-sm rounded text-[10px] font-bold text-muted uppercase tracking-tighter">
-                <Command className="h-2.5 w-2.5" /> K
+             <kbd className="flex items-center gap-0.5 px-1.5 py-0.5 bg-white border border-border-strong shadow-sm rounded text-[11px] font-bold text-foreground uppercase tracking-tighter">
+                <Command className="h-3 w-3" /> K
              </kbd>
           </div>
         </div>
@@ -183,7 +183,7 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
                 ))
               ) : (
                 <div className="p-8 text-center">
-                   <Search className="h-8 w-8 text-muted/20 mx-auto mb-3" />
+                   <Search className="h-8 w-8 text-border mx-auto mb-3" />
                    <p className="text-muted text-[12px] font-medium">No results found for "{query}"</p>
                 </div>
               )}
@@ -232,7 +232,7 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
                              </span>
                           </div>
                           <p className="text-[12px] text-muted leading-relaxed line-clamp-2">{n.message}</p>
-                          <div className="mt-3 text-[10px] font-bold text-muted/40 uppercase tracking-widest flex items-center gap-2">
+                          <div className="mt-3 text-[10px] font-bold text-secondary uppercase tracking-widest flex items-center gap-2">
                              <Clock className="h-3 w-3" />
                              {new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </div>
@@ -241,7 +241,7 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
                    ) : (
                      <div className="p-16 text-center">
                         <Bell className="h-10 w-10 text-muted/10 mx-auto mb-4" />
-                        <p className="text-[12px] font-bold uppercase tracking-widest text-muted/40">Quiet on the front</p>
+                        <p className="text-[12px] font-bold uppercase tracking-widest text-secondary">Quiet on the front</p>
                      </div>
                    )}
                 </div>
@@ -263,7 +263,7 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
               </div>
               <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 bg-success border-2 border-white rounded-full shadow-sm" />
            </div>
-           <ChevronDown className="h-4 w-4 text-muted/40 group-hover:text-foreground transition-colors" />
+           <ChevronDown className="h-4 w-4 text-secondary group-hover:text-foreground transition-colors" />
         </div>
       </div>
     </header>

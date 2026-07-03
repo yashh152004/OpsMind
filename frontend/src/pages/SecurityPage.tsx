@@ -48,7 +48,7 @@ const SecurityPage: React.FC = () => {
            <button 
              onClick={handleDeepScan}
              disabled={isScanning}
-             className="btn-primary h-8 px-3 text-[11px] font-bold uppercase tracking-wider disabled:opacity-50">
+             className="btn-primary h-8 px-3 text-[11px] font-bold uppercase tracking-wider disabled:opacity-90">
              {isScanning ? 'Scanning...' : 'Deep Scan'}
            </button>
         </div>
