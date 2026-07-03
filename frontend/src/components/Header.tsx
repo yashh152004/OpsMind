@@ -8,13 +8,18 @@ import {
   AlertCircle, 
   Terminal, 
   Cpu,
-  Menu,
-  Command,
+  Activity,
   Plus,
-  Clock
+  ArrowRight,
+  Settings,
+  ShieldCheck,
+  Clock,
+  Menu,
+  Command
 } from 'lucide-react'
 import { useAuth } from '@/hooks'
 import { apiClient } from '@/services/api'
+import { searchService, SearchResult } from '@/services/SearchService'
 import { useNavigate } from 'react-router-dom'
 import { cn } from '@/utils/cn'
 
@@ -26,12 +31,14 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
   const { user } = useAuth()
   const navigate = useNavigate()
   
-  // Search State
+  // Search Hub State
   const [query, setQuery] = useState('')
-  const [results, setResults] = useState<any[]>([])
+  const [results, setResults] = useState<SearchResult[]>([])
   const [isSearching, setIsSearching] = useState(false)
   const [showResults, setShowResults] = useState(false)
+  const [activeIndex, setActiveIndex] = useState(-1)
   const searchRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   // Notification State
   const [unreadCount, setUnreadCount] = useState(0)
@@ -55,39 +62,74 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
   const fetchNotifications = async () => {
     try {
       const data = await apiClient.getNotifications()
-      setNotifications(data)
-      setUnreadCount(data.length)
+      setNotifications(data || [])
+      setUnreadCount(data?.length || 0)
     } catch (e) {
       console.error("Failed to fetch notifications")
     }
   }
 
   useEffect(() => {
-    const delayDebounceFn = setTimeout(async () => {
-      if (query.length > 2) {
-        setIsSearching(true)
-        setShowResults(true)
-        try {
-          const data = await apiClient.globalSearch(query)
-          setResults(data)
-        } catch (e) {
-          console.error("Search failed")
-        } finally {
-          setIsSearching(false)
-        }
-      } else {
-        setResults([])
-        setShowResults(false)
-      }
-    }, 300)
-    return () => clearTimeout(delayDebounceFn)
-  }, [query])
-
-  useEffect(() => {
     fetchNotifications()
     const interval = setInterval(fetchNotifications, 15000)
     return () => clearInterval(interval)
   }, [])
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Command + K to focus search
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        inputRef.current?.focus()
+      }
+      // Escape to close
+      if (e.key === 'Escape') {
+        setShowResults(false)
+        inputRef.current?.blur()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
+
+  useEffect(() => {
+    const search = async () => {
+      if (query.length > 0) {
+        setIsSearching(true)
+        setShowResults(true)
+        const data = await searchService.search(query)
+        setResults(data)
+        setIsSearching(false)
+      } else {
+        setResults([])
+        setShowResults(false)
+      }
+    }
+
+    const debounce = setTimeout(search, 200)
+    return () => clearTimeout(debounce)
+  }, [query])
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setActiveIndex(prev => (prev < results.length - 1 ? prev + 1 : prev))
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setActiveIndex(prev => (prev > 0 ? prev - 1 : prev))
+    } else if (e.key === 'Enter') {
+       if (activeIndex >= 0) {
+          e.preventDefault()
+          handleNavigate(results[activeIndex])
+       }
+    }
+  }
+
+  const handleNavigate = (res: SearchResult) => {
+    setShowResults(false)
+    setQuery('')
+    navigate(res.href)
+  }
 
   const handleMarkAllRead = async () => {
     try {
@@ -121,74 +163,97 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
          <div className="w-px h-3 bg-border hidden sm:block" />
          <div className="hidden sm:flex items-center gap-2">
             <div className="h-1.5 w-1.5 rounded-full bg-success" />
-            <span className="text-[11px] font-bold uppercase tracking-widest">Systems Nominal</span>
+            <span className="text-[11px] font-bold uppercase tracking-widest text-success">Systems Nominal</span>
          </div>
       </div>
 
       {/* Global Search Interface */}
       <div className="flex-1 max-w-lg mx-8 relative hidden md:block" ref={searchRef}>
         <div className="relative group">
-          <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-muted-foreground group-focus-within:text-foreground transition-colors">
+          <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-muted group-focus-within:text-foreground transition-colors">
             {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
           </div>
           <input
+            ref={inputRef}
             type="text"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="w-full bg-surface-alt/50 border border-border rounded-[var(--radius)] pl-10 pr-12 h-9 text-[13px] text-foreground placeholder:text-secondary transition-all focus:ring-2 focus:ring-foreground/5 focus:border-foreground-strong focus:bg-white outline-none"
-            placeholder="Search across your infrastructure..."
+            onChange={(e) => { setQuery(e.target.value); setActiveIndex(-1); }}
+            onKeyDown={handleSearchKeyDown}
+            onFocus={() => query.length > 0 && setShowResults(true)}
+            className="w-full bg-surface-alt border border-border-strong rounded-[var(--radius)] pl-10 pr-12 h-10 text-[13px] font-bold text-foreground placeholder:text-muted outline-none transition-all focus:ring-2 focus:ring-foreground/10 focus:border-foreground"
+            placeholder="Search resources, incidents, or commands..."
           />
           <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-             <kbd className="flex items-center gap-0.5 px-1.5 py-0.5 bg-white border border-border-strong shadow-sm rounded text-[11px] font-bold text-foreground uppercase tracking-tighter">
-                <Command className="h-3 w-3" /> K
+             <kbd className="flex items-center gap-0.5 px-2 py-0.5 bg-white border border-border-strong shadow-sm rounded text-[10px] font-black text-foreground uppercase tracking-tighter">
+                CMD K
              </kbd>
           </div>
         </div>
 
         {/* Search Results Dropdown */}
         {showResults && (
-           <div className="absolute top-full left-0 right-0 mt-2 bg-surface border border-border rounded-[var(--radius)] shadow-2xl z-[200] max-h-[480px] overflow-y-auto p-1.5 animate-in">
-              <div className="px-3 py-1.5 mb-1">
-                 <span className="text-[10px] font-bold text-muted uppercase tracking-widest">Search Results</span>
-              </div>
-              {results.length > 0 ? (
-                results.map((res, i) => (
-                  <button key={i} 
-                          onClick={() => {
-                            setShowResults(false);
-                            setQuery('');
-                            const path = res.type === 'INCIDENT' ? '/incidents' : 
-                                         res.type === 'ALERT' ? '/alerts' : 
-                                         res.type === 'INFRASTRUCTURE' ? '/infrastructure' : 
-                                         res.type === 'SECURITY' ? '/security' : '/settings';
-                            navigate(path);
-                          }}
-                          className="w-full text-left px-3 py-2.5 hover:bg-surface-alt rounded-[var(--radius)] flex items-center gap-3 group transition-colors">
-                    <div className="h-8 w-8 bg-surface-alt border border-border rounded-[var(--radius)] flex items-center justify-center text-muted group-hover:bg-foreground group-hover:text-white transition-all">
-                      {res.type === 'INCIDENT' ? <AlertCircle className="h-4 w-4" /> : 
-                       res.type === 'ALERT' ? <Bell className="h-4 w-4" /> : 
-                       res.type === 'INFRASTRUCTURE' ? <Terminal className="h-4 w-4" /> : 
-                       res.type === 'USER' ? <HelpCircle className="h-4 w-4" /> :
-                       <Cpu className="h-4 w-4" />}
-                    </div>
-                    <div>
-                      <div className="text-[13px] font-semibold text-foreground">{res.title}</div>
-                      <div className="text-[11px] text-muted-foreground flex items-center gap-2 mt-0.5">
-                         <span className="font-bold uppercase tracking-wider text-[10px]">{res.type}</span>
-                         <span className="h-1 w-1 bg-border rounded-full" />
-                         <span>{res.subtitle}</span>
+            <div className="absolute top-full left-0 right-0 mt-2 bg-surface border border-border-strong rounded-md shadow-[0_20px_50px_rgba(0,0,0,0.2)] z-[200] max-h-[500px] overflow-y-auto p-2 animate-in slide-in-from-top-2 duration-200">
+               <div className="px-3 py-2 mb-1 flex items-center justify-between border-b border-border">
+                  <span className="text-[10px] font-black text-muted uppercase tracking-[0.2em]">Platform Command Shard</span>
+                  <span className="text-[10px] font-bold text-muted bg-surface-alt px-1.5 py-0.5 rounded border border-border">{results.length} Results</span>
+               </div>
+               
+               {results.length > 0 ? (
+                 <div className="space-y-0.5">
+                   {results.map((res, i) => (
+                    <button 
+                      key={res.id} 
+                      onMouseEnter={() => setActiveIndex(i)}
+                      onClick={() => handleNavigate(res)}
+                      className={cn(
+                        "w-full text-left px-3 py-3 rounded-md flex items-center gap-4 group transition-all border border-transparent",
+                        activeIndex === i ? "bg-black text-white shadow-lg translate-x-1" : "hover:bg-surface-alt"
+                      )}
+                    >
+                      <div className={cn(
+                        "h-8 w-8 rounded flex items-center justify-center transition-colors border",
+                        activeIndex === i ? "bg-white/10 border-white/20 text-white" : "bg-surface-alt border-border text-muted"
+                      )}>
+                        {res.type === 'INCIDENT' ? <AlertCircle className="h-4 w-4" /> : 
+                         res.type === 'ALERT' ? <Activity className="h-4 w-4" /> : 
+                         res.type === 'INFRASTRUCTURE' ? <Terminal className="h-4 w-4" /> : 
+                         res.type === 'SECURITY' ? <ShieldCheck className="h-4 w-4" /> :
+                         res.type === 'SETTING' ? <Settings className="h-4 w-4" /> :
+                         <Cpu className="h-4 w-4" />}
                       </div>
+                      <div className="flex-1 min-w-0">
+                        <div className={cn("text-[13px] font-bold truncate", activeIndex === i ? "text-white" : "text-foreground")}>
+                          {res.title}
+                        </div>
+                        <div className={cn("text-[11px] truncate flex items-center gap-2 mt-0.5 font-medium", activeIndex === i ? "text-white/60" : "text-muted")}>
+                           <span className="font-black uppercase tracking-widest text-[9px] px-1 bg-neutral-800 text-white rounded-[2px]">{res.type}</span>
+                           <span>{res.subtitle}</span>
+                        </div>
+                      </div>
+                      {activeIndex === i && (
+                         <div className="flex items-center gap-1.5 px-2 py-0.5 bg-white/10 rounded border border-white/20 text-[10px] font-black uppercase">
+                            Jump <ArrowRight className="h-3 w-3" />
+                         </div>
+                      )}
+                    </button>
+                   ))}
+                 </div>
+               ) : (
+                 <div className="py-12 text-center">
+                    <Search className="h-10 w-10 text-border-strong mx-auto mb-4 opacity-20" />
+                    <p className="text-foreground font-black text-[14px] mb-1 uppercase tracking-tight">Access Signal Denied</p>
+                    <p className="text-muted text-[11px] font-bold uppercase tracking-widest">No matching resources found in global cache</p>
+                    <div className="mt-6 flex flex-wrap justify-center gap-2">
+                       {['Incidents', 'Security', 'Infra', 'Settings'].map(t => (
+                          <button key={t} onClick={() => { setQuery(t); inputRef.current?.focus(); }} className="px-3 py-1 bg-surface-alt border border-border rounded text-[10px] font-bold text-muted hover:border-foreground hover:text-foreground transition-all">
+                             {t}
+                          </button>
+                       ))}
                     </div>
-                  </button>
-                ))
-              ) : (
-                <div className="p-8 text-center">
-                   <Search className="h-8 w-8 text-border mx-auto mb-3" />
-                   <p className="text-muted text-[12px] font-medium">No results found for "{query}"</p>
-                </div>
-              )}
-           </div>
-        )}
+                 </div>
+               )}
+            </div>
+         )}
       </div>
 
       <div className="flex items-center gap-4 ml-auto">
@@ -211,9 +276,9 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
            </button>
 
            {showNotifications && (
-             <div className="absolute top-full right-0 mt-3 w-96 bg-surface border border-border rounded-[var(--radius)] shadow-2xl z-[300] flex flex-col animate-in">
+             <div className="absolute top-full right-0 mt-3 w-96 bg-surface border border-border rounded-[var(--radius)] shadow-2xl z-[300] flex flex-col animate-in slide-in-from-top-2 duration-200">
                 <div className="px-5 py-4 border-b border-border bg-surface-alt/50 flex items-center justify-between">
-                   <span className="text-[11px] font-bold uppercase tracking-[0.15em] text-foreground">Signals & Events</span>
+                   <span className="text-[11px] font-black uppercase tracking-[0.15em] text-foreground">Signals & Events</span>
                    <button onClick={handleMarkAllRead} className="text-[11px] font-bold text-foreground hover:underline">Clear All</button>
                 </div>
                 <div className="max-h-[480px] overflow-y-auto no-scrollbar">
@@ -227,12 +292,12 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
                           <div className="flex justify-between items-start mb-2">
                              <div className="text-[13px] font-bold text-foreground leading-tight pr-4">{n.title}</div>
                              <span className={cn("px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border", 
-                               n.severity === 'CRITICAL' ? "bg-red-50 text-red-600 border-red-100" : "bg-blue-50 text-blue-600 border-blue-100")}>
+                                n.severity === 'CRITICAL' ? "bg-red-50 text-red-600 border-red-100" : "bg-blue-50 text-blue-600 border-blue-100")}>
                                {n.severity}
                              </span>
                           </div>
-                          <p className="text-[12px] text-muted leading-relaxed line-clamp-2">{n.message}</p>
-                          <div className="mt-3 text-[10px] font-bold text-secondary uppercase tracking-widest flex items-center gap-2">
+                          <p className="text-[12px] text-muted-foreground font-medium leading-relaxed line-clamp-2">{n.message}</p>
+                          <div className="mt-3 text-[10px] font-black text-secondary uppercase tracking-widest flex items-center gap-2">
                              <Clock className="h-3 w-3" />
                              {new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </div>
@@ -241,11 +306,11 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
                    ) : (
                      <div className="p-16 text-center">
                         <Bell className="h-10 w-10 text-muted/10 mx-auto mb-4" />
-                        <p className="text-[12px] font-bold uppercase tracking-widest text-secondary">Quiet on the front</p>
+                        <p className="text-[12px] font-black uppercase tracking-widest text-secondary">Quiet on the front</p>
                      </div>
                    )}
                 </div>
-                <button className="p-4 border-t border-border text-[11px] font-bold text-foreground hover:bg-surface-alt text-center uppercase tracking-[0.2em]" onClick={() => { setShowNotifications(false); navigate('/alerts'); }}>
+                <button className="p-4 border-t border-border text-[11px] font-black text-foreground hover:bg-surface-alt text-center uppercase tracking-[0.2em]" onClick={() => { setShowNotifications(false); navigate('/alerts'); }}>
                   View All Activity
                 </button>
              </div>
@@ -254,11 +319,11 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
         
         <div className="flex items-center gap-3 pl-2 group cursor-pointer" onClick={() => navigate('/settings')}>
            <div className="hidden xl:block text-right">
-              <div className="text-[13px] font-bold text-foreground leading-none">{user?.firstName} {user?.lastName}</div>
-              <div className="text-[11px] font-semibold text-muted uppercase tracking-wider mt-1">Enterprise</div>
+              <div className="text-[13px] font-black text-foreground leading-none">{user?.firstName} {user?.lastName}</div>
+              <div className="text-[11px] font-bold text-muted uppercase tracking-wider mt-1">Enterprise Shard</div>
            </div>
            <div className="relative">
-              <div className="h-9 w-9 bg-foreground text-white rounded-[var(--radius)] flex items-center justify-center font-bold text-[14px] shadow-sm transform transition-transform group-hover:scale-105">
+              <div className="h-9 w-9 bg-foreground text-white rounded-[var(--radius)] flex items-center justify-center font-black text-[14px] shadow-sm transform transition-all group-hover:ring-2 group-hover:ring-foreground/20">
                  {user?.firstName?.[0] || 'Y'}
               </div>
               <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 bg-success border-2 border-white rounded-full shadow-sm" />

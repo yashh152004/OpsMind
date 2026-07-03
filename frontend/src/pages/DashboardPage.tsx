@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/services/api'
+import { searchService, SearchResult } from '@/services/SearchService'
 import { useNavigate } from 'react-router-dom'
 import { cn } from '@/utils/cn'
 import Widget from '@/components/Widget'
@@ -43,12 +44,44 @@ const DashboardPage: React.FC = () => {
   const navigate = useNavigate()
   const [isExporting, setIsExporting] = useState(false)
   const [showWidgetMarketplace, setShowWidgetMarketplace] = useState(false)
+  
+  // Command Palette State
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([])
+  const [isSearching, setIsSearching] = useState(false)
+  const [showPalette, setShowPalette] = useState(false)
+  const paletteRef = React.useRef<HTMLDivElement>(null)
 
   const { data: stats, isLoading, isRefetching, refetch } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: () => apiClient.getDashboardStats(),
     refetchInterval: 15000 // Professional sync interval
   })
+
+  React.useEffect(() => {
+    const search = async () => {
+      if (searchQuery.length > 0) {
+        setIsSearching(true)
+        const data = await searchService.search(searchQuery)
+        setSearchResults(data)
+        setIsSearching(false)
+      } else {
+        setSearchResults([])
+      }
+    }
+    const timer = setTimeout(search, 200)
+    return () => clearTimeout(timer)
+  }, [searchQuery])
+
+  React.useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (paletteRef.current && !paletteRef.current.contains(e.target as Node)) {
+        setShowPalette(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   if (isLoading) return <DashboardSkeleton />
 
@@ -80,20 +113,77 @@ const DashboardPage: React.FC = () => {
   return (
     <div className="page-transition-fade space-y-8 p-6 lg:p-8 bg-background min-h-screen max-w-[1600px] mx-auto">
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-border">
-        <div className="space-y-1">
-           <h1 className="text-3xl font-bold tracking-tight text-foreground m-0">Platform Overview</h1>
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 pb-8 border-b border-border">
+        <div className="space-y-1.5 min-w-[300px]">
+           <h1 className="text-4xl font-black tracking-tighter text-foreground m-0">Platform Overview</h1>
            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded text-[11px] font-bold uppercase tracking-wider">
-                 <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <div className="flex items-center gap-2 px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded text-[11px] font-black uppercase tracking-widest shadow-sm">
+                 <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
                  Operational
               </div>
-              <span className="text-border">|</span>
-              <p className="text-[12px] font-medium text-muted flex items-center gap-1.5">
-                 <Clock className="h-3.5 w-3.5" /> Updated {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              <span className="text-border-strong">|</span>
+              <p className="text-[12px] font-bold text-muted flex items-center gap-1.5">
+                 <Clock className="h-4 w-4" /> Last Shard Sync: {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </p>
            </div>
         </div>
+
+        {/* Unified Command Palette Bar */}
+        <div className="flex-1 max-w-2xl relative" ref={paletteRef}>
+           <div className="relative group">
+              <Search className={cn("absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 transition-colors", isSearching ? "text-foreground animate-pulse" : "text-muted group-focus-within:text-foreground")} />
+              <input 
+                type="text" 
+                placeholder="Type 'latest incidents' or 'security' to jump..." 
+                value={searchQuery}
+                onChange={(e) => { setSearchQuery(e.target.value); setShowPalette(true); }}
+                onFocus={() => setShowPalette(true)}
+                className="w-full h-12 bg-surface-alt border-2 border-border rounded-xl pl-12 pr-4 text-[14px] font-bold text-foreground placeholder:text-muted transition-all focus:border-foreground focus:ring-4 focus:ring-foreground/5 outline-none shadow-sm"
+              />
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                 <kbd className="px-2 py-0.5 bg-white border border-border-strong rounded text-[10px] font-black shadow-sm">CTRL</kbd>
+                 <kbd className="px-2 py-0.5 bg-white border border-border-strong rounded text-[10px] font-black shadow-sm">/</kbd>
+              </div>
+           </div>
+
+           {showPalette && searchResults.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-3 bg-surface border-2 border-foreground rounded-xl shadow-[0_30px_60px_rgba(0,0,0,0.15)] z-[400] overflow-hidden animate-in slide-in-from-top-2 duration-300">
+                 <div className="p-2 space-y-1 max-h-[400px] overflow-y-auto">
+                    {searchResults.map((res) => (
+                       <button 
+                         key={res.id}
+                         onClick={() => navigate(res.href)}
+                         className="w-full flex items-center gap-4 px-4 py-3 hover:bg-black hover:text-white rounded-lg transition-all text-left group"
+                       >
+                          <div className="h-9 w-9 bg-surface-alt border border-border rounded flex items-center justify-center text-muted group-hover:bg-white/10 group-hover:border-white/20 group-hover:text-white">
+                             {res.type === 'INCIDENT' ? <AlertTriangle className="h-4.5 w-4.5" /> : 
+                              res.type === 'SECURITY' ? <ShieldCheck className="h-4.5 w-4.5" /> : 
+                              res.type === 'ANALYTICS' ? <BarChart3 className="h-4.5 w-4.5" /> :
+                              <Activity className="h-4.5 w-4.5" />}
+                          </div>
+                          <div className="flex-1">
+                             <div className="text-[14px] font-black tracking-tight">{res.title}</div>
+                             <div className="text-[11px] font-bold uppercase tracking-widest opacity-60">{res.subtitle}</div>
+                          </div>
+                          <ChevronRight className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                       </button>
+                    ))}
+                 </div>
+                 <div className="p-3 bg-surface-alt border-t border-border flex items-center justify-between">
+                    <span className="text-[10px] font-black text-muted uppercase tracking-[0.2em]">{searchResults.length} Local Command Shards</span>
+                    <div className="flex items-center gap-3">
+                       <div className="flex items-center gap-1 text-[10px] font-bold text-muted">
+                          <kbd className="px-1.5 py-0.5 bg-white border border-border rounded">ENTER</kbd> jump
+                       </div>
+                       <div className="flex items-center gap-1 text-[10px] font-bold text-muted">
+                          <kbd className="px-1.5 py-0.5 bg-white border border-border rounded">ESC</kbd> close
+                       </div>
+                    </div>
+                 </div>
+              </div>
+           )}
+        </div>
+
         <div className="flex items-center gap-3">
            <button 
              onClick={() => refetch()}

@@ -236,9 +236,9 @@ const AlertsPage: React.FC = () => {
              </div>
           </div>
           <div className="flex items-center gap-10">
-             <div className="flex flex-col items-end">
-                <span className="text-[10px] font-bold opacity-80 uppercase tracking-widest">Uptime Heartbeat</span>
-                <span className="text-xl font-mono font-bold">99.999%</span>
+             <div className="flex flex-col items-end text-neutral-400">
+                <span className="text-[10px] font-black uppercase tracking-widest">Uptime Heartbeat</span>
+                <span className="text-2xl font-mono font-black text-white">99.999%</span>
              </div>
              <div className="h-8 w-px bg-background opacity-10" />
              <button className="h-10 px-6 border border-background text-[11px] font-bold uppercase tracking-widest hover:bg-background hover:text-foreground transition-all">

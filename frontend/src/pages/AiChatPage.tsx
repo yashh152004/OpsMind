@@ -194,8 +194,8 @@ export default function AiChatPage() {
                     >
                       <div className="flex items-center justify-between">
                         <span className={cn(
-                          "text-[13px] font-bold truncate max-w-[200px]",
-                          activeConversationId === conv.id ? "text-foreground" : "text-muted"
+                          "text-[13px] font-black truncate max-w-[200px]",
+                          activeConversationId === conv.id ? "text-foreground" : "text-secondary"
                         )}>
                           {conv.title}
                         </span>
@@ -219,8 +219,8 @@ export default function AiChatPage() {
            <div className="flex items-center gap-3 px-1">
               <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
               <div className="flex-1 min-w-0">
-                 <div className="text-[10px] font-bold text-foreground uppercase tracking-widest leading-none truncate">Engine: Standard_Reasoning_v4</div>
-                 <div className="text-[9px] text-muted mt-1.5 font-semibold">Latency: {engineStatus?.latency || 'LOW'}</div>
+                 <div className="text-[10px] font-black text-foreground uppercase tracking-widest leading-none truncate">Engine: Standard_Reasoning_v4</div>
+                 <div className="text-[10px] text-secondary mt-1.5 font-bold uppercase tracking-wider">Status: Optimal</div>
               </div>
            </div>
         </div>
@@ -311,10 +311,10 @@ export default function AiChatPage() {
                            )}>
                               {msg.role === 'USER' ? 'SRE' : 'AI'}
                            </div>
-                           <span className="text-[11px] font-bold uppercase tracking-widest text-foreground">
+                           <span className="text-[11px] font-black uppercase tracking-widest text-foreground">
                               {msg.role === 'USER' ? 'Operator Signal' : 'OpsMind Core Response'}
                            </span>
-                           <span className="text-[10px] text-muted font-bold">
+                           <span className="text-[10px] text-secondary font-black bg-surface-alt px-1.5 py-0.5 rounded border border-border">
                               {msg.createdAt ? format(new Date(msg.createdAt), 'HH:mm:ss') : '--:--:--'}
                            </span>
                         </div>

@@ -87,7 +87,7 @@ const AnalyticsPage: React.FC = () => {
               </h3>
               <span className="text-[10px] font-bold text-muted uppercase tracking-widest">P95 Accuracy</span>
            </div>
-           <div className="h-[340px] p-6 card-enterprise bg-white">
+           <div className="h-[340px] p-6 card-enterprise bg-surface">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={trends?.mttrTrend || []}>
                   <defs>
@@ -101,12 +101,12 @@ const AnalyticsPage: React.FC = () => {
                     dataKey="month" 
                     axisLine={false} 
                     tickLine={false} 
-                    tick={{fill: '#999', fontSize: 10, fontWeight: 600}} 
+                    tick={{fill: 'var(--foreground)', fontSize: 10, fontWeight: 900}} 
                   />
                   <YAxis 
                     axisLine={false} 
                     tickLine={false} 
-                    tick={{fill: '#999', fontSize: 10, fontWeight: 600}} 
+                    tick={{fill: 'var(--foreground)', fontSize: 10, fontWeight: 900}} 
                   />
                   <Tooltip 
                     cursor={{ stroke: '#000', strokeWidth: 1 }}
@@ -134,7 +134,7 @@ const AnalyticsPage: React.FC = () => {
               </h3>
               <span className="text-[10px] font-bold text-muted uppercase tracking-widest">Logic: Real-Time</span>
            </div>
-           <div className="h-[340px] p-6 card-enterprise bg-white">
+           <div className="h-[340px] p-6 card-enterprise bg-surface">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={trends?.serviceHealth || []}>
                   <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#F0F0F0" />
@@ -142,13 +142,13 @@ const AnalyticsPage: React.FC = () => {
                     dataKey="name" 
                     axisLine={false} 
                     tickLine={false} 
-                    tick={{fill: '#999', fontSize: 10, fontWeight: 600}} 
+                    tick={{fill: 'var(--foreground)', fontSize: 10, fontWeight: 900}} 
                   />
                   <YAxis 
                     domain={[98, 100]} 
                     axisLine={false} 
                     tickLine={false} 
-                    tick={{fill: '#999', fontSize: 10, fontWeight: 600}} 
+                    tick={{fill: 'var(--foreground)', fontSize: 10, fontWeight: 900}} 
                   />
                   <Tooltip 
                      cursor={{fill: '#F9F9F9'}}
