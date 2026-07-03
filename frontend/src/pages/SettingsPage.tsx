@@ -4,7 +4,7 @@ import {
   User, Shield, Globe, MessageSquare, Webhook, Lock, ChevronRight, Camera,
   Mail, Phone, Briefcase, History, AlertTriangle, LogOut, Building,
   Plus, Eye, EyeOff, Key, Terminal, CreditCard, Bell, Layout, Settings as SettingsIcon, ShieldCheck, Download,
-  CheckCircle2, AlertCircle, RefreshCw
+  CheckCircle2, AlertCircle, RefreshCw, Clock, MapPin, Search
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import { apiClient } from '@/services/api'
@@ -73,44 +73,41 @@ const SettingsPage: React.FC = () => {
     mutationFn: (data: any) => apiClient.updateProfile(data),
     onSuccess: (updatedUser) => {
       setUser(updatedUser)
-      toast.success('PRO_ID_SYNC: Identity credentials synchronized successfully.')
+      toast.success('Identity profile synchronized.')
       queryClient.invalidateQueries({ queryKey: ['users', 'me'] })
     },
-    onError: () => toast.error('PRO_FAULT: Identity synchronization failure.')
+    onError: () => toast.error('Profile synchronization failure.')
   })
 
   const updateOrgMutation = useMutation({
     mutationFn: (data: any) => apiClient.updateOrganization(data),
     onSuccess: () => {
-      toast.success('WORKSPACE_SYNCED: Organization policies updated.')
+      toast.success('Workspace policies updated.')
       queryClient.invalidateQueries({ queryKey: ['my-organization'] })
     },
-    onError: () => toast.error('SYNC_FAULT: Organization update failed.')
+    onError: () => toast.error('Organization update failed.')
   })
 
   const changePasswordMutation = useMutation({
     mutationFn: (data: any) => apiClient.changePassword(data),
     onSuccess: () => {
-      toast.success('SECURITY_ROTATED: Global command password updated.')
+      toast.success('Security credentials rotated.')
       setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' })
     },
-    onError: (err: any) => toast.error(err.response?.data?.message || 'ROTATION_FAULT: Encryption key update failed.')
+    onError: (err: any) => toast.error(err.response?.data?.message || 'Password rotation failed.')
   })
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    const toastId = toast.loading('BUFFERING_ASSET...')
+    const toastId = toast.loading('Uploading asset...')
     try {
       const result = await apiClient.uploadFile(file)
       setProfileForm(prev => ({ ...prev, avatarUrl: result.url }))
-      // Auto-save profile with new avatar
       updateProfileMutation.mutate({ ...profileForm, avatarUrl: result.url })
-      toast.success('ASSET_READY', { id: toastId })
+      toast.success('Profile image updated.', { id: toastId })
     } catch (err: any) {
-      const errorMessage = err.response?.data?.error || err.response?.data?.message || 'UPLOAD_FAULT: Buffer transmission failed.'
-      toast.error(errorMessage, { id: toastId })
-      console.error('Avatar Upload Error:', err)
+      toast.error('Avatar upload failed.', { id: toastId })
     }
   }
 
@@ -129,113 +126,120 @@ const SettingsPage: React.FC = () => {
     { id: 'PROFILE', label: 'Identity', icon: User },
     { id: 'WORKSPACE', label: 'Workspace', icon: Building },
     { id: 'CONNECTORS', label: 'Connectors', icon: Webhook },
-    { id: 'SECURITY', label: 'Encryption', icon: Lock },
+    { id: 'SECURITY', label: 'Security', icon: Lock },
     { id: 'AUDIT', label: 'Audit Log', icon: History },
   ]
 
   return (
-    <div className="page-transition-fade space-y-12 p-8 bg-white min-h-screen">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 pb-10 border-b border-border">
-        <div className="space-y-2">
-           <h1 className="text-4xl font-black tracking-tighter text-black font-geist uppercase">Settings</h1>
-           <div className="flex items-center gap-4">
-              <p className="text-[11px] font-bold text-muted uppercase tracking-[0.2em] flex items-center gap-2">
-                 <SettingsIcon className="h-4 w-4 text-black" /> Configuration & Policy Matrix
+    <div className="page-transition-fade space-y-8 p-6 lg:p-8 bg-background min-h-screen max-w-[1600px] mx-auto">
+      {/* Page Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-border">
+        <div className="space-y-1">
+           <h1 className="text-3xl font-bold tracking-tight text-foreground m-0">Platform Settings</h1>
+           <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 px-2 py-0.5 bg-neutral-100 text-neutral-700 border border-neutral-200 rounded text-[11px] font-bold uppercase tracking-wider">
+                 <SettingsIcon className="h-3.5 w-3.5" />
+                 Global Configuration
+              </div>
+              <span className="text-border">|</span>
+              <p className="text-[12px] font-medium text-muted flex items-center gap-1.5">
+                 <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" /> Administrative Access Verified
               </p>
-              <div className="h-4 w-[1px] bg-border" />
-              <p className="text-[10px] font-bold text-black uppercase tracking-widest">Operator State: Authenticated</p>
            </div>
         </div>
         <button 
           onClick={() => logout()}
-          className="btn-secondary h-10 border-strong text-red-600 hover:bg-red-50 hover:border-red-200"
+          className="btn-secondary h-9 text-red-600 hover:bg-red-50 hover:border-red-200"
         >
            <LogOut className="h-4 w-4" />
-           <span className="ml-2 font-black uppercase tracking-widest text-[11px]">Terminate Session</span>
+           <span className="ml-2">Sign Out</span>
         </button>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-10">
-        <aside className="w-full lg:w-64 shrink-0 space-y-1">
-           <div className="text-[10px] font-black text-muted uppercase tracking-[0.3em] mb-4 pl-3">Navigation Shards</div>
-           {tabs.map((tab) => (
-             <button
-               key={tab.id}
-               onClick={() => setActiveTab(tab.id)}
-               className={cn(
-                 "w-full flex items-center gap-3 px-4 py-3 rounded text-[12px] font-black uppercase tracking-widest transition-all border",
-                 activeTab === tab.id 
-                   ? "bg-black text-white border-black shadow-xl" 
-                   : "text-muted hover:bg-surface-alt hover:text-black border-transparent"
-               )}
-             >
-               <tab.icon className="h-4 w-4" />
-               {tab.label}
-             </button>
-           ))}
+      <div className="flex flex-col lg:flex-row gap-8">
+        {/* Navigation Rail */}
+        <aside className="w-full lg:w-64 shrink-0">
+           <div className="flex flex-col gap-1 p-1 bg-surface-alt rounded-lg border border-border">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-4 py-2.5 rounded-md text-[13px] font-semibold transition-all text-left",
+                    activeTab === tab.id 
+                      ? "bg-white text-foreground shadow-sm border border-border" 
+                      : "text-muted hover:text-foreground hover:bg-surface-hover/50"
+                  )}
+                >
+                  <tab.icon className={cn("h-4 w-4", activeTab === tab.id ? "text-foreground" : "text-muted")} />
+                  <span>{tab.label}</span>
+                  {activeTab === tab.id && <ChevronRight className="h-4 w-4 ml-auto opacity-40" />}
+                </button>
+              ))}
+           </div>
         </aside>
 
+        {/* Content Area */}
         <main className="flex-1">
-          <div className="enterprise-card bg-white border-strong min-h-[700px] shadow-sm">
-             <div className="p-10">
+          <div className="card-enterprise p-8 overflow-hidden">
+             <div className="max-w-4xl">
                 {activeTab === 'PROFILE' && (
-                  <form onSubmit={(e) => { e.preventDefault(); updateProfileMutation.mutate(profileForm); }} className="space-y-12">
+                  <form onSubmit={(e) => { e.preventDefault(); updateProfileMutation.mutate(profileForm); }} className="space-y-10">
                     <div className="flex items-start justify-between">
                        <div className="space-y-1">
-                          <h2 className="text-2xl font-black text-black font-geist uppercase">Identity Credentials</h2>
-                          <p className="text-[12px] text-muted font-medium italic">Synchronize your operational profile across the mesh.</p>
+                          <h2 className="text-xl font-bold text-foreground">Identity Profile</h2>
+                          <p className="text-[14px] text-muted font-medium">Synchronize your personal credentials across the platform.</p>
                        </div>
                        <button 
                          type="submit" 
                          disabled={updateProfileMutation.isPending}
-                         className="btn-primary h-10 px-8 shadow-xl shadow-black/10 text-[11px] font-black uppercase tracking-widest"
+                         className="btn-primary h-9 px-6"
                        >
-                          {updateProfileMutation.isPending ? <RefreshCw className="h-4 w-4 animate-spin" /> : 'Sync Profile'}
+                          {updateProfileMutation.isPending ? <RefreshCw className="h-4 w-4 animate-spin" /> : 'Save Profile'}
                        </button>
                     </div>
 
-                    <div className="flex flex-col xl:flex-row gap-16">
+                    <div className="flex flex-col md:flex-row gap-12">
                        <div className="flex flex-col items-center gap-4 shrink-0">
                           <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                             <div className="h-32 w-32 rounded-lg border-2 border-black overflow-hidden flex items-center justify-center bg-surface-alt shadow-[12px_12px_0px_rgba(0,0,0,0.05)] relative group-hover:scale-105 transition-all">
+                             <div className="h-24 w-24 rounded-2xl border border-border overflow-hidden bg-surface-alt flex items-center justify-center transition-all group-hover:border-foreground">
                                 {profileForm.avatarUrl ? (
                                     <img src={profileForm.avatarUrl} alt="" className="h-full w-full object-cover" />
                                 ) : (
-                                    <span className="text-4xl font-black text-black/10">{(profileForm.firstName[0] || '') + (profileForm.lastName[0] || '')}</span>
+                                    <User className="h-8 w-8 text-muted/30" />
                                 )}
-                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                   <Camera className="h-8 w-8 text-white" />
+                                <div className="absolute inset-0 bg-foreground/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-background">
+                                   <Camera className="h-5 w-5" />
                                 </div>
                              </div>
                           </div>
                           <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
-                          <p className="text-[9px] font-black text-muted uppercase tracking-[0.2em]">JPG/PNG MAX 2MB</p>
                        </div>
 
-                       <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-8">
-                             <div className="space-y-2">
-                                 <label className="form-label text-[10px] font-black text-black uppercase tracking-widest">FirstName</label>
-                                 <input required className="input-field border-strong h-11 font-bold" value={profileForm.firstName} onChange={e => setProfileForm({...profileForm, firstName: e.target.value})} />
+                       <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6">
+                             <div className="space-y-1.5">
+                                 <label className="label-enterprise">First Name</label>
+                                 <input required className="input-enterprise h-10 font-semibold" value={profileForm.firstName} onChange={e => setProfileForm({...profileForm, firstName: e.target.value})} />
                              </div>
-                             <div className="space-y-2">
-                                 <label className="form-label text-[10px] font-black text-black uppercase tracking-widest">LastName</label>
-                                 <input required className="input-field border-strong h-11 font-bold" value={profileForm.lastName} onChange={e => setProfileForm({...profileForm, lastName: e.target.value})} />
+                             <div className="space-y-1.5">
+                                 <label className="label-enterprise">Last Name</label>
+                                 <input required className="input-enterprise h-10 font-semibold" value={profileForm.lastName} onChange={e => setProfileForm({...profileForm, lastName: e.target.value})} />
                              </div>
-                             <div className="space-y-2">
-                                 <label className="form-label text-[10px] font-black text-black uppercase tracking-widest">SRE Title</label>
-                                 <input className="input-field border-strong h-11 font-bold" placeholder="e.g. Staff Software Engineer" value={profileForm.title} onChange={e => setProfileForm({...profileForm, title: e.target.value})} />
+                             <div className="space-y-1.5">
+                                 <label className="label-enterprise">Professional Title</label>
+                                 <input className="input-enterprise h-10 font-semibold" placeholder="e.g. Senior Site Reliability Engineer" value={profileForm.title} onChange={e => setProfileForm({...profileForm, title: e.target.value})} />
                              </div>
-                             <div className="space-y-2">
-                                 <label className="form-label text-[10px] font-black text-black uppercase tracking-widest">Department</label>
-                                 <input className="input-field border-strong h-11 font-bold" placeholder="e.g. Platform Lifecycle" value={profileForm.department} onChange={e => setProfileForm({...profileForm, department: e.target.value})} />
+                             <div className="space-y-1.5">
+                                 <label className="label-enterprise">Department</label>
+                                 <input className="input-enterprise h-10 font-semibold" placeholder="e.g. Cloud Operations" value={profileForm.department} onChange={e => setProfileForm({...profileForm, department: e.target.value})} />
                              </div>
-                             <div className="space-y-2">
-                                 <label className="form-label text-[10px] font-black text-black uppercase tracking-widest">Contact Phone</label>
-                                 <input className="input-field border-strong h-11 font-bold" value={profileForm.phone} onChange={e => setProfileForm({...profileForm, phone: e.target.value})} />
+                             <div className="space-y-1.5">
+                                 <label className="label-enterprise">Mobile / Dispatch Phone</label>
+                                 <input className="input-enterprise h-10 font-semibold" value={profileForm.phone} onChange={e => setProfileForm({...profileForm, phone: e.target.value})} />
                              </div>
-                             <div className="space-y-2">
-                                 <label className="form-label text-[10px] font-black text-black uppercase tracking-widest">Authenticated Email</label>
-                                 <input disabled className="input-field border-strong bg-surface-alt/50 text-muted italic h-11 cursor-not-allowed font-medium" value={user?.email || ''} />
+                             <div className="space-y-1.5">
+                                 <label className="label-enterprise">Login Email</label>
+                                 <input disabled className="input-enterprise h-10 bg-surface-alt cursor-not-allowed opacity-60 font-medium italic" value={user?.email || ''} />
                              </div>
                        </div>
                     </div>
@@ -246,71 +250,74 @@ const SettingsPage: React.FC = () => {
                   <div className="space-y-12">
                      <div className="flex items-start justify-between">
                         <div className="space-y-1">
-                          <h2 className="text-2xl font-black text-black font-geist uppercase">Workspace Logic</h2>
-                          <p className="text-[12px] text-muted font-medium italic">Configure organization-level observability parameters.</p>
+                           <h2 className="text-xl font-bold text-foreground">Workspace Configuration</h2>
+                           <p className="text-[14px] text-muted font-medium">Manage organization-level parameters and squad access.</p>
                         </div>
                         <button 
                           onClick={() => updateOrgMutation.mutate(workspaceForm)}
                           disabled={updateOrgMutation.isPending}
-                          className="btn-primary h-10 px-8 shadow-xl shadow-black/10 text-[11px] font-black uppercase tracking-widest"
+                          className="btn-primary h-9 px-6"
                         >
-                           {updateOrgMutation.isPending ? <RefreshCw className="h-4 w-4 animate-spin" /> : 'Save Parameters'}
+                           {updateOrgMutation.isPending ? <RefreshCw className="h-4 w-4 animate-spin" /> : 'Save Changes'}
                         </button>
                      </div>
 
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8 pb-10 border-b border-border">
-                        <div className="space-y-2">
-                           <label className="form-label text-[10px] font-black text-black uppercase tracking-widest">Organization Name</label>
-                           <input className="input-field border-strong h-11 font-bold" value={workspaceForm.name} onChange={e => setWorkspaceForm({...workspaceForm, name: e.target.value})} />
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-10 border-b border-border">
+                        <div className="space-y-1.5">
+                           <label className="label-enterprise">Organization Name</label>
+                           <input className="input-enterprise h-10 font-bold" value={workspaceForm.name} onChange={e => setWorkspaceForm({...workspaceForm, name: e.target.value})} />
                         </div>
-                        <div className="space-y-2">
-                           <label className="form-label text-[10px] font-black text-black uppercase tracking-widest">Organization Slug</label>
-                           <input className="input-field border-strong h-11 font-bold bg-surface-alt/20" value={workspaceForm.slug} onChange={e => setWorkspaceForm({...workspaceForm, slug: e.target.value})} />
+                        <div className="space-y-1.5">
+                           <label className="label-enterprise">Slug</label>
+                           <div className="flex items-center gap-2">
+                              <span className="text-muted font-mono text-sm">opsmind.io/</span>
+                              <input className="input-enterprise h-10 font-bold w-full" value={workspaceForm.slug} onChange={e => setWorkspaceForm({...workspaceForm, slug: e.target.value})} />
+                           </div>
                         </div>
                      </div>
 
-                     <div className="space-y-8 pt-4">
-                        <div className="flex items-center justify-between border-b-2 border-black pb-4">
-                           <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-black m-0 border-none">Squad Integrity Matrix</h3>
-                           <button className="h-8 px-4 bg-black text-white text-[10px] font-black uppercase tracking-widest hover:opacity-90">Add Member</button>
+                     <div className="space-y-6 pt-4">
+                        <div className="flex items-center justify-between">
+                           <h3 className="text-[12px] font-bold uppercase tracking-widest text-foreground m-0">Squad Directory</h3>
+                           <button className="btn-secondary h-8 px-3 text-[11px] font-bold">Invite Member</button>
                         </div>
-                        <div className="enterprise-table-container border-strong rounded overflow-hidden">
-                             <table className="enterprise-table">
+                        <div className="table-container">
+                             <table className="table-enterprise">
                                  <thead>
-                                     <tr className="bg-surface-alt/30">
-                                         <th className="text-[10px] font-black uppercase tracking-widest py-4">Squad Member</th>
-                                         <th className="text-[10px] font-black uppercase tracking-widest">Security Rank</th>
-                                         <th className="text-[10px] font-black uppercase tracking-widest">State</th>
-                                         <th className="text-[10px] font-black uppercase tracking-widest text-right pr-6">Logic</th>
+                                     <tr>
+                                         <th className="py-3">Operator</th>
+                                         <th>Permission</th>
+                                         <th className="text-center">Status</th>
+                                         <th className="text-right">Actions</th>
                                      </tr>
                                  </thead>
                                  <tbody>
                                      {isUsersLoading ? (
                                         Array(3).fill(0).map((_, i) => (
-                                          <tr key={i}><td colSpan={4} className="py-8"><div className="h-6 skeleton w-full" /></td></tr>
+                                          <tr key={i}><td colSpan={4} className="py-8"><div className="h-5 skeleton-ui w-full opacity-50" /></td></tr>
                                         ))
                                      ) : (users as any[])?.map(u => (
-                                         <tr key={u.email} className="group hover:bg-surface-alt/50 transition-colors">
-                                             <td className="py-4">
+                                         <tr key={u.email} className="group">
+                                             <td className="py-3">
                                                 <div className="flex items-center gap-3">
-                                                   <div className="h-8 w-8 rounded bg-black text-white flex items-center justify-center text-[10px] font-black">
+                                                   <div className="h-8 w-8 rounded-full bg-surface-alt border border-border flex items-center justify-center text-[11px] font-bold text-foreground">
                                                       {u.firstName[0]}{u.lastName[0]}
                                                    </div>
                                                    <div className="flex flex-col">
-                                                      <span className="text-[13px] font-black text-black">{u.firstName} {u.lastName}</span>
-                                                      <span className="text-[10px] font-medium text-muted normal-case italic">{u.email}</span>
+                                                      <span className="text-[13px] font-bold text-foreground">{u.firstName} {u.lastName}</span>
+                                                      <span className="text-[11px] text-muted normal-case">{u.email}</span>
                                                    </div>
                                                 </div>
                                              </td>
-                                             <td><span className="font-mono text-[11px] font-black uppercase bg-black/5 px-2 py-0.5 rounded">{u.role}</span></td>
-                                             <td><span className={cn("status-badge", u.status === 'ACTIVE' ? 'badge-success' : 'badge-warning')}>{u.status}</span></td>
-                                             <td className="text-right pr-6">
+                                             <td><span className="text-[11px] font-bold uppercase tracking-tight text-foreground/70">{u.role}</span></td>
+                                             <td className="text-center font-bold text-[10px] uppercase tracking-widest text-emerald-600 italic">{u.status}</td>
+                                             <td className="text-right">
                                                  {u.email !== user?.email && (
                                                    <button 
                                                      onClick={() => { if(confirm('Revoke access?')) apiClient.revokeAccess(u.id); }}
-                                                     className="text-red-600 hover:text-red-700 font-black uppercase tracking-widest text-[9px] underline transition-all"
+                                                     className="text-red-500 hover:opacity-70 font-bold uppercase tracking-widest text-[9px] transition-all"
                                                    >
-                                                      Revoke_Access
+                                                      Revoke access
                                                    </button>
                                                  )}
                                              </td>
@@ -327,130 +334,112 @@ const SettingsPage: React.FC = () => {
                   <div className="space-y-12">
                      <div className="flex items-start justify-between">
                         <div className="space-y-1">
-                           <h2 className="text-2xl font-black text-black font-geist uppercase">Signal Connectors</h2>
-                           <p className="text-[12px] text-muted font-medium italic">Bridge OpsMind mesh with global engineering toolchains.</p>
+                           <h2 className="text-xl font-bold text-foreground">Ecosystem Connectors</h2>
+                           <p className="text-[14px] text-muted font-medium">Bridge your engineering telemetry with OpsMind reasoning shard.</p>
                         </div>
-                        <button className="btn-primary h-10 shadow-xl shadow-black/10 text-[11px] font-black uppercase tracking-widest">
-                           <Plus className="h-4 w-4 mr-2" /> Provision Link
+                        <button className="btn-primary h-9 px-6">
+                           <Plus className="h-4 w-4 mr-2" /> Provision New Link
                         </button>
                      </div>
 
-                     {isIntegrationsLoading ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                           {Array(4).fill(0).map((_, i) => <div key={i} className="h-24 skeleton rounded" />)}
-                        </div>
-                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                           {(integrations as any[])?.map(int => (
-                             <div key={int.id} className="p-6 border-2 border-border-strong rounded-none shadow-sm hover:border-black transition-all group flex items-center justify-between bg-white">
-                                <div className="flex items-center gap-5">
-                                   <div className="h-12 w-12 bg-black text-white rounded flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                                      <Webhook className="h-6 w-6" />
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {isIntegrationsLoading ? (
+                           Array(4).fill(0).map((_, i) => <div key={i} className="h-24 skeleton-ui opacity-40 rounded-xl" />)
+                        ) : (
+                           (integrations as any[])?.map(int => (
+                             <div key={int.id} className="p-5 border border-border rounded-xl hover:border-foreground transition-all group flex items-center justify-between bg-surface-alt/20">
+                                <div className="flex items-center gap-4">
+                                   <div className="h-10 w-10 bg-foreground text-background rounded-lg flex items-center justify-center transition-transform group-hover:scale-105">
+                                      <Webhook className="h-5 w-5" />
                                    </div>
                                    <div className="space-y-0.5">
-                                      <div className="text-[14px] font-black text-black uppercase tracking-widest">{int.name}</div>
-                                      <div className="text-[11px] text-muted font-medium leading-tight">{int.type} / last_sync: {new Date(int.lastSyncTime).toLocaleDateString()}</div>
-                                      <div className="flex items-center gap-2 pt-1">
-                                         <span className={cn(
-                                           "text-[9px] font-black uppercase px-1.5 py-0.5 rounded",
-                                           int.healthStatus === 'HEALTHY' ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
-                                         )}>
-                                            {int.healthStatus}
-                                         </span>
+                                      <div className="text-[14px] font-bold text-foreground uppercase tracking-wider">{int.name}</div>
+                                      <div className="text-[11px] text-muted font-semibold">Platform Connector</div>
+                                      <div className={cn("text-[8px] font-black uppercase tracking-widest mt-1", 
+                                          int.healthStatus === 'HEALTHY' ? "text-emerald-500" : "text-red-500")}>
+                                         {int.healthStatus}
                                       </div>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-4">
-                                   <button className="p-2 hover:bg-surface-alt rounded border border-transparent hover:border-border transition-all">
-                                      <ChevronRight className="h-4 w-4 text-muted group-hover:text-black group-hover:translate-x-1" />
-                                   </button>
-                                </div>
+                                <button className="p-2 hover:bg-white rounded-md transition-all opacity-40 group-hover:opacity-100">
+                                   <ChevronRight className="h-4 w-4 text-foreground" />
+                                </button>
                              </div>
-                           ))}
-                           {/* Add static placeholders for unconfigured major integrations */}
-                           {['Slack', 'GitHub', 'AWS S3', 'PagerDuty'].map(service => (
-                             <div key={service} className="p-6 border-2 border-dashed border-border-strong rounded-none hover:border-black/20 transition-all group flex items-center justify-between bg-surface-alt/10 grayscale opacity-60">
-                                <div className="flex items-center gap-5">
-                                   <div className="h-12 w-12 bg-neutral-200 text-neutral-400 rounded flex items-center justify-center">
-                                      <Terminal className="h-6 w-6" />
-                                   </div>
-                                   <div className="space-y-0.5">
-                                      <div className="text-[14px] font-black text-neutral-500 uppercase tracking-widest">{service}</div>
-                                      <div className="text-[11px] text-neutral-400 font-medium leading-tight">Integration shard not yet linked.</div>
-                                    </div>
-                                </div>
-                                <button className="text-[10px] font-black uppercase text-black underline">Provision</button>
-                             </div>
-                           ))}
-                        </div>
-                     )}
+                           ))
+                        )}
+                        {/* Empty states for major platforms */}
+                        {['Slack Command', 'PagerDuty', 'CloudWatch'].map(plat => (
+                           <div key={plat} className="p-5 border border-dashed border-border rounded-xl opacity-40 grayscale flex items-center justify-between group hover:opacity-100 transition-all cursor-pointer">
+                              <div className="flex items-center gap-4">
+                                 <div className="h-10 w-10 bg-neutral-100 rounded-lg flex items-center justify-center">
+                                    <Globe className="h-5 w-5 text-neutral-400" />
+                                 </div>
+                                 <span className="text-[13px] font-bold text-muted uppercase tracking-widest">{plat}</span>
+                              </div>
+                              <span className="text-[10px] font-bold uppercase tracking-widest text-foreground">Link</span>
+                           </div>
+                        ))}
+                     </div>
                   </div>
                 )}
 
                 {activeTab === 'SECURITY' && (
                   <div className="space-y-12">
                      <div className="space-y-1">
-                        <h2 className="text-2xl font-black text-black font-geist uppercase">Encryption Shard</h2>
-                        <p className="text-[12px] text-muted font-medium italic">Manage global command keys and authentication rotations.</p>
+                        <h2 className="text-xl font-bold text-foreground">Security & Encryption</h2>
+                        <p className="text-[14px] text-muted font-medium">Protect your administrative credentials and command chain.</p>
                      </div>
 
-                      <div className="space-y-12">
-                         <form onSubmit={(e) => {
-                           e.preventDefault()
-                           if(passwordForm.newPassword !== passwordForm.confirmPassword) {
-                             return toast.error('SECURITY_FAULT: Passwords do not match.')
-                           }
-                           changePasswordMutation.mutate({
-                             currentPassword: passwordForm.currentPassword,
-                             newPassword: passwordForm.newPassword
-                           })
-                         }} className="space-y-8 bg-surface-alt/20 p-8 border-2 border-black border-dashed">
-                            <div className="flex items-center gap-3 mb-2">
-                               <Lock className="h-5 w-5 text-black" />
-                               <h3 className="text-[13px] font-black uppercase tracking-widest text-black mb-0 border-none">Credential Rotation</h3>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                               <div className="space-y-2">
-                                  <label className="form-label text-[10px] font-black">Original Key</label>
-                                  <input type="password" required className="input-field border-strong bg-white h-11" value={passwordForm.currentPassword} onChange={e => setPasswordForm({...passwordForm, currentPassword: e.target.value})} />
-                               </div>
-                               <div className="space-y-2">
-                                  <label className="form-label text-[10px] font-black">Successor Key</label>
-                                  <input type="password" required className="input-field border-strong bg-white h-11" value={passwordForm.newPassword} onChange={e => setPasswordForm({...passwordForm, newPassword: e.target.value})} />
-                               </div>
-                               <div className="space-y-2">
-                                  <label className="form-label text-[10px] font-black">Verify Successor</label>
-                                  <input type="password" required className="input-field border-strong bg-white h-11" value={passwordForm.confirmPassword} onChange={e => setPasswordForm({...passwordForm, confirmPassword: e.target.value})} />
-                               </div>
-                            </div>
-                            <button 
-                              type="submit" 
-                              disabled={changePasswordMutation.isPending}
-                              className="btn-primary w-full h-12 text-[11px] font-black uppercase tracking-[0.3em] shadow-lg"
-                            >
-                               {changePasswordMutation.isPending ? <RefreshCw className="h-4 w-4 animate-spin" /> : 'RE-ENCRYPT CREDENTIALS'}
-                            </button>
-                         </form>
+                     <form onSubmit={(e) => {
+                       e.preventDefault()
+                       if(passwordForm.newPassword !== passwordForm.confirmPassword) {
+                         return toast.error('Passwords do not match.')
+                       }
+                       changePasswordMutation.mutate({
+                         currentPassword: passwordForm.currentPassword,
+                         newPassword: passwordForm.newPassword
+                       })
+                     }} className="p-8 border border-border bg-surface-alt/30 rounded-2xl space-y-8">
+                        <div className="flex items-center gap-3">
+                           <Lock className="h-5 w-5 text-foreground" />
+                           <h3 className="text-[13px] font-bold uppercase tracking-widest text-foreground mb-0">Rotation Policy</h3>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                           <div className="space-y-1.5 md:col-span-2">
+                              <label className="label-enterprise">Current Knowledge Key</label>
+                              <input type="password" required className="input-enterprise h-10 bg-white" value={passwordForm.currentPassword} onChange={e => setPasswordForm({...passwordForm, currentPassword: e.target.value})} />
+                           </div>
+                           <div className="space-y-1.5">
+                              <label className="label-enterprise">New Command Key</label>
+                              <input type="password" required className="input-enterprise h-10 bg-white" value={passwordForm.newPassword} onChange={e => setPasswordForm({...passwordForm, newPassword: e.target.value})} />
+                           </div>
+                           <div className="space-y-1.5">
+                              <label className="label-enterprise">Confirm Succession</label>
+                              <input type="password" required className="input-enterprise h-10 bg-white" value={passwordForm.confirmPassword} onChange={e => setPasswordForm({...passwordForm, confirmPassword: e.target.value})} />
+                           </div>
+                        </div>
+                        <button 
+                          type="submit" 
+                          disabled={changePasswordMutation.isPending}
+                          className="btn-primary h-11 w-full"
+                        >
+                           {changePasswordMutation.isPending ? <RefreshCw className="h-4 w-4 animate-spin mr-2" /> : <Shield className="h-4 w-4 mr-2" />}
+                           Rotate Master Key
+                        </button>
+                     </form>
 
-                         <section className="space-y-6">
-                            <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-muted border-b border-border pb-3">Session Integrity</h3>
-                            <div className="p-8 border-2 border-border-strong bg-white flex items-center justify-between group hover:border-black transition-all">
-                               <div className="flex items-center gap-6">
-                                  <div className="h-12 w-12 bg-black text-white rounded flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                                     <ShieldCheck className="h-6 w-6" />
-                                  </div>
-                                  <div className="space-y-1">
-                                     <div className="text-[14px] font-black text-black uppercase tracking-widest">Active Device Loop</div>
-                                     <div className="text-[11px] text-muted font-medium italic">Enforce multi-factor verification on all critical signal remediations.</div>
-                                  </div>
-                               </div>
-                               <div className="flex items-center gap-2 text-emerald-600">
-                                  <CheckCircle2 className="h-4 w-4" />
-                                  <span className="text-[10px] font-black uppercase tracking-widest">PROTECTED</span>
-                               </div>
-                            </div>
-                         </section>
-                      </div>
+                     <div className="p-6 border border-border rounded-xl flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                           <div className="h-10 w-10 bg-neutral-100 rounded-lg flex items-center justify-center">
+                              <ShieldCheck className="h-5 w-5 text-emerald-600" />
+                           </div>
+                           <div>
+                              <div className="text-[14px] font-bold text-foreground uppercase tracking-tight">Active Multi-factor</div>
+                              <p className="text-[12px] text-muted italic">Mandatory hardware-based verification enabled.</p>
+                           </div>
+                        </div>
+                        <span className="text-[10px] font-black uppercase text-emerald-600 tracking-[0.2em] italic">Compliant</span>
+                     </div>
                   </div>
                 )}
 
@@ -458,39 +447,39 @@ const SettingsPage: React.FC = () => {
                   <div className="space-y-8">
                      <div className="flex items-start justify-between">
                         <div className="space-y-1">
-                           <h2 className="text-2xl font-black text-black font-geist uppercase">Operational Audit</h2>
-                           <p className="text-[12px] text-muted font-medium italic">Non-repudiable record of all administrative mesh operations.</p>
+                           <h2 className="text-xl font-bold text-foreground">Operational Audit Log</h2>
+                           <p className="text-[14px] text-muted font-medium">Cryptographically signed record of all system modifications.</p>
                         </div>
-                        <button className="btn-secondary h-10 border-strong text-[11px] font-black uppercase tracking-widest">
-                           <Download className="h-4 w-4 mr-2" /> Export Log
+                        <button className="btn-secondary h-9">
+                           <Download className="h-4 w-4 mr-2" /> Export
                         </button>
                      </div>
 
-                     <div className="enterprise-table-container border-2 border-border-strong rounded-none shadow-2xl shadow-black/5 overflow-hidden">
-                        <table className="enterprise-table">
+                     <div className="table-container">
+                        <table className="table-enterprise">
                            <thead>
-                              <tr className="bg-black text-white">
-                                 <th className="w-40 text-[9px] uppercase tracking-[0.2em] py-4">Action Shard</th>
-                                 <th className="w-32 text-[9px] uppercase tracking-[0.2em]">Module</th>
-                                 <th className="text-[9px] uppercase tracking-[0.2em]">Narrative & Context</th>
-                                 <th className="w-48 text-right pr-6 text-[9px] uppercase tracking-[0.2em]">Precision Clock</th>
+                              <tr>
+                                 <th className="w-40 py-3">Action Shard</th>
+                                 <th className="w-24">Module</th>
+                                 <th>Logical Narrative</th>
+                                 <th className="w-40 text-right">Timestamp</th>
                               </tr>
                            </thead>
-                           <tbody className="bg-white">
+                           <tbody>
                               {isAuditLoading ? (
                                  Array(8).fill(0).map((_, i) => (
-                                   <tr key={i}><td colSpan={4} className="py-8"><div className="h-6 skeleton w-full" /></td></tr>
+                                   <tr key={i}><td colSpan={4} className="py-6"><div className="h-4 skeleton-ui w-full opacity-40 mx-auto" /></td></tr>
                                  ))
                               ) : (auditLogs as any[])?.length === 0 ? (
-                                 <tr><td colSpan={4} className="py-20 text-center text-muted font-black uppercase tracking-widest text-[11px]">No audit signals detected in current shard.</td></tr>
+                                 <tr><td colSpan={4} className="py-20 text-center text-muted font-bold italic text-[13px]">No audit historical shards found.</td></tr>
                               ) : (auditLogs as any[])?.map((log: any) => (
-                                <tr key={log.id} className="group hover:bg-surface-alt/30 transition-all border-b border-border-strong last:border-0">
-                                   <td className="font-black text-black uppercase tracking-[0.15em] italic py-4">{log.action}</td>
-                                   <td><span className="text-[9px] font-black uppercase tracking-widest text-white bg-black/60 px-2.5 py-1 rounded-sm">{log.module}</span></td>
-                                   <td className="font-bold text-black pr-10 text-[13px]">{log.details}</td>
-                                   <td className="font-mono text-[10px] font-black text-black/40 text-right pr-6 leading-tight whitespace-nowrap">
+                                <tr key={log.id}>
+                                   <td className="font-bold text-foreground py-3 italic">{log.action}</td>
+                                   <td><span className="text-[10px] font-bold uppercase tracking-widest text-muted bg-surface-alt px-1.5 py-0.5 rounded border border-border">{log.module}</span></td>
+                                   <td className="text-[13px] font-medium text-foreground/80 leading-relaxed italic">{log.details}</td>
+                                   <td className="text-right text-[11px] font-bold text-muted font-mono leading-tight">
                                       {new Date(log.timestamp).toLocaleDateString()}<br/>
-                                      {new Date(log.timestamp).toLocaleTimeString()}
+                                      {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                                    </td>
                                 </tr>
                               ))}

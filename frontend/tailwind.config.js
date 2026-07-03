@@ -50,6 +50,7 @@ export default {
         warning: "hsl(var(--warning))",
         critical: "hsl(var(--critical))",
         "surface": "hsl(var(--surface))",
+        "surface-hover": "hsl(var(--surface-hover))",
         "surface-alt": "hsl(var(--surface-alt))",
         "border-strong": "hsl(var(--border-strong))",
       },
