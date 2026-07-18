@@ -9,8 +9,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
+        sans: ["Inter", "sans-serif"],
         inter: ["Inter", "sans-serif"],
-        outfit: ["Outfit", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",

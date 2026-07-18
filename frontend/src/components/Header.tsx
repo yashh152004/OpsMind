@@ -15,7 +15,8 @@ import {
   ShieldCheck,
   Clock,
   Menu,
-  Command
+  Command,
+  X
 } from 'lucide-react'
 import { useAuth } from '@/hooks'
 import { apiClient } from '@/services/api'
@@ -143,35 +144,35 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
   }
 
   return (
-    <header className="h-14 border-b border-border bg-white flex items-center justify-between px-6 sticky top-0 z-[100] shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+    <header className="h-14 border-b border-border bg-surface flex items-center justify-between px-6 sticky top-0 z-[100] shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
       {/* Mobile Toggle */}
       <button 
         onClick={onToggleSidebar}
-        className="lg:hidden mr-4 text-muted hover:text-foreground p-2 hover:bg-surface-alt rounded-[var(--radius)] transition-colors"
+        className="lg:hidden mr-3 text-muted-foreground hover:text-foreground p-2 hover:bg-surface-hover rounded-[var(--radius)] transition-colors"
       >
         <Menu className="h-5 w-5" />
       </button>
 
       {/* Breadcrumbs / Context HUD */}
-      <div className="flex items-center gap-4 text-[13px] font-medium text-muted">
+      <div className="flex items-center gap-3 text-[13px] font-medium text-muted-foreground">
          <div className="flex items-center gap-1.5 cursor-pointer hover:text-foreground transition-colors group">
-            <span className="text-secondary group-hover:text-foreground transition-colors">prod-cluster</span>
-            <span className="text-border-strong">/</span>
-            <span className="text-foreground font-black">us-east-1</span>
-            <ChevronDown className="h-3.5 w-3.5 mt-0.5 text-muted group-hover:text-foreground" />
+            <span className="text-foreground/80 group-hover:text-foreground transition-colors">prod-cluster</span>
+            <span className="text-border">/</span>
+            <span className="text-foreground font-semibold">us-east-1</span>
+            <ChevronDown className="h-3.5 w-3.5 text-muted-foreground group-hover:text-foreground" />
          </div>
          <div className="w-px h-3 bg-border hidden sm:block" />
-         <div className="hidden sm:flex items-center gap-2">
-            <div className="h-1.5 w-1.5 rounded-full bg-success" />
-            <span className="text-[11px] font-bold uppercase tracking-widest text-success">Systems Nominal</span>
+         <div className="hidden sm:flex items-center gap-1.5">
+            <div className="h-1.5 w-1.5 rounded-full bg-success animate-pulse" />
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-success">Systems Nominal</span>
          </div>
       </div>
 
       {/* Global Search Interface */}
-      <div className="flex-1 max-w-lg mx-8 relative hidden md:block" ref={searchRef}>
+      <div className="flex-1 max-w-lg mx-6 relative hidden md:block" ref={searchRef}>
         <div className="relative group">
-          <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-muted group-focus-within:text-foreground transition-colors">
-            {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+          <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-muted-foreground">
+            {isSearching ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Search className="h-3.5 w-3.5" />}
           </div>
           <input
             ref={inputRef}
@@ -180,72 +181,80 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
             onChange={(e) => { setQuery(e.target.value); setActiveIndex(-1); }}
             onKeyDown={handleSearchKeyDown}
             onFocus={() => query.length > 0 && setShowResults(true)}
-            className="w-full bg-surface-alt border border-border-strong rounded-[var(--radius)] pl-10 pr-12 h-10 text-[13px] font-bold text-foreground placeholder:text-muted outline-none transition-all focus:ring-2 focus:ring-foreground/10 focus:border-foreground"
+            className="w-full bg-surface-alt border border-border rounded-[var(--radius)] pl-9.5 pr-14 h-9 text-[14px] font-normal text-foreground placeholder:text-muted-foreground/75 outline-none transition-all duration-150 focus:ring-1 focus:ring-foreground/5 focus:border-border-strong"
             placeholder="Search resources, incidents, or commands..."
           />
+          {query.length > 0 && (
+            <button 
+              onClick={() => { setQuery(''); setResults([]); }}
+              className="absolute inset-y-0 right-10 px-2 flex items-center text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
           <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-             <kbd className="flex items-center gap-0.5 px-2 py-0.5 bg-white border border-border-strong shadow-sm rounded text-[10px] font-black text-foreground uppercase tracking-tighter">
-                CMD K
+             <kbd className="flex items-center gap-0.5 px-1.5 py-0.5 bg-secondary border border-border rounded text-[9px] font-medium text-muted uppercase">
+                <Command className="h-2.5 w-2.5" /> K
              </kbd>
           </div>
         </div>
 
         {/* Search Results Dropdown */}
         {showResults && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-surface border border-border-strong rounded-md shadow-[0_20px_50px_rgba(0,0,0,0.2)] z-[200] max-h-[500px] overflow-y-auto p-2 animate-in slide-in-from-top-2 duration-200">
-               <div className="px-3 py-2 mb-1 flex items-center justify-between border-b border-border">
-                  <span className="text-[10px] font-black text-muted uppercase tracking-[0.2em]">Platform Command Shard</span>
-                  <span className="text-[10px] font-bold text-muted bg-surface-alt px-1.5 py-0.5 rounded border border-border">{results.length} Results</span>
+            <div className="absolute top-full left-0 right-0 mt-1.5 bg-surface border border-border-strong rounded-[var(--radius)] shadow-[0_12px_30px_rgba(0,0,0,0.12)] z-[200] max-h-[400px] overflow-y-auto p-1.5 animate-fade-in">
+               <div className="px-2.5 py-1.5 mb-1 flex items-center justify-between border-b border-border">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Platform Command Shard</span>
+                  <span className="text-[10px] font-medium text-muted-foreground bg-surface-alt px-1.5 py-0.5 rounded border border-border">{results.length} Results</span>
                </div>
                
                {results.length > 0 ? (
                  <div className="space-y-0.5">
-                   {results.map((res, i) => (
-                    <button 
-                      key={res.id} 
-                      onMouseEnter={() => setActiveIndex(i)}
-                      onClick={() => handleNavigate(res)}
-                      className={cn(
-                        "w-full text-left px-3 py-3 rounded-md flex items-center gap-4 group transition-all border border-transparent",
-                        activeIndex === i ? "bg-black text-white shadow-lg translate-x-1" : "hover:bg-surface-alt"
-                      )}
-                    >
-                      <div className={cn(
-                        "h-8 w-8 rounded flex items-center justify-center transition-colors border",
-                        activeIndex === i ? "bg-white/10 border-white/20 text-white" : "bg-surface-alt border-border text-muted"
-                      )}>
-                        {res.type === 'INCIDENT' ? <AlertCircle className="h-4 w-4" /> : 
-                         res.type === 'ALERT' ? <Activity className="h-4 w-4" /> : 
-                         res.type === 'INFRASTRUCTURE' ? <Terminal className="h-4 w-4" /> : 
-                         res.type === 'SECURITY' ? <ShieldCheck className="h-4 w-4" /> :
-                         res.type === 'SETTING' ? <Settings className="h-4 w-4" /> :
-                         <Cpu className="h-4 w-4" />}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className={cn("text-[13px] font-bold truncate", activeIndex === i ? "text-white" : "text-foreground")}>
-                          {res.title}
-                        </div>
-                        <div className={cn("text-[11px] truncate flex items-center gap-2 mt-0.5 font-medium", activeIndex === i ? "text-white/60" : "text-muted")}>
-                           <span className="font-black uppercase tracking-widest text-[9px] px-1 bg-neutral-800 text-white rounded-[2px]">{res.type}</span>
-                           <span>{res.subtitle}</span>
-                        </div>
-                      </div>
-                      {activeIndex === i && (
-                         <div className="flex items-center gap-1.5 px-2 py-0.5 bg-white/10 rounded border border-white/20 text-[10px] font-black uppercase">
-                            Jump <ArrowRight className="h-3 w-3" />
+                    {results.map((res, i) => (
+                     <button 
+                       key={res.id} 
+                       onMouseEnter={() => setActiveIndex(i)}
+                       onClick={() => handleNavigate(res)}
+                       className={cn(
+                         "w-full text-left px-2.5 py-2 rounded-[var(--radius)] flex items-center gap-3 transition-colors text-foreground",
+                         activeIndex === i ? "bg-secondary text-foreground" : ""
+                       )}
+                     >
+                       <div className={cn(
+                         "h-7 w-7 rounded flex items-center justify-center border",
+                         activeIndex === i ? "bg-surface border-border-strong text-foreground" : "bg-surface-alt border-border text-muted-foreground"
+                       )}>
+                         {res.type === 'INCIDENT' ? <AlertCircle className="h-3.5 w-3.5" /> : 
+                          res.type === 'ALERT' ? <Activity className="h-3.5 w-3.5" /> : 
+                          res.type === 'INFRASTRUCTURE' ? <Terminal className="h-3.5 w-3.5" /> : 
+                          res.type === 'SECURITY' ? <ShieldCheck className="h-3.5 w-3.5" /> :
+                          res.type === 'SETTING' ? <Settings className="h-3.5 w-3.5" /> :
+                          <Cpu className="h-3.5 w-3.5" />}
+                       </div>
+                       <div className="flex-1 min-w-0">
+                         <div className="text-[13px] font-medium truncate">
+                           {res.title}
                          </div>
-                      )}
-                    </button>
-                   ))}
+                         <div className="text-[11px] truncate flex items-center gap-1.5 mt-0.5 font-normal text-muted-foreground">
+                            <span className="font-semibold uppercase tracking-wider text-[8px] px-1 bg-secondary text-foreground rounded-[2px]">{res.type}</span>
+                            <span className="truncate">{res.subtitle}</span>
+                         </div>
+                       </div>
+                       {activeIndex === i && (
+                          <div className="flex items-center gap-1 px-1.5 py-0.5 bg-surface rounded border border-border text-[9px] font-semibold uppercase text-muted-foreground mr-1">
+                             Jump <ArrowRight className="h-2.5 w-2.5 ml-0.5" />
+                          </div>
+                       )}
+                     </button>
+                    ))}
                  </div>
                ) : (
-                 <div className="py-12 text-center">
-                    <Search className="h-10 w-10 text-border-strong mx-auto mb-4 opacity-20" />
-                    <p className="text-foreground font-black text-[14px] mb-1 uppercase tracking-tight">Access Signal Denied</p>
-                    <p className="text-muted text-[11px] font-bold uppercase tracking-widest">No matching resources found in global cache</p>
-                    <div className="mt-6 flex flex-wrap justify-center gap-2">
-                       {['Incidents', 'Security', 'Infra', 'Settings'].map(t => (
-                          <button key={t} onClick={() => { setQuery(t); inputRef.current?.focus(); }} className="px-3 py-1 bg-surface-alt border border-border rounded text-[10px] font-bold text-muted hover:border-foreground hover:text-foreground transition-all">
+                 <div className="py-8 text-center">
+                    <Search className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
+                    <p className="text-foreground font-semibold text-[13px] mb-0.5 uppercase tracking-wide">No resources located</p>
+                    <p className="text-muted-foreground text-[11px] font-normal leading-normal px-4">No matching services, alerts, or configurations in cluster registry</p>
+                    <div className="mt-4 flex flex-wrap justify-center gap-1.5 px-3">
+                       {['Incidents', 'Security', 'Service Map', 'Settings'].map(t => (
+                          <button key={t} onClick={() => { setQuery(t); inputRef.current?.focus(); }} className="px-2.5 py-1 bg-surface-alt border border-border rounded text-[10px] font-medium text-muted hover:border-border-strong hover:text-foreground transition-all">
                              {t}
                           </button>
                        ))}
@@ -256,79 +265,87 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
          )}
       </div>
 
-      <div className="flex items-center gap-4 ml-auto">
+      <div className="flex items-center gap-3.5 ml-auto">
         {/* Quick Action Button */}
-        <button className="hidden sm:flex items-center gap-2 px-3 h-9 bg-foreground text-white rounded-[var(--radius)] text-[13px] font-semibold hover:bg-foreground/90 transition-all shadow-sm">
+        <button 
+          onClick={() => navigate('/incidents')}
+          className="hidden sm:flex items-center gap-1.5 btn-primary h-8.5 text-[13px] px-3"
+        >
            <Plus className="h-4 w-4" />
-           <span>Quick Action</span>
+           <span>Declare Incident</span>
         </button>
 
-        <div className="h-6 w-px bg-border mx-1 hidden sm:block" />
+        <div className="h-5 w-px bg-border hidden sm:block" />
 
-        <div className="flex items-center gap-1.5 relative" ref={notifRef}>
+        {/* Signals Event Drawer Bell */}
+        <div className="relative" ref={notifRef}>
            <button 
-             className="text-muted hover:text-foreground transition-colors relative p-2.5 hover:bg-surface-alt rounded-[var(--radius)]" 
+             className="text-muted-foreground hover:text-foreground transition-colors relative p-2 hover:bg-surface-hover rounded-[var(--radius)] flex items-center justify-center" 
              onClick={() => setShowNotifications(!showNotifications)}>
-             <Bell className="h-5 w-5" />
+             <Bell className="h-4.5 w-4.5" />
              {unreadCount > 0 && (
-               <span className="absolute top-2.5 right-2.5 h-2 w-2 bg-critical rounded-full border-2 border-white" />
+               <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-critical rounded-full border border-surface shadow-xs" />
              )}
            </button>
 
            {showNotifications && (
-             <div className="absolute top-full right-0 mt-3 w-96 bg-surface border border-border rounded-[var(--radius)] shadow-2xl z-[300] flex flex-col animate-in slide-in-from-top-2 duration-200">
-                <div className="px-5 py-4 border-b border-border bg-surface-alt/50 flex items-center justify-between">
-                   <span className="text-[11px] font-black uppercase tracking-[0.15em] text-foreground">Signals & Events</span>
-                   <button onClick={handleMarkAllRead} className="text-[11px] font-bold text-foreground hover:underline">Clear All</button>
-                </div>
-                <div className="max-h-[480px] overflow-y-auto no-scrollbar">
-                   {notifications.length > 0 ? (
-                     notifications.map((n: any) => (
-                       <div key={n.id} className="p-5 border-b border-border/50 hover:bg-surface-hover transition-colors cursor-pointer" 
-                            onClick={() => {
-                               setShowNotifications(false);
-                               navigate('/incidents');
-                            }}>
-                          <div className="flex justify-between items-start mb-2">
-                             <div className="text-[13px] font-bold text-foreground leading-tight pr-4">{n.title}</div>
-                             <span className={cn("px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border", 
-                                n.severity === 'CRITICAL' ? "bg-red-50 text-red-600 border-red-100" : "bg-blue-50 text-blue-600 border-blue-100")}>
-                               {n.severity}
-                             </span>
-                          </div>
-                          <p className="text-[12px] text-muted-foreground font-medium leading-relaxed line-clamp-2">{n.message}</p>
-                          <div className="mt-3 text-[10px] font-black text-secondary uppercase tracking-widest flex items-center gap-2">
-                             <Clock className="h-3 w-3" />
-                             {new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </div>
-                       </div>
-                     ))
-                   ) : (
-                     <div className="p-16 text-center">
-                        <Bell className="h-10 w-10 text-muted/10 mx-auto mb-4" />
-                        <p className="text-[12px] font-black uppercase tracking-widest text-secondary">Quiet on the front</p>
-                     </div>
-                   )}
-                </div>
-                <button className="p-4 border-t border-border text-[11px] font-black text-foreground hover:bg-surface-alt text-center uppercase tracking-[0.2em]" onClick={() => { setShowNotifications(false); navigate('/alerts'); }}>
-                  View All Activity
-                </button>
-             </div>
+              <div className="absolute top-full right-0 mt-2 w-96 bg-surface border border-border-strong rounded-[var(--radius)] shadow-[0_12px_30px_rgba(0,0,0,0.12)] z-[300] flex flex-col animate-fade-in">
+                 <div className="px-4 py-3 border-b border-border bg-surface-alt/80 flex items-center justify-between">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-foreground">Signals & Events</span>
+                    <button onClick={handleMarkAllRead} className="text-[11px] font-semibold text-foreground hover:underline">Clear All</button>
+                 </div>
+                 <div className="max-h-[380px] overflow-y-auto no-scrollbar">
+                    {notifications.length > 0 ? (
+                      notifications.map((n: any) => (
+                        <div key={n.id} className="p-4 border-b border-border/80 hover:bg-surface-hover transition-colors cursor-pointer text-left" 
+                             onClick={() => {
+                                setShowNotifications(false);
+                                navigate('/incidents');
+                             }}>
+                           <div className="flex justify-between items-start mb-1.5">
+                              <div className="text-[13px] font-semibold text-foreground leading-tight pr-3 truncate max-w-[220px]">{n.title}</div>
+                              <span className={cn("badge-enterprise", 
+                                 n.severity === 'CRITICAL' ? "badge-critical" : "badge-info")}>
+                                {n.severity}
+                              </span>
+                           </div>
+                           <p className="text-[12px] text-muted-foreground font-normal leading-normal line-clamp-2">{n.message}</p>
+                           <div className="mt-2.5 text-[10px] font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                              <Clock className="h-3 w-3" />
+                              {new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                           </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="py-12 text-center">
+                         <Bell className="h-8 w-8 text-muted-foreground/20 mx-auto mb-2" />
+                         <p className="text-[12px] font-medium uppercase tracking-wider text-muted-foreground">No active notifications</p>
+                      </div>
+                    )}
+                 </div>
+                 <button 
+                  className="py-3 border-t border-border text-[11px] font-bold text-foreground bg-surface-alt/30 hover:bg-surface-hover text-center uppercase tracking-wider transition-colors"
+                  onClick={() => { setShowNotifications(false); navigate('/alerts'); }}
+                 >
+                   View All Activity
+                 </button>
+              </div>
            )}
         </div>
         
-        <div className="flex items-center gap-3 pl-2 group cursor-pointer" onClick={() => navigate('/settings')}>
-           <div className="hidden xl:block text-right">
-              <div className="text-[13px] font-black text-foreground leading-none">{user?.firstName} {user?.lastName}</div>
-              <div className="text-[11px] font-bold text-muted uppercase tracking-wider mt-1">Enterprise Shard</div>
+        {/* User profile dropdown trigger */}
+        <div className="flex items-center gap-2.5 pl-1.5 group cursor-pointer" onClick={() => navigate('/settings')}>
+           <div className="hidden xl:block text-right select-none">
+              <div className="text-[13px] font-semibold text-foreground leading-none">{user?.firstName} {user?.lastName}</div>
+              <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mt-1">Enterprise Shard</div>
            </div>
            <div className="relative">
-              <div className="h-9 w-9 bg-foreground text-white rounded-[var(--radius)] flex items-center justify-center font-black text-[14px] shadow-sm transform transition-all group-hover:ring-2 group-hover:ring-foreground/20">
+              <div className="h-8 w-8 bg-foreground text-background rounded-[var(--radius)] flex items-center justify-center font-bold text-[13px] shadow-sm transform transition-all duration-150 group-hover:ring-1 group-hover:ring-foreground/20 select-none">
                  {user?.firstName?.[0] || 'Y'}
               </div>
-              <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 bg-success border-2 border-white rounded-full shadow-sm" />
+              <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 bg-success border-2 border-surface rounded-full shadow-sm" />
            </div>
-           <ChevronDown className="h-4 w-4 text-secondary group-hover:text-foreground transition-colors" />
+           <ChevronDown className="h-3.5 w-3.5 text-muted-foreground group-hover:text-foreground transition-colors duration-150" />
         </div>
       </div>
     </header>
