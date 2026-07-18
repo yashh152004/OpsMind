@@ -2,9 +2,8 @@ import React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/services/api'
 import { 
-  Database, Server, ShieldCheck, Activity, Search, ExternalLink,
-  AlertTriangle, Download, RefreshCcw, Layout, Globe, Box,
-  ChevronRight, ArrowRight, Layers, Cpu, Radio
+  Database, Server, ShieldCheck, Activity, Search,
+  AlertTriangle, Download, RefreshCcw, Globe, Cpu, Radio, ChevronRight
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import { toast } from 'sonner'
@@ -46,30 +45,30 @@ const InfrastructurePage: React.FC = () => {
   }
 
   return (
-    <div className="page-transition-fade space-y-8 p-6 lg:p-8 bg-background min-h-screen">
+    <div className="page-transition-fade space-y-6 p-6 lg:p-8 bg-background min-h-screen">
       {/* Infrastructure Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-border">
-        <div className="space-y-1">
-           <h1 className="text-3xl font-bold tracking-tight text-foreground m-0">Infrastructure Inventory</h1>
-           <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 px-2 py-0.5 bg-neutral-100 border border-border rounded text-[11px] font-bold uppercase tracking-wider">
-                 <Globe className="h-3.5 w-3.5 text-foreground" />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 pb-6 border-b border-border">
+        <div className="space-y-1 text-left">
+           <h1 className="text-[32px] font-bold tracking-tight text-foreground m-0 leading-tight">Infrastructure Inventory</h1>
+           <div className="flex items-center gap-2.5">
+              <span className="badge-enterprise bg-surface-alt border border-border py-0.5">
+                 <Globe className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
                  Global Mesh
-              </div>
+              </span>
               <span className="text-border">|</span>
-              <p className="text-[12px] font-medium text-muted">
-                 Managing <span className="text-foreground font-bold">{assets?.length || 0} production nodes</span> across multi-cloud regions.
+              <p className="text-[12px] font-medium text-muted-foreground">
+                 Managing <span className="text-foreground font-semibold">{assets?.length || 0} production nodes</span> across multi-cloud regions.
               </p>
            </div>
         </div>
         <div className="flex items-center gap-2">
-           <button onClick={handleExport} className="btn-secondary h-9 px-4">
+           <button onClick={handleExport} className="btn-secondary h-8.5 px-3">
               <Download className="h-4 w-4" />
-              <span className="ml-2">Inventory Audit</span>
+              <span>Inventory Audit</span>
            </button>
-           <button onClick={handleScan} disabled={isScanning} className="btn-primary h-9 px-4">
-              {isScanning ? <RefreshCcw className="h-4 w-4 animate-spin" /> : <Layers className="h-4 w-4" />}
-              <span className="ml-2">Cluster Scan</span>
+           <button onClick={handleScan} disabled={isScanning} className="btn-primary h-8.5 px-3">
+              {isScanning ? <RefreshCcw className="h-3.5 w-3.5 animate-spin mr-1.5" /> : <ShieldCheck className="h-3.5 w-3.5 mr-1.5" />}
+              <span>Cluster Scan</span>
            </button>
         </div>
       </div>
@@ -82,16 +81,16 @@ const InfrastructurePage: React.FC = () => {
           { label: 'Resource Hazards', val: assets?.filter((a:any) => a.status !== 'HEALTHY').length || '0', icon: AlertTriangle, trend: 'Stable' },
           { label: 'Mesh Topology State', val: 'Verified', icon: ShieldCheck, trend: 'Active' },
         ].map(kpi => (
-          <div key={kpi.label} className="card-enterprise p-5 flex flex-col justify-between group hover:border-foreground transition-all">
+          <div key={kpi.label} className="card-enterprise p-5 flex flex-col justify-between group hover:bg-surface-hover transition-all text-left">
             <div className="flex justify-between items-start">
-               <div className="h-9 w-9 bg-surface-alt border border-border rounded-lg flex items-center justify-center text-foreground group-hover:bg-foreground group-hover:text-background transition-colors">
-                  <kpi.icon className="h-4.5 w-4.5" />
+               <div className="h-8.5 w-8.5 bg-surface-alt border border-border rounded flex items-center justify-center text-foreground group-hover:bg-foreground group-hover:text-background group-hover:border-foreground transition-colors">
+                  <kpi.icon className="h-4.5 w-4.5 text-muted-foreground group-hover:text-current" />
                </div>
-               <span className="text-[10px] font-bold uppercase tracking-widest text-muted group-hover:text-foreground">{kpi.trend}</span>
+               <span className="badge-enterprise bg-surface-alt text-muted-foreground">{kpi.trend}</span>
             </div>
             <div className="space-y-0.5 mt-4">
-               <div className="text-[11px] font-bold uppercase tracking-widest text-muted">{kpi.label}</div>
-               <div className="text-2xl font-bold text-foreground tracking-tight">{kpi.val}</div>
+               <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">{kpi.label}</div>
+               <div className="text-[22px] font-bold text-foreground tracking-tight leading-none mt-1">{kpi.val}</div>
             </div>
           </div>
         ))}
@@ -101,93 +100,91 @@ const InfrastructurePage: React.FC = () => {
       <div className="space-y-4">
          <div className="flex items-center justify-between gap-4">
             <div className="relative group max-w-sm flex-1">
-               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted group-focus-within:text-foreground transition-colors" />
+               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground group-focus-within:text-foreground transition-colors" />
                <input 
                  type="text" 
                  placeholder="Search Node ID, Cluster, or Region..." 
-                 className="input-enterprise pl-10 h-10 w-full" 
+                 className="input-enterprise pl-9 h-8.5 w-full font-normal" 
                />
             </div>
             <div className="flex items-center gap-2">
-               <button className="h-10 px-4 border border-border rounded-md hover:border-foreground transition-all flex items-center gap-2 text-[12px] font-bold uppercase tracking-widest text-muted hover:text-foreground">
-                  <Radio className="h-4 w-4" /> Live Signal
+               <button className="btn-secondary h-8.5 px-3 flex items-center gap-1.5 text-[12px]">
+                  <Radio className="h-3.5 w-3.5 text-red-500 animate-pulse" /> Live Telemetry
                </button>
-               <button onClick={() => refetch()} className={cn("p-2 border border-border rounded-md hover:border-foreground transition-all", isRefetching && "animate-spin")}>
-                  <RefreshCcw className="h-4 w-4 text-muted" />
+               <button onClick={() => refetch()} className="btn-secondary h-8.5 w-8.5 p-0 flex items-center justify-center">
+                  <RefreshCcw className={cn("h-3.5 w-3.5 text-muted-foreground", isRefetching && "animate-spin")} />
                </button>
             </div>
          </div>
 
-         <div className="card-enterprise overflow-hidden">
-            <div className="table-container">
-               <table className="table-enterprise">
-                  <thead>
-                     <tr>
-                        <th className="py-3">Infrastructure Identity</th>
-                        <th>Classification</th>
-                        <th>Cloud Logic</th>
-                        <th className="w-48">Health Integrity</th>
-                        <th className="w-32">Status</th>
-                        <th className="w-12"></th>
+         <div className="table-container">
+            <table className="table-enterprise">
+               <thead>
+                  <tr>
+                     <th className="py-3">Infrastructure Identity</th>
+                     <th>Classification</th>
+                     <th>Cloud Logic</th>
+                     <th className="w-48">Health Integrity</th>
+                     <th className="w-32">Status</th>
+                     <th className="w-12"></th>
+                  </tr>
+               </thead>
+               <tbody>
+                  {isLoading ? (
+                     Array(5).fill(0).map((_, i) => (
+                       <tr key={i}><td colSpan={6} className="py-8"><div className="h-4 skeleton-ui w-full opacity-80 mx-auto rounded" /></td></tr>
+                     ))
+                  ) : (assets || [])?.map((asset: any) => (
+                     <tr key={asset.id} className="group">
+                        <td className="py-3.5">
+                           <div className="flex items-center gap-3">
+                              <div className="h-8.5 w-8.5 bg-surface-alt border border-border rounded-[var(--radius)] flex items-center justify-center text-muted-foreground group-hover:text-foreground group-hover:border-foreground transition-all">
+                                 {asset.type === 'DATABASE' ? <Database className="h-4.5 w-4.5" /> : <Server className="h-4.5 w-4.5" />}
+                              </div>
+                              <div className="flex flex-col text-left">
+                                 <span className="text-[13px] font-semibold text-foreground leading-tight">{asset.name}</span>
+                                 <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider font-mono mt-0.5">shard-{asset.id.toString().slice(-4)}</span>
+                              </div>
+                           </div>
+                        </td>
+                        <td>
+                           <span className="text-[10px] font-semibold uppercase tracking-wider text-foreground bg-surface-alt border border-border px-1.5 py-0.5 rounded italic">
+                              {asset.type}
+                           </span>
+                        </td>
+                        <td>
+                           <div className="text-[12px] font-semibold text-foreground uppercase tracking-wider text-left">{asset.provider} <span className="opacity-60 mx-1">•</span> <span className="text-muted-foreground font-normal">{asset.region}</span></div>
+                        </td>
+                        <td>
+                           <div className="flex items-center gap-3 pr-6">
+                              <div className="h-[5px] flex-grow bg-surface-alt border border-border rounded-full overflow-hidden">
+                                 <div 
+                                    className="h-full bg-foreground transition-all duration-1000" 
+                                    style={{ width: `${asset.healthScore}%` }} 
+                                 />
+                              </div>
+                              <span className="font-mono text-[11px] font-semibold text-foreground">{asset.healthScore}%</span>
+                           </div>
+                        </td>
+                        <td>
+                           <span className={cn(
+                             "badge-enterprise py-0.5",
+                             asset.status === 'HEALTHY' 
+                              ? "badge-success" 
+                              : "badge-critical"
+                           )}>
+                              {asset.status}
+                           </span>
+                        </td>
+                        <td className="text-right">
+                           <button className="btn-secondary h-8 w-8 p-0 flex items-center justify-center">
+                              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                           </button>
+                        </td>
                      </tr>
-                  </thead>
-                  <tbody>
-                     {isLoading ? (
-                        Array(5).fill(0).map((_, i) => (
-                          <tr key={i}><td colSpan={6} className="py-8"><div className="h-4 skeleton-ui w-full opacity-80 mx-auto rounded" /></td></tr>
-                        ))
-                     ) : (assets || [])?.map((asset: any) => (
-                        <tr key={asset.id} className="group">
-                           <td>
-                              <div className="flex items-center gap-3">
-                                 <div className="h-9 w-9 bg-surface-alt border border-border rounded-lg flex items-center justify-center text-muted group-hover:text-foreground group-hover:border-foreground transition-all">
-                                    {asset.type === 'DATABASE' ? <Database className="h-4 w-4" /> : <Server className="h-4 w-4" />}
-                                 </div>
-                                 <div className="flex flex-col">
-                                    <span className="text-[13px] font-bold text-foreground">{asset.name}</span>
-                                    <span className="text-[10px] font-bold text-muted uppercase tracking-widest font-mono">shard-{asset.id.toString().slice(-4)}</span>
-                                 </div>
-                              </div>
-                           </td>
-                           <td>
-                              <span className="text-[10px] font-bold uppercase tracking-widest text-foreground bg-neutral-100 border border-border px-1.5 py-0.5 rounded italic">
-                                 {asset.type}
-                              </span>
-                           </td>
-                           <td>
-                              <div className="text-[12px] font-bold text-foreground uppercase tracking-tight">{asset.provider} <span className="opacity-80 ml-1">/</span> <span className="text-muted ml-1">{asset.region}</span></div>
-                           </td>
-                           <td>
-                              <div className="flex items-center gap-3 pr-6">
-                                 <div className="h-1 flex-1 bg-surface-alt rounded-full overflow-hidden">
-                                    <div 
-                                       className="h-full bg-foreground transition-all duration-1000" 
-                                       style={{ width: `${asset.healthScore}%` }} 
-                                    />
-                                 </div>
-                                 <span className="font-mono text-[11px] font-bold text-foreground">{asset.healthScore}%</span>
-                              </div>
-                           </td>
-                           <td>
-                              <div className={cn(
-                                "inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest",
-                                asset.status === 'HEALTHY' 
-                                 ? "bg-emerald-50 text-emerald-700 border border-emerald-100" 
-                                 : "bg-red-50 text-red-700 border border-red-100"
-                              )}>
-                                 {asset.status}
-                              </div>
-                           </td>
-                           <td className="text-right pr-4">
-                              <button className="p-1.5 hover:bg-neutral-100 rounded-md transition-all text-muted hover:text-foreground">
-                                 <ArrowRight className="h-4 w-4" />
-                              </button>
-                           </td>
-                        </tr>
-                     ))}
-                  </tbody>
-               </table>
-            </div>
+                  ))}
+               </tbody>
+            </table>
          </div>
       </div>
     </div>

@@ -1,19 +1,38 @@
 import React, { useMemo } from 'react'
 import {
-   Sparkles, BrainCircuit, Zap, ShieldAlert, ArrowRight, RefreshCcw,
-   CheckCircle2, Terminal, Info, BarChart3, Activity, Command,
-   Cpu, Hash, ShieldCheck, Layers, Gauge, TrendingUp, AlertCircle,
-   Clock, Server, Shield, Share2, MoreVertical, Maximize2, Download
+   BrainCircuit, Zap, ShieldAlert, ArrowRight, RefreshCcw,
+   CheckCircle2, Gauge, ShieldCheck, TrendingUp, AlertCircle,
+   Maximize2, Download
 } from 'lucide-react'
 import {
    AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-   BarChart, Bar, Cell, LineChart, Line, Legend
+   BarChart, Bar, Legend
 } from 'recharts'
 import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/services/api'
 import { cn } from '@/utils/cn'
 import { toast } from 'sonner'
-import { format } from 'date-fns'
+
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-surface border border-border-strong p-3 rounded-[var(--radius)] shadow-lg text-left">
+        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5">{label}</p>
+        <div className="space-y-1">
+           {payload.map((p: any) => (
+             <div key={p.name} className="flex items-center gap-1.5">
+               <div className={cn("h-1.5 w-1.5 rounded-full", p.name === 'PROBABILITY' || p.name === 'SIGNALS' ? 'bg-foreground' : 'bg-muted-foreground')} />
+               <span className="text-[13px] font-semibold text-foreground">
+                  {p.name}: {typeof p.value === 'number' ? p.value.toFixed(1) : p.value}
+               </span>
+             </div>
+           ))}
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
 
 const AiInsightsPage: React.FC = () => {
    const { data: insightsData, isLoading, refetch, isRefetching } = useQuery({
@@ -39,7 +58,7 @@ const AiInsightsPage: React.FC = () => {
 
    const handleRemediate = async (insight: any) => {
       const toastId = toast.loading(`MISSION_PATCH_INIT: Initializing stabilization for ${insight.id || 'shard-01'}...`, {
-         className: 'font-mono font-bold text-[12px] uppercase tracking-widest'
+         className: 'font-mono font-semibold text-[12px] uppercase tracking-widest'
       })
 
       try {
@@ -48,7 +67,7 @@ const AiInsightsPage: React.FC = () => {
          await new Promise(resolve => setTimeout(resolve, 1200))
          toast.success(`MISSION_SUCCESS: Shard stabilized. Remediation logic enforced.`, {
             id: toastId,
-            className: 'font-mono font-bold text-[12px] uppercase tracking-widest'
+            className: 'font-mono font-semibold text-[12px] uppercase tracking-widest'
          })
          refetch()
       } catch (e) {
@@ -58,111 +77,111 @@ const AiInsightsPage: React.FC = () => {
 
    if (isLoading) {
       return (
-         <div className="p-8 space-y-10 animate-pulse bg-background min-h-screen">
-            <div className="h-20 w-full skeleton-ui" />
-            <div className="grid grid-cols-4 gap-6">
-               {Array(4).fill(0).map((_, i) => <div key={i} className="h-32 skeleton-ui" />)}
+         <div className="p-6 lg:p-8 space-y-8 animate-fade-in bg-background min-h-screen">
+            <div className="h-16 w-full skeleton-ui animate-pulse" />
+            <div className="grid grid-cols-4 gap-4">
+               {Array(4).fill(0).map((_, i) => <div key={i} className="h-28 skeleton-ui animate-pulse" />)}
             </div>
-            <div className="grid grid-cols-2 gap-8">
-               <div className="h-96 skeleton-ui" />
-               <div className="h-96 skeleton-ui" />
+            <div className="grid grid-cols-2 gap-6">
+               <div className="h-80 skeleton-ui animate-pulse" />
+               <div className="h-80 skeleton-ui animate-pulse" />
             </div>
          </div>
       );
    }
 
    return (
-      <div className="page-transition-fade space-y-10 p-8 lg:p-10 bg-background min-h-screen max-w-[1700px] mx-auto">
+      <div className="page-transition-fade space-y-6 p-6 lg:p-8 bg-background min-h-screen">
          {/* Reasoning Header */}
-         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 pb-10 border-b-2 border-foreground/5">
-            <div className="space-y-3">
-               <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 bg-black text-white rounded-lg flex items-center justify-center shadow-xl">
-                     <BrainCircuit className="h-6 w-6" />
+         <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 pb-6 border-b border-border">
+            <div className="space-y-1 text-left">
+               <div className="flex items-center gap-2.5">
+                  <div className="h-8 w-8 bg-primary text-primary-foreground rounded-[var(--radius)] flex items-center justify-center shadow-sm">
+                     <BrainCircuit className="h-4.5 w-4.5" />
                   </div>
-                  <h1 className="text-[42px] font-bold tracking-tight text-foreground m-0 uppercase leading-none">Predictive Architecture</h1>
+                  <h1 className="text-[32px] font-bold tracking-tight text-foreground m-0 leading-tight">Predictive Insights</h1>
                </div>
-               <div className="flex items-center gap-4">
-                  <p className="text-[12px] font-bold text-muted uppercase tracking-[0.2em] flex items-center gap-2">
+               <div className="flex items-center gap-3.5 mt-1">
+                  <p className="text-[12px] font-medium text-muted-foreground flex items-center gap-1.5">
                      Engine: Core_Reasoning_v4.2 • Deterministic Ingress
                   </p>
-                  <div className="h-4 w-[1px] bg-border" />
-                  <div className="flex items-center gap-2">
-                     <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                     <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Real-time Policy Enforced</span>
+                  <div className="h-3 w-[1px] bg-border" />
+                  <div className="flex items-center gap-1.5">
+                     <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                     <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">Real-time Policy Enforced</span>
                   </div>
                </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
                <button
                   onClick={() => refetch()}
                   disabled={isRefetching}
-                  className="btn-secondary h-11 border-strong"
+                  className="btn-secondary h-8.5 px-3"
                >
-                  <RefreshCcw className={cn("h-4 w-4", isRefetching && "animate-spin")} />
-                  <span className="ml-2 uppercase tracking-widest text-[11px] font-bold">Sync Signals</span>
+                  <RefreshCcw className={cn("h-3.5 w-3.5 mr-1.5", isRefetching && "animate-spin")} />
+                  <span>Sync Signals</span>
                </button>
-               <button className="btn-primary h-11 shadow-2xl shadow-black/20">
-                  <Zap className="h-4 w-4" />
-                  <span className="ml-2 uppercase tracking-widest text-[11px] font-bold">Enforce All Patches</span>
+               <button className="btn-primary h-8.5 px-3">
+                  <Zap className="h-3.5 w-3.5" />
+                  <span>Enforce All Patches</span>
                </button>
             </div>
          </div>
 
          {/* Top Layer: KPI Shards */}
-         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[
                { label: 'Platform Health Score', val: '98.2', trend: '+1.4%', icon: Gauge, desc: 'Composite integrity metric' },
                { label: 'Prediction Confidence', val: '94.5%', trend: 'STABLE', icon: ShieldCheck, desc: 'Model verification rate' },
                { label: 'Incident Forecast (24h)', val: '12-14', trend: '-22%', icon: TrendingUp, desc: 'Probabilistic signal count' },
                { label: 'Global Risk Index', val: 'LOW', trend: 'NONE', icon: ShieldAlert, desc: 'Cross-region security state' },
             ].map(kpi => (
-               <div key={kpi.label} className="card-enterprise p-6 group hover:bg-surface-hover/30 transition-all border-border-strong">
-                  <div className="flex justify-between items-start mb-6">
-                     <div className="h-10 w-10 bg-surface-alt border border-border-strong rounded flex items-center justify-center transition-colors group-hover:bg-foreground group-hover:text-background">
-                        <kpi.icon className="h-5 w-5" />
+               <div key={kpi.label} className="card-enterprise p-5 group hover:bg-surface-hover transition-all text-left">
+                  <div className="flex justify-between items-start mb-4">
+                     <div className="h-8.5 w-8.5 bg-surface-alt border border-border rounded flex items-center justify-center transition-colors group-hover:bg-foreground group-hover:text-background group-hover:border-foreground">
+                        <kpi.icon className="h-4.5 w-4.5 text-muted-foreground group-hover:text-current" />
                      </div>
-                     <span className="text-[10px] font-bold uppercase tracking-widest text-muted">{kpi.trend}</span>
+                     <span className="badge-enterprise bg-surface-alt text-muted-foreground">{kpi.trend}</span>
                   </div>
                   <div className="space-y-1">
-                     <div className="text-[11px] font-bold text-secondary uppercase tracking-widest">{kpi.label}</div>
-                     <div className="text-3xl font-black text-foreground tracking-tighter">{kpi.val}</div>
-                     <div className="text-[11px] font-bold text-muted uppercase mt-2">{kpi.desc}</div>
+                     <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">{kpi.label}</div>
+                     <div className="text-[22px] font-bold text-foreground tracking-tight leading-none mt-1">{kpi.val}</div>
+                     <div className="text-[11px] text-muted-foreground tracking-wide mt-2">{kpi.desc}</div>
                   </div>
                </div>
             ))}
          </div>
 
          {/* Middle Layer: Predictive Visualizations */}
-         <div className="grid gap-8 lg:grid-cols-2">
+         <div className="grid gap-6 lg:grid-cols-2">
             <ChartContainer title="Failure Prediction Shard" subtitle="7-day probabilistic drift analysis">
                <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={seriesData}>
                      <defs>
                         <linearGradient id="colorRisk" x1="0" y1="0" x2="0" y2="1">
-                           <stop offset="5%" stopColor="#000" stopOpacity={0.1} />
-                           <stop offset="95%" stopColor="#000" stopOpacity={0} />
+                           <stop offset="5%" stopColor="currentColor" className="text-foreground" stopOpacity={0.06} />
+                           <stop offset="95%" stopColor="currentColor" className="text-foreground" stopOpacity={0} />
                         </linearGradient>
                      </defs>
-                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-strong)" />
+                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-border/40" />
                      <XAxis
                         dataKey="time"
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fill: 'var(--foreground)', fontSize: 10, fontWeight: 900 }}
+                        tick={{ fill: 'currentColor', fontSize: 10, fontWeight: 500 }}
                         interval={3}
+                        className="text-muted-foreground"
                      />
                      <YAxis
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fill: 'var(--foreground)', fontSize: 10, fontWeight: 900 }}
+                        tick={{ fill: 'currentColor', fontSize: 10, fontWeight: 500 }}
+                        className="text-muted-foreground"
                      />
-                     <Tooltip
-                        contentStyle={{ borderRadius: '4px', border: '2px solid #000', boxShadow: '0 8px 30px rgba(0,0,0,0.1)', fontSize: '12px', fontWeight: 'bold' }}
-                     />
-                     <Legend wrapperStyle={{ fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.15em', paddingTop: '20px' }} />
-                     <Area type="monotone" dataKey="prediction" stroke="#000" strokeWidth={4} fillOpacity={1} fill="url(#colorRisk)" name="PROBABILITY" />
-                     <Area type="monotone" dataKey="risk" stroke="#555" strokeWidth={2} strokeDasharray="5 5" fill="none" name="VARIANCE" />
+                     <Tooltip content={<CustomTooltip />} />
+                     <Legend wrapperStyle={{ fontSize: '10px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.1em', paddingTop: '15px' }} />
+                     <Area type="monotone" dataKey="prediction" stroke="currentColor" strokeWidth={1.5} fillOpacity={1} fill="url(#colorRisk)" name="PROBABILITY" className="text-foreground" />
+                     <Area type="monotone" dataKey="risk" stroke="currentColor" strokeWidth={1.5} strokeDasharray="4 4" fill="none" name="VARIANCE" className="text-muted-foreground" />
                   </AreaChart>
                </ResponsiveContainer>
             </ChartContainer>
@@ -170,79 +189,79 @@ const AiInsightsPage: React.FC = () => {
             <ChartContainer title="Anomaly Frequency Trend" subtitle="Cluster-wide signal deviations">
                <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={seriesData}>
-                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-strong)" />
+                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-border/40" />
                      <XAxis
                         dataKey="time"
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fill: 'var(--foreground)', fontSize: 10, fontWeight: 900 }}
+                        tick={{ fill: 'currentColor', fontSize: 10, fontWeight: 500 }}
                         interval={3}
+                        className="text-muted-foreground"
                      />
                      <YAxis
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fill: 'var(--foreground)', fontSize: 10, fontWeight: 900 }}
+                        tick={{ fill: 'currentColor', fontSize: 10, fontWeight: 500 }}
+                        className="text-muted-foreground"
                      />
-                     <Tooltip
-                        contentStyle={{ borderRadius: '4px', border: '2px solid #000', fontSize: '12px', fontWeight: 'bold' }}
-                     />
-                     <Legend wrapperStyle={{ fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.15em', paddingTop: '20px' }} />
-                     <Bar dataKey="anomaly" fill="#000" radius={[2, 2, 0, 0]} name="SIGNALS" />
-                     <Bar dataKey="alertDensity" fill="#666" radius={[2, 2, 0, 0]} name="ALERTS" />
+                     <Tooltip content={<CustomTooltip />} />
+                     <Legend wrapperStyle={{ fontSize: '10px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.1em', paddingTop: '15px' }} />
+                     <Bar dataKey="anomaly" fill="currentColor" radius={[2, 2, 0, 0]} name="SIGNALS" className="text-foreground" />
+                     <Bar dataKey="alertDensity" fill="currentColor" radius={[2, 2, 0, 0]} name="ALERTS" className="text-muted-foreground/40" />
                   </BarChart>
                </ResponsiveContainer>
             </ChartContainer>
          </div>
 
          {/* Bottom Layer: Insights & Recommendations */}
-         <div className="grid gap-8 lg:grid-cols-3">
-            <div className="lg:col-span-2 space-y-6">
-               <div className="flex items-center justify-between border-b border-border pb-4">
-                  <h3 className="text-[20px] font-bold text-foreground flex items-center gap-2 m-0 uppercase tracking-tight">
-                     <Sparkles className="h-5 w-5 text-black" /> Recommendation Intelligence
+         <div className="grid gap-6 lg:grid-cols-3">
+            <div className="lg:col-span-2 space-y-4">
+               <div className="flex items-center justify-between border-b border-border pb-3 text-left">
+                  <h3 className="text-[16px] font-semibold text-foreground m-0 flex items-center gap-1.5 uppercase tracking-wide">
+                     Recommendation Intelligence
                   </h3>
-                  <span className="text-[11px] font-bold text-muted uppercase tracking-widest">Global Policy Shards</span>
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Global Policy Shards</span>
                </div>
 
-               <div className="grid gap-4">
+               <div className="grid gap-4.5">
                   {(!insightsData || insightsData.length === 0) ? (
-                     <div className="card-enterprise p-20 text-center space-y-4 border-strong border-dashed">
-                        <CheckCircle2 className="h-12 w-12 text-emerald-500 mx-auto opacity-30" />
-                        <p className="text-[14px] font-bold text-muted uppercase tracking-widest">Zero high-risk deviations detected.</p>
+                     <div className="card-enterprise p-16 text-center space-y-3 border-dashed">
+                        <CheckCircle2 className="h-10 w-10 text-emerald-500 mx-auto opacity-30 animate-pulse" />
+                        <p className="text-[13px] font-semibold text-muted-foreground uppercase tracking-wider">Zero high-risk deviations detected.</p>
                      </div>
                   ) : (
                      insightsData.map((insight: any, idx: number) => (
-                        <div key={idx} className="card-enterprise group hover:border-black transition-all">
+                        <div key={idx} className="card-enterprise group transition-all text-left">
                            <div className="flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-border">
-                              <div className="p-6 md:w-48 bg-surface-alt/40 flex flex-col items-center justify-center gap-3">
+                              <div className="p-5 md:w-40 bg-surface-alt/50 flex flex-col items-center justify-center gap-2 shrink-0">
                                  <div className={cn(
-                                    "h-10 w-10 rounded-full flex items-center justify-center text-white shadow-lg",
-                                    insight.type === 'Critical' ? "bg-red-600" : "bg-black"
+                                    "h-8.5 w-8.5 rounded-full flex items-center justify-center text-white shadow-sm",
+                                    insight.type === 'Critical' ? "bg-red-500" : "bg-neutral-800"
                                  )}>
-                                    <AlertCircle className="h-5 w-5" />
+                                    <AlertCircle className="h-4.5 w-4.5" />
                                  </div>
                                  <span className={cn(
-                                    "text-[10px] font-black uppercase tracking-widest",
-                                    insight.type === 'Critical' ? "text-red-700" : "text-black"
+                                    "text-[10px] font-bold uppercase tracking-wider text-center",
+                                    insight.type === 'Critical' ? "text-red-500" : "text-foreground/80"
                                  )}>{insight.type} Signal</span>
                               </div>
-                              <div className="flex-1 p-8 space-y-4">
+                              <div className="flex-1 p-6 space-y-3.5">
                                  <div className="flex items-center justify-between">
-                                    <h5 className="text-[18px] font-black tracking-tight text-foreground m-0">{insight.title}</h5>
-                                    <span className="text-[11px] font-bold text-muted uppercase tracking-widest">{insight.status || 'Confidence High'}</span>
+                                    <h5 className="text-[15px] font-semibold tracking-tight text-foreground m-0">{insight.title}</h5>
+                                    <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{insight.status || 'Confidence High'}</span>
                                  </div>
-                                 <p className="text-[14px] font-medium text-secondary leading-relaxed italic border-l-4 border-foreground/10 pl-4 py-1">
+                                 <p className="text-[13px] leading-relaxed text-foreground/85 font-normal italic border-l-3 border-border pl-3 py-0.5">
                                     "{insight.desc}"
-                                 </p>
-                                 <div className="flex flex-wrap gap-4 pt-2">
-                                    <div className="text-[12px] font-bold text-foreground bg-surface-alt px-3 py-1.5 rounded border border-border-strong flex items-center gap-2">
-                                       <TrendingUp className="h-3.5 w-3.5" /> MTTR Impact: -18% predicted
+                                  </p>
+                                 <div className="flex items-center justify-between gap-4 pt-1.5">
+                                    <div className="text-[11px] font-semibold text-foreground/80 bg-surface-alt px-2.5 py-1 rounded border border-border flex items-center gap-1.5">
+                                       <TrendingUp className="h-3.5 w-3.5" /> MTTR Impact: -18% expected
                                     </div>
                                     <button
                                        onClick={() => handleRemediate(insight)}
-                                       className="text-[11px] font-black text-white bg-black px-4 py-1.5 rounded hover:opacity-90 flex items-center gap-2 ml-auto"
+                                       className="btn-primary h-8 text-[11px] uppercase tracking-wider"
                                     >
-                                       Enforce Remediation <ArrowRight className="h-3.5 w-3.5" />
+                                       Remediate <ArrowRight className="h-3.5 w-3.5 ml-0.5" />
                                     </button>
                                  </div>
                               </div>
@@ -253,54 +272,52 @@ const AiInsightsPage: React.FC = () => {
                </div>
             </div>
 
-            <div className="space-y-6">
-               <div className="flex items-center justify-between border-b border-border pb-4">
-                  <h3 className="text-[20px] font-bold text-foreground flex items-center gap-2 m-0 uppercase tracking-tight">
+            <div className="space-y-4">
+               <div className="flex items-center justify-between border-b border-border pb-3 text-left">
+                  <h3 className="text-[16px] font-semibold text-foreground m-0 uppercase tracking-wide">
                      Services At Risk
                   </h3>
-                  <button className="text-[11px] font-bold text-muted uppercase tracking-widest hover:text-black">Audit</button>
+                  <button className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider hover:text-foreground">Audit</button>
                </div>
 
-               <div className="space-y-3">
+               <div className="space-y-2.5">
                   {[
                      { name: 'auth-ingress-v2', risk: 'Elevated', trend: 'UP', code: '0xFA1' },
                      { name: 'payment-shard-08', risk: 'Medium', trend: 'STABLE', code: '0xB21' },
                      { name: 'telemetry-sink', risk: 'Low', trend: 'DOWN', code: '0x889' },
                      { name: 'security-mesh', risk: 'Minimal', trend: 'DOWN', code: '0xC04' },
                   ].map(service => (
-                     <div key={service.name} className="p-4 card-enterprise flex items-center justify-between group hover:border-black transition-all cursor-pointer">
-                        <div className="flex items-center gap-4">
-                           <div className="h-10 w-10 bg-surface-alt border border-border rounded flex items-center justify-center text-foreground font-mono text-[10px] font-bold">
+                     <div key={service.name} className="p-3 card-enterprise flex items-center justify-between group hover:border-border-strong transition-all cursor-pointer text-left">
+                        <div className="flex items-center gap-3">
+                           <div className="h-9 w-9 bg-surface-alt border border-border rounded flex items-center justify-center text-foreground font-mono text-[10px] font-bold">
                               {service.code}
                            </div>
                            <div className="space-y-0.5">
-                              <div className="text-[14px] font-black text-foreground">{service.name}</div>
-                              <div className="text-[10px] font-bold text-muted uppercase tracking-widest">Signal: {service.trend}</div>
+                              <div className="text-[13px] font-semibold text-foreground leading-tight">{service.name}</div>
+                              <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Signal: {service.trend}</div>
                            </div>
                         </div>
-                        <div className={cn(
-                           "px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest border",
-                           service.risk === 'Elevated' ? "bg-red-50 text-red-700 border-red-200" :
-                              service.risk === 'Medium' ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-surface-alt text-muted border-border"
+                        <span className={cn(
+                           "badge-enterprise py-0.5",
+                           service.risk === 'Elevated' ? "badge-critical" :
+                              service.risk === 'Medium' ? "badge-warning" : "badge-info"
                         )}>
                            {service.risk}
-                        </div>
+                        </span>
                      </div>
                   ))}
                </div>
 
-               <div className="card-enterprise p-6 bg-black text-white relative overflow-hidden">
-                  <div className="relative z-10 space-y-4">
-                     <div className="flex items-center gap-2 text-emerald-400">
-                        <ShieldCheck className="h-5 w-5" />
-                        <span className="text-[12px] font-bold uppercase tracking-widest">Autonomous Guard</span>
-                     </div>
-                     <h4 className="text-[20px] font-black tracking-tight m-0 text-white leading-tight">Shielding Policy Active</h4>
-                     <p className="text-[13px] text-white font-bold leading-relaxed">
-                        Intelligence Engine has full authorization to deploy L1 shards. 18 anomalies mitigated automatically today.
-                     </p>
-                     <button className="w-full h-10 bg-white text-black font-bold text-[11px] uppercase tracking-widest hover:opacity-90">Review Logs</button>
+               <div className="card-enterprise p-5 bg-foreground text-background border-none shadow-md text-left">
+                  <div className="flex items-center gap-2 mb-3">
+                     <ShieldCheck className="h-4.5 w-4.5 text-emerald-400" />
+                     <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Autonomous Guard</span>
                   </div>
+                  <h4 className="text-[16px] font-bold tracking-tight m-0 text-background leading-tight">Shielding Policy Active</h4>
+                  <p className="text-[13px] text-neutral-400 leading-relaxed mt-2.5">
+                     Intelligence Engine has authorization to deploy L1 shards. 18 anomalies mitigated automatically today.
+                  </p>
+                  <button className="w-full h-8.5 bg-background text-foreground font-semibold text-[11px] uppercase tracking-wider hover:bg-opacity-90 mt-4 transition-all shadow-xs">Review Logs</button>
                </div>
             </div>
          </div>
@@ -309,21 +326,21 @@ const AiInsightsPage: React.FC = () => {
 }
 
 const ChartContainer = ({ title, subtitle, children }: { title: string, subtitle: string, children: React.ReactNode }) => (
-   <div className="card-enterprise flex flex-col h-[500px] border-border-strong">
-      <div className="px-8 py-6 border-b border-border flex items-center justify-between">
-         <div className="space-y-1">
-            <h3 className="text-[18px] font-black text-foreground mb-0 uppercase tracking-tight leading-none">{title}</h3>
-            <p className="text-[11px] text-muted font-bold mb-0 uppercase tracking-[0.2em]">{subtitle}</p>
+   <div className="card-enterprise flex flex-col h-[400px] text-left">
+      <div className="px-5 py-3 border-b border-border flex items-center justify-between">
+         <div className="space-y-0.5">
+            <h3 className="text-[15px] font-semibold text-foreground m-0 uppercase tracking-wide">{title}</h3>
+            <p className="text-[10px] text-muted-foreground font-semibold mb-0 uppercase tracking-widest">{subtitle}</p>
          </div>
-         <div className="flex items-center gap-2">
-            <button className="p-2 hover:bg-surface-alt rounded border border-border-strong text-muted hover:text-foreground transition-all"><Maximize2 className="h-4 w-4" /></button>
-            <button className="p-2 hover:bg-surface-alt rounded border border-border-strong text-muted hover:text-foreground transition-all"><Download className="h-4 w-4" /></button>
+         <div className="flex items-center gap-1.5">
+            <button className="p-1.5 hover:bg-surface-hover rounded border border-border text-muted-foreground hover:text-foreground transition-all"><Maximize2 className="h-4 w-4" /></button>
+            <button className="p-1.5 hover:bg-surface-hover rounded border border-border text-muted-foreground hover:text-foreground transition-all"><Download className="h-4 w-4" /></button>
          </div>
       </div>
-      <div className="p-8 flex-1 w-full min-h-0">
+      <div className="p-5 flex-1 w-full min-h-0">
          {children}
       </div>
    </div>
-);
+)
 
-export default AiInsightsPage;
+export default AiInsightsPage
