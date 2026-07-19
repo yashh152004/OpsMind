@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { 
   User, Building, Webhook, Lock, ChevronRight, Camera,
   LogOut, Settings as SettingsIcon, ShieldCheck, Download,
-  RefreshCw, Globe, Plus
+  RefreshCw, Globe, Plus, History
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import { apiClient } from '@/services/api'

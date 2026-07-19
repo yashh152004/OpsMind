@@ -2,7 +2,7 @@ import axios, { AxiosInstance, AxiosError } from 'axios'
 import { useAuthStore } from '@/stores/auth'
 import type { AuthResponse, AuthCredentials, User, RegisterRequest, Notification } from '@/types'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api'
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api'
 
 class ApiClient {
   private client: AxiosInstance
@@ -339,21 +339,33 @@ class ApiClient {
       },
       body: JSON.stringify({ content })
     }).then(async response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
       if (!reader) return;
 
+      let buffer = "";
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        const chunk = decoder.decode(value);
-        // SSE format: data: <content>\n\n
-        const lines = chunk.split('\n');
+        
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        // Keep the last incomplete line in the buffer
+        buffer = lines.pop() || "";
+        
         for (const line of lines) {
-           if (line.startsWith('data:')) {
-              onChunk(line.replace('data:', ''));
-           }
+          const trimmed = line.trim();
+          if (trimmed.startsWith('data:')) {
+            onChunk(trimmed.substring(5));
+          }
         }
+      }
+      // Parse any remaining content in the buffer
+      if (buffer.trim().startsWith('data:')) {
+        onChunk(buffer.trim().substring(5));
       }
     });
   }
