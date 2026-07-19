@@ -2,7 +2,7 @@ import axios, { AxiosInstance, AxiosError } from 'axios'
 import { useAuthStore } from '@/stores/auth'
 import type { AuthResponse, AuthCredentials, User, RegisterRequest, Notification } from '@/types'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api'
+const API_BASE_URL = '/api'
 
 class ApiClient {
   private client: AxiosInstance
