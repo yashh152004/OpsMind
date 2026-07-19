@@ -29,7 +29,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 }
 
 const AnalyticsPage: React.FC = () => {
-  const { data: trends, isLoading, refetch, isRefetching } = useQuery({
+  const { data: trends, refetch, isRefetching } = useQuery({
     queryKey: ['analytics-trends'],
     queryFn: () => apiClient.getAnalyticsTrends(),
     refetchInterval: 60000

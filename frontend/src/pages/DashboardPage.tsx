@@ -4,7 +4,7 @@ import {
 } from 'recharts'
 import { 
   Activity, AlertTriangle, ShieldCheck, Cpu,
-  Plus, Download, Info, TrendingUp, ChevronRight,
+  Plus, Download, TrendingUp, ChevronRight,
   Search, Globe, Server, Clock, RefreshCw, X, Zap, Terminal
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'

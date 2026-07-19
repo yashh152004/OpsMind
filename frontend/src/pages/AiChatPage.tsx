@@ -4,9 +4,8 @@ import {
   Plus, Pin, Trash2, Send, Search, MoreVertical, 
   Activity, Sparkles, ChevronRight, X, Terminal, Shield, 
   AlertTriangle, Cpu, Globe, Share2, StopCircle, Copy, ThumbsUp, 
-  ThumbsDown, RefreshCcw, Command, SlidersHorizontal, Paperclip, Clock
+  ThumbsDown, RefreshCcw, Command, SlidersHorizontal, Paperclip
 } from 'lucide-react'
-import { motion } from 'framer-motion'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { format } from 'date-fns'
@@ -14,12 +13,6 @@ import { cn } from '@/utils/cn'
 import { apiClient } from '@/services/api'
 import { toast } from 'sonner'
 
-interface Message {
-  id: string;
-  role: 'USER' | 'ASSISTANT';
-  content: string;
-  createdAt: string;
-}
 
 const STARTER_PROMPTS = [
   { id: 'p1', text: 'Analyze the latest Critical (P1) incident', icon: AlertTriangle, desc: 'Root cause analysis' },
@@ -43,7 +36,7 @@ export default function AiChatPage() {
     queryFn: () => apiClient.getConversations()
   })
 
-  const { data: messages, isLoading: isMessagesLoading } = useQuery({
+  const { data: messages } = useQuery({
     queryKey: ['ai-messages', activeConversationId],
     queryFn: () => activeConversationId ? apiClient.getConversationMessages(activeConversationId) : Promise.resolve([]),
     enabled: !!activeConversationId

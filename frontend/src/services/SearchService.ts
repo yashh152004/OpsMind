@@ -115,7 +115,7 @@ class SearchService {
     }).slice(0, 50); // Cap results
   }
 
-  private resolveHref(type: string, id: string): string {
+  private resolveHref(type: string, _id: string): string {
     switch (type) {
       case 'INCIDENT': return '/incidents';
       case 'ALERT': return '/alerts';

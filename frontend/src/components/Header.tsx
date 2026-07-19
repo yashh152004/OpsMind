@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react'
 import { 
   Search, 
   Bell, 
-  HelpCircle, 
   ChevronDown, 
   Loader2, 
   AlertCircle, 

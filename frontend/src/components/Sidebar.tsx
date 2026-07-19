@@ -2,7 +2,7 @@ import React from 'react'
 import { NavLink } from 'react-router-dom'
 import { 
   LayoutDashboard, AlertCircle, Zap, BarChart3, Settings, MessageSquareCode,
-  Activity, ShieldCheck, Layers, Terminal, Layout, X, ChevronDown, 
+  Activity, ShieldCheck, Layers, Terminal, Layout, ChevronDown, 
   Search, Command
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
@@ -150,7 +150,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isCollapsed, onToggl
              <div className="p-3">
                 <div className="flex items-center justify-between group cursor-pointer p-1.5 rounded-[var(--radius)] hover:bg-surface-hover transition-all duration-150">
                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="h-8.5 w-8.5 rounded-[var(--radius)] bg-secondary border border-border-strong/10 overflow-hidden flex items-center justify-center text-[12px] font-semibold text-foreground uppercase shrink-0">
+                      <div className="h-8 w-8 rounded-[var(--radius)] bg-secondary border border-border-strong/10 overflow-hidden flex items-center justify-center text-[12px] font-semibold text-foreground uppercase shrink-0">
                         {user?.avatarUrl ? (
                           <img src={user.avatarUrl} alt="" className="h-full w-full object-cover" />
                         ) : (
@@ -171,7 +171,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isCollapsed, onToggl
            )}
            {isCollapsed && (
              <div className="p-3 flex items-center flex-col gap-3">
-                <div className="h-9.5 w-9.5 rounded-[var(--radius)] bg-secondary border border-border-strong/10 overflow-hidden flex items-center justify-center text-[12px] font-semibold text-foreground uppercase shadow-xs">
+                <div className="h-10 w-10 rounded-[var(--radius)] bg-secondary border border-border-strong/10 overflow-hidden flex items-center justify-center text-[12px] font-semibold text-foreground uppercase shadow-xs">
                    {user?.avatarUrl ? (
                       <img src={user.avatarUrl} alt="" className="h-full w-full object-cover" />
                    ) : (

@@ -1,22 +1,8 @@
 import React, { useState } from 'react'
 import { 
-  Cloud, 
-  Terminal, 
-  Database, 
-  ShieldCheck, 
-  Activity, 
-  ArrowRight,
-  Plus,
-  RefreshCw,
-  Trash2,
-  Lock,
-  Search,
-  Filter,
-  Webhook,
-  ChevronRight,
-  Monitor,
-  Zap,
-  Globe
+  Cloud, Terminal, Database, ShieldCheck, Activity, ArrowRight,
+  Plus, RefreshCw, Trash2, Lock, Search, Webhook,
+  Globe, X
 } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import { useQuery } from '@tanstack/react-query'
@@ -34,42 +20,42 @@ const IntegrationsPage: React.FC = () => {
   })
 
   return (
-    <div className="page-transition-fade space-y-8 p-6 lg:p-8 bg-background min-h-screen">
+    <div className="page-transition-fade space-y-6 p-6 lg:p-8 bg-background min-h-screen">
       {/* Integrations Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-border">
-        <div className="space-y-1">
-           <h1 className="text-4xl font-black tracking-tighter text-foreground m-0">Channel Management</h1>
-           <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 px-2.5 py-1 bg-surface-alt border border-border-strong rounded text-[11px] font-black uppercase tracking-widest shadow-sm">
-                 <Webhook className="h-3.5 w-3.5 text-foreground" />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 pb-6 border-b border-border">
+        <div className="space-y-1 text-left">
+           <h1 className="text-[32px] font-bold tracking-tight text-foreground m-0 leading-tight">Channel Management</h1>
+           <div className="flex items-center gap-2.5 mt-1">
+              <span className="badge-enterprise bg-surface-alt border border-border py-0.5">
+                 <Webhook className="h-3.5 w-3.5 mr-1 text-muted-foreground" />
                  Signal Mesh
-              </div>
-              <span className="text-border-strong">|</span>
-              <p className="text-[12px] font-bold text-muted uppercase tracking-widest">
-                 Managing <span className="text-foreground font-black">8 active data connectors</span> and telemetry ingestors.
+              </span>
+              <span className="text-border">|</span>
+              <p className="text-[12px] font-medium text-muted-foreground">
+                 Managing <span className="text-foreground font-semibold">8 active data connectors</span> and telemetry ingestors.
               </p>
            </div>
         </div>
         <button 
           onClick={() => setIsProvisioning(true)}
-          className="h-10 bg-black text-white px-6 rounded-lg text-[11px] font-black uppercase tracking-[0.2em] shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center"
+          className="btn-primary h-8.5 px-3"
         >
-           <Plus className="h-4 w-4 mr-2" />
+           <Plus className="h-4 w-4" />
            <span>Provision Connector</span>
         </button>
       </div>
 
       {/* Selective Filter Navigation */}
-      <div className="flex flex-wrap items-center gap-1.5 p-1.5 bg-surface-alt rounded-xl border border-border w-fit shadow-inner">
+      <div className="flex flex-wrap items-center gap-1 p-1 bg-surface-alt rounded-[var(--radius)] border border-border w-fit text-left">
          {["All Channels", ...categories].map(cat => (
            <button 
              key={cat}
              onClick={() => setSelectedCategory(cat)}
              className={cn(
-               "px-5 py-2 text-[10px] font-black uppercase tracking-[0.2em] transition-all rounded-lg",
+               "px-3.5 py-1 text-[11px] font-medium transition-all rounded-[var(--radius)]",
                selectedCategory === cat 
-                ? "bg-black text-white shadow-lg border border-black" 
-                : "text-secondary hover:text-foreground hover:bg-white/50"
+                ? "bg-background text-foreground shadow-xs border border-border" 
+                : "text-muted-foreground hover:text-foreground hover:bg-surface-hover/50"
              )}
            >
              {cat}
@@ -78,98 +64,95 @@ const IntegrationsPage: React.FC = () => {
       </div>
 
       {/* Search & Stats */}
-      <div className="flex items-center gap-4">
-          <div className="relative group max-w-md flex-1">
-             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4.5 w-4.5 text-muted group-focus-within:text-foreground transition-colors" />
+      <div className="flex flex-col sm:flex-row items-center gap-3">
+          <div className="relative group flex-1 w-full">
+             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground group-focus-within:text-foreground transition-colors" />
              <input 
                type="text" 
-               placeholder="Filter by connector name, ID, or source type..." 
-               className="input-enterprise pl-12 h-12 w-full shadow-sm" 
+               placeholder="Filter by connector name, ID, or source..." 
+               className="input-enterprise pl-9 h-8.5 w-full font-normal" 
              />
           </div>
-          <div className="h-12 px-6 border-2 border-border rounded-xl flex items-center gap-8 text-[11px] font-black uppercase tracking-widest text-muted bg-surface-alt">
-             <div className="flex items-center gap-2.5">
-                <div className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+          <div className="h-8.5 px-4 border border-border rounded-[var(--radius)] flex items-center gap-6 text-[11px] font-semibold text-muted-foreground bg-surface-alt shrink-0 self-end sm:self-auto">
+             <div className="flex items-center gap-1.5">
+                <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 <span className="text-foreground">8 Linked</span>
              </div>
-             <div className="flex items-center gap-2.5">
-                <div className="h-2 w-2 rounded-full bg-neutral-300" />
+             <div className="flex items-center gap-1.5">
+                <div className="h-1.5 w-1.5 rounded-full bg-border" />
                 <span>14 Available</span>
              </div>
           </div>
       </div>
 
       {/* Grid Matrix */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid gap-4.5 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {isLoading ? (
           Array(8).fill(0).map((_, i) => (
-            <div key={i} className="h-56 skeleton-ui opacity-80 rounded-xl" />
+            <div key={i} className="h-48 skeleton-ui opacity-80 rounded-[var(--radius)] animate-pulse" />
           ))
         ) : (integrations || [])?.map((app: any) => {
-          const Icon = app.name.includes('AWS') ? Cloud : app.name.includes('Elastic') ? Database : app.name.includes('Prometheus') ? Activity : Terminal;
+          const Icon = app.name.includes('AWS') ? Cloud : app.name.includes('Elastic') ? Database : app.name.includes('Prometheus') ? Activity : Terminal
           return (
-            <div key={app.id} className="card-enterprise group flex flex-col hover:border-foreground transition-all shadow-sm hover:shadow-xl">
-              <div className="p-6 flex-1 space-y-6">
+            <div key={app.id} className="card-enterprise group flex flex-col hover:border-border-strong transition-all text-left">
+              <div className="p-5 flex-1 space-y-4">
                 <div className="flex items-center justify-between">
-                  <div className="h-12 w-12 bg-surface-alt border border-border rounded-xl flex items-center justify-center group-hover:bg-foreground group-hover:text-background transition-all">
-                    <Icon className="h-6 w-6" />
+                  <div className="h-9 w-9 bg-surface-alt border border-border rounded-[var(--radius)] flex items-center justify-center group-hover:bg-foreground group-hover:text-background transition-all">
+                    <Icon className="h-4.5 w-4.5 text-muted-foreground group-hover:text-current" />
                   </div>
-                  {app.connected ? (
-                     <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-100 text-emerald-900 border border-emerald-300 rounded text-[9px] font-black uppercase tracking-widest shadow-sm">
-                        Linked
-                     </div>
-                  ) : (
-                     <div className="flex items-center gap-1.5 px-2.5 py-1 bg-surface-alt text-secondary border border-border-strong rounded text-[9px] font-black uppercase tracking-widest">
-                        Inactive
-                     </div>
-                  )}
+                  <span className={cn(
+                    "badge-enterprise py-0.5",
+                    app.connected ? "badge-success" : "badge-info"
+                  )}>
+                     {app.connected ? 'Linked' : 'Inactive'}
+                  </span>
                 </div>
                 
                 <div>
-                   <h3 className="text-[15px] font-black tracking-tight text-foreground m-0 uppercase">{app.name}</h3>
-                   <div className="text-[10px] text-secondary font-black uppercase tracking-[0.1em] mt-1 flex items-center gap-1.5 italic">
-                      Shard Source <span className="opacity-40">•</span> {app.type || app.source}
+                   <h3 className="text-[14px] font-semibold tracking-tight text-foreground m-0 uppercase">{app.name}</h3>
+                   <div className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mt-1 flex items-center gap-1.5 italic">
+                      Type <span className="opacity-40">•</span> {app.type || app.source}
                    </div>
                 </div>
-
+ 
                 {app.connected && (
-                   <div className="pt-5 border-t-2 border-border flex flex-col gap-3">
+                   <div className="pt-3 border-t border-border flex flex-col gap-2">
                       <div className="flex items-center justify-between">
-                         <span className="text-[10px] font-black uppercase tracking-widest text-muted">Ingress State</span>
-                         <span className="text-[11px] font-black text-emerald-600">NOMINAL</span>
+                         <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Ingress State</span>
+                         <span className="text-[10px] font-semibold text-emerald-500 uppercase">NOMINAL</span>
                       </div>
                       <div className="flex items-center justify-between">
-                         <span className="text-[10px] font-black uppercase tracking-widest text-muted">Heartbeat</span>
-                         <span className="text-[11px] font-black text-foreground">LAT 1.2ms</span>
+                         <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Heartbeat</span>
+                         <span className="text-[10px] font-semibold text-foreground">LAT 1.2ms</span>
                       </div>
                    </div>
                 )}
               </div>
 
-              <div className="p-4 bg-surface-alt border-t border-border flex items-center justify-between">
-                 <button className="text-[10px] font-black text-muted hover:text-foreground transition-colors uppercase tracking-[0.2em]">Doc_Shards</button>
+              <div className="p-3 bg-surface-alt border-t border-border flex items-center justify-between">
+                 <button className="text-[10px] font-bold text-muted-foreground hover:text-foreground transition-colors uppercase tracking-wider pl-1">Doc Shards</button>
                  {app.connected ? (
-                    <div className="flex gap-2">
-                      <button className="p-2 hover:bg-black hover:text-white rounded-lg border border-transparent transition-all text-secondary"><RefreshCw className="h-3.5 w-3.5" /></button>
-                      <button className="p-2 hover:bg-critical hover:text-white rounded-lg border border-transparent transition-all text-secondary"><Trash2 className="h-3.5 w-3.5" /></button>
+                    <div className="flex gap-1.5">
+                       <button className="btn-secondary h-8 w-8 p-0 flex items-center justify-center"><RefreshCw className="h-3.5 w-3.5 text-muted-foreground" /></button>
+                       <button className="btn-secondary h-8 w-8 p-0 flex items-center justify-center text-red-500 hover:text-red-400"><Trash2 className="h-3.5 w-3.5" /></button>
                     </div>
                  ) : (
-                    <button className="px-4 py-1.5 bg-black text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:scale-105 transition-all">Provision</button>
+                    <button className="btn-primary h-7 px-3 text-[10px] uppercase tracking-wider">Provision</button>
                  )}
               </div>
             </div>
-          );
+          )
         })}
 
         {/* Available Template Card */}
         {["Slack Payload", "PagerDuty", "Elastic Search", "CloudWatch"].map(plat => (
-          <div key={plat} className="card-enterprise border-dashed border-2 opacity-60 grayscale hover:opacity-100 hover:grayscale-0 cursor-pointer flex flex-col items-center justify-center p-10 text-center space-y-5 group transition-all">
-             <div className="h-14 w-14 rounded-2xl bg-surface-alt border-2 border-border flex items-center justify-center group-hover:bg-black group-hover:text-white group-hover:border-black transition-all shadow-inner">
-                <Globe className="h-7 w-7" />
+          <div key={plat} className="card-enterprise border-dashed border-2 opacity-70 hover:opacity-100 cursor-pointer flex flex-col items-center justify-center p-8 text-center space-y-4 group transition-all">
+             <div className="h-10 w-10 rounded-[var(--radius)] bg-surface-alt border border-border flex items-center justify-center group-hover:bg-foreground group-hover:text-background transition-all shadow-xs">
+                <Globe className="h-5 w-5 text-muted-foreground group-hover:text-current" />
               </div>
              <div>
-                <h4 className="text-[13px] font-black text-foreground uppercase tracking-[0.15em]">{plat}</h4>
-                <p className="text-[10px] text-secondary font-bold px-3 italic mt-2 leading-relaxed uppercase tracking-widest">Connect Matrix Sink</p>
+                <h4 className="text-[13px] font-semibold text-foreground uppercase tracking-widest leading-none">{plat}</h4>
+                <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider mt-1.5">Connect Matrix Sink</p>
              </div>
           </div>
         ))}
@@ -177,52 +160,55 @@ const IntegrationsPage: React.FC = () => {
 
       {/* Provisioning Shard Modal */}
       {isProvisioning && (
-         <div className="fixed inset-0 bg-black/40 backdrop-blur-md z-[500] flex items-center justify-center p-6 animate-in fade-in duration-300">
-            <div className="card-enterprise max-w-xl w-full p-0 overflow-hidden shadow-[0_50px_100px_rgba(0,0,0,0.3)] animate-in zoom-in-95 duration-300">
-               <div className="p-8 border-b border-border bg-surface-alt flex items-center justify-between relative">
-                  <div className="flex items-center gap-5">
-                     <div className="h-12 w-12 bg-black text-white flex items-center justify-center rounded-xl shadow-2xl">
-                        <Zap className="h-7 w-7" />
+         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[500] flex items-center justify-center p-4 animate-fade-in">
+            <div className="card-enterprise max-w-md w-full p-0 overflow-hidden shadow-2xl animate-in zoom-in-95">
+               <div className="px-6 py-4.5 border-b border-border bg-surface-alt flex items-center justify-between relative text-left">
+                  <div className="flex items-center gap-3">
+                     <div className="h-8.5 w-8.5 bg-primary text-primary-foreground flex items-center justify-center rounded-[var(--radius)] shadow-sm">
+                        <Webhook className="h-4.5 w-4.5" />
                      </div>
                      <div>
-                        <h2 className="text-2xl font-black text-foreground m-0 italic tracking-tighter">Inbound Data Protocol</h2>
-                        <p className="text-[10px] text-muted uppercase font-black tracking-[0.3em] mt-1.5">Step 01 / Identity Verification</p>
+                        <h2 className="text-[16px] font-bold text-foreground m-0">Inbound Data Protocol</h2>
+                        <p className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wider mt-0.5">Step 01 / Identity Verification</p>
                      </div>
                   </div>
-                  <button onClick={() => setIsProvisioning(false)} className="h-10 w-10 flex items-center justify-center hover:bg-white rounded-full transition-all text-xl font-light">&times;</button>
+                  <button onClick={() => setIsProvisioning(false)} className="p-1.5 hover:bg-surface-hover rounded-full transition-colors">
+                     <X className="h-5 w-5 text-muted-foreground hover:text-foreground" />
+                  </button>
                </div>
 
-               <div className="p-10 space-y-10">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                     <div className="space-y-2.5">
-                        <label className="text-[11px] font-black uppercase tracking-widest text-foreground">Cloud Provider Shard</label>
-                        <select className="input-enterprise h-12 w-full bg-surface-alt font-black text-[12px] appearance-none cursor-pointer">
+               <div className="p-6 space-y-5 text-left">
+                  <div className="space-y-4">
+                     <div className="space-y-1.5">
+                        <label className="label-enterprise">Cloud Provider Shard</label>
+                        <select className="select-field h-9.5 font-medium cursor-pointer">
                            <option>US-EAST-1 (N. VIRGINIA)</option>
                            <option>US-WEST-2 (OREGON)</option>
                            <option>EU-CENTRAL-1 (FRANKFURT)</option>
                         </select>
                      </div>
-                     <div className="space-y-2.5">
-                        <label className="text-[11px] font-black uppercase tracking-widest text-foreground">Logic Stream Key</label>
-                        <div className="relative h-12">
-                           <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
-                           <input type="password" placeholder="arn:shards:iam::matrix" className="input-enterprise pl-12 h-12 w-full text-[12px] font-mono" />
+                     <div className="space-y-1.5">
+                        <label className="label-enterprise">Logic Stream Key</label>
+                        <div className="relative h-9.5">
+                           <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground font-light" />
+                           <input type="password" placeholder="arn:shards:iam::matrix" className="input-enterprise pl-9 h-9.5 w-full text-[12px] font-mono" />
                         </div>
                      </div>
                   </div>
 
-                  <div className="p-6 bg-surface-alt border-2 border-border-strong rounded-xl flex items-start gap-5 shadow-inner">
-                     <ShieldCheck className="h-6 w-6 text-foreground shrink-0 mt-0.5" />
-                     <p className="text-[12px] font-bold leading-relaxed text-secondary italic">
-                       Protocol requires read-only administrative access for telemetry replication. Keys are encrypted via hardware-level KMS modules and never stored in plane-text shards.
+                  <div className="p-4 bg-surface-alt border border-border rounded-[var(--radius)] flex items-start gap-3">
+                     <ShieldCheck className="h-5 w-5 text-emerald-500 shrink-0 mt-0.5" />
+                     <p className="text-[12px] font-normal leading-normal text-foreground/80 italic m-0">
+                       Protocol requires read-only administrative access for telemetry replication. Keys are encrypted via hardware-level KMS modules and never stored in plain-text.
                      </p>
                   </div>
 
-                  <div className="flex items-center justify-end gap-4 pt-4">
-                     <button onClick={() => setIsProvisioning(false)} className="btn-ghost h-12 px-8 font-black uppercase tracking-widest text-[11px]">Abort Sync</button>
-                     <button className="h-12 px-10 bg-black text-white rounded-lg font-black uppercase tracking-[0.2em] italic shadow-xl hover:scale-105 active:scale-95 transition-all flex items-center">
-                        Secure Sync <ArrowRight className="h-4 w-4 ml-3" />
-                     </button>
+                  <div className="flex items-center justify-end gap-2 pt-2">
+                     <button onClick={() => setIsProvisioning(false)} className="btn-secondary h-9 px-4">Cancel</button>
+                     <button className="btn-primary h-9 px-4 flex items-center justify-center">
+                        <span>Secure Sync</span>
+                        <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
+                      </button>
                   </div>
                </div>
             </div>

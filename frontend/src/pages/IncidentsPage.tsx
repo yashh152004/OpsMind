@@ -2,11 +2,10 @@ import React, { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/services/api'
 import { 
-  Plus, Search, Download, Terminal, CheckCircle2, X, Activity, AlertTriangle, 
-  ChevronRight, History, MessageSquare, Info, ChevronDown, RefreshCcw, 
+  Plus, Search, Download, Terminal, CheckCircle2, X, Activity, 
+  ChevronRight, History, MessageSquare, Info, RefreshCcw, 
   Clock, MapPin, User, Shield
 } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
 import { cn } from '@/utils/cn'
 import { useOrganization } from '@/hooks'
 import { toast } from 'sonner'
@@ -14,7 +13,6 @@ import { toast } from 'sonner'
 const IncidentsPage: React.FC = () => {
   const { organizationId } = useOrganization()
   const queryClient = useQueryClient()
-  const navigate = useNavigate()
 
   // State Management
   const [searchTerm, setSearchTerm] = useState('')
