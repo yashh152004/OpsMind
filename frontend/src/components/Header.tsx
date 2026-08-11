@@ -339,8 +339,12 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
               <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mt-1">Enterprise Shard</div>
            </div>
            <div className="relative">
-              <div className="h-8 w-8 bg-foreground text-background rounded-[var(--radius)] flex items-center justify-center font-bold text-[13px] shadow-sm transform transition-all duration-150 group-hover:ring-1 group-hover:ring-foreground/20 select-none">
-                 {user?.firstName?.[0] || 'Y'}
+              <div className="h-8 w-8 bg-secondary border border-border-strong/10 overflow-hidden rounded-[var(--radius)] flex items-center justify-center font-bold text-[13px] shadow-sm transform transition-all duration-150 group-hover:ring-1 group-hover:ring-foreground/20 select-none">
+                 {user?.avatarUrl ? (
+                   <img src={user.avatarUrl} alt="" className="h-full w-full object-cover" />
+                 ) : (
+                   <span>{user?.firstName?.[0] || 'Y'}</span>
+                 )}
               </div>
               <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 bg-success border-2 border-surface rounded-full shadow-sm" />
            </div>

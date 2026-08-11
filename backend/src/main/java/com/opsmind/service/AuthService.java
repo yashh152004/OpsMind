@@ -64,7 +64,8 @@ public class AuthService {
                 .password(passwordEncoder.encode(registerRequest.getPassword()))
                 .organizationId(org.getId())
                 .organizationName(org.getName())
-                .role("ADMIN")
+                .role("USER")
+                .provider("LOCAL")
                 .build();
 
         userRepository.save(user);
@@ -89,8 +90,9 @@ public class AuthService {
                             .email(email)
                             .password("SYSTEM_PROVISIONED")
                             .organizationName("Default Global")
-                            .role("ADMIN")
+                            .role("USER")
                             .status("ACTIVE")
+                            .provider("LOCAL")
                             .build();
                     return userRepository.save(recoveredUser);
                 });

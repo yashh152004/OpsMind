@@ -90,7 +90,7 @@ public class SystemDataLoader implements ApplicationRunner {
                 .email("admin@opsmind.io")
                 .password(passwordEncoder.encode("OpsMind2026!"))
                 .organizationName("Global Finance Systems")
-                .role("ADMIN")
+                .role("USER")
                 .status("ACTIVE")
                 .build();
         userRepository.save(demoUser);
@@ -101,7 +101,7 @@ public class SystemDataLoader implements ApplicationRunner {
                 .email("yashwardhankumar15@gmail.com")
                 .password(passwordEncoder.encode("OpsMind2026!"))
                 .organizationName("Global Finance Systems")
-                .role("ADMIN")
+                .role("USER")
                 .status("ACTIVE")
                 .build();
         userRepository.save(devUser);

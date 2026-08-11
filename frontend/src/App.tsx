@@ -6,6 +6,7 @@ import { Toaster } from 'sonner'
 // Pages
 import LoginPage from '@/pages/LoginPage'
 import RegisterPage from '@/pages/RegisterPage'
+import OAuthCallbackPage from '@/pages/OAuthCallbackPage'
 import DashboardPage from '@/pages/DashboardPage'
 import IncidentsPage from '@/pages/IncidentsPage'
 import AlertsPage from '@/pages/AlertsPage'
@@ -66,6 +67,8 @@ const App: React.FC = () => {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/onboarding" element={<SetupWizard />} />
           </Route>
+
+          <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
 
           {/* Protected Routes */}
           <Route

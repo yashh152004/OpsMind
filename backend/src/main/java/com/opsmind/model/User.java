@@ -36,11 +36,16 @@ public class User {
 
     private String organizationName;
 
-    private String role = "ADMIN";
+    @Builder.Default
+    private String role = "USER";
 
+    @Builder.Default
     private String status = "ACTIVE";
 
     private String avatarUrl;
+
+    @Builder.Default
+    private String provider = "LOCAL";
 
     private String title;
     private String department;

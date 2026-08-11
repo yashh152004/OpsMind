@@ -1,6 +1,16 @@
 spring:
   application:
     name: opsmind-backend
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:mock-google-client-id}
+            client-secret: ${GOOGLE_CLIENT_SECRET:mock-google-client-secret}
+            scope:
+              - email
+              - profile
   datasource:
     url: ${DB_URL:jdbc:mysql://localhost:3306/opsmind?createDatabaseIfNotExist=true}
     username: ${DB_USERNAME:root}
@@ -17,6 +27,9 @@ spring:
     multipart:
       max-file-size: 50MB
       max-request-size: 50MB
+
+app:
+  frontend-url: ${FRONTEND_URL:http://localhost:5173}
 
 # Management & Observability
 management:
