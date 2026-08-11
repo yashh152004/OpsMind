@@ -71,6 +71,12 @@ const DashboardPage: React.FC = () => {
     refetchInterval: 15000 
   })
 
+  const { data: telemetry, refetch: refetchTelemetry } = useQuery({
+    queryKey: ['realtime-telemetry'],
+    queryFn: () => apiClient.getRealtimeTelemetry(),
+    refetchInterval: 3000
+  })
+
   React.useEffect(() => {
     const search = async () => {
       if (searchQuery.length > 0) {
@@ -200,7 +206,7 @@ const DashboardPage: React.FC = () => {
 
         <div className="flex items-center gap-2">
            <button 
-             onClick={() => refetch()}
+             onClick={() => { refetch(); refetchTelemetry(); }}
              className="btn-secondary h-8.5 w-8.5 p-0 flex items-center justify-center"
              title="Force Refresh"
            >
@@ -398,7 +404,134 @@ const DashboardPage: React.FC = () => {
             </table>
          </div>
       </div>
-      
+
+      {/* Real-time Monitored Microservice Telemetry Section */}
+      <div className="border-t border-border pt-6 mt-6">
+         <div className="flex items-center justify-between pb-4">
+            <div className="flex items-center gap-2">
+               <Cpu className="h-5 w-5 text-indigo-500" />
+               <h2 className="text-[18px] font-bold tracking-tight text-foreground m-0">
+                  Target Microservice: <span className="text-indigo-400 font-mono">monitored-service</span>
+               </h2>
+               <span className={cn(
+                  "badge-enterprise flex items-center gap-1.5 py-0.5",
+                  telemetry?.status === 'UP' ? "badge-success" : "badge-error bg-red-950/40 text-red-400 border-red-900/50"
+               )}>
+                  <div className={cn("h-1.5 w-1.5 rounded-full animate-pulse", telemetry?.status === 'UP' ? "bg-emerald-500" : "bg-red-500")} />
+                  {telemetry?.status || 'DOWN'}
+               </span>
+            </div>
+            <div className="text-[11px] text-muted-foreground flex items-center gap-1">
+               <RefreshCw className="h-3 w-3 animate-spin text-indigo-400" /> Live Telemetry Pipeline
+            </div>
+         </div>
+
+         {/* Microservice Metrics Grid */}
+         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">
+            <div className="card-enterprise p-4">
+               <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Total Request Count</div>
+               <div className="text-[20px] font-black text-foreground mt-1">{telemetry?.requestCount ?? 0}</div>
+               <p className="text-[10px] text-muted-foreground mt-0.5">Ingress HTTP requests</p>
+            </div>
+            <div className="card-enterprise p-4">
+               <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Active Request Rate</div>
+               <div className="text-[20px] font-black text-foreground mt-1">{(telemetry?.requestRate ?? 0).toFixed(2)}/sec</div>
+               <p className="text-[10px] text-muted-foreground mt-0.5">Throughput (1 min window)</p>
+            </div>
+            <div className="card-enterprise p-4">
+               <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider font-semibold">Average Latency</div>
+               <div className="text-[20px] font-black text-indigo-400 mt-1">{(telemetry?.latencyMs ?? 0).toFixed(1)} ms</div>
+               <p className="text-[10px] text-muted-foreground mt-0.5">HTTP response duration</p>
+            </div>
+            <div className="card-enterprise p-4 border-l-4 border-l-red-500">
+               <div className="text-[10px] font-bold text-red-500 uppercase tracking-wider">HTTP Error Count</div>
+               <div className="text-[20px] font-black text-red-500 mt-1">{telemetry?.errorCount ?? 0}</div>
+               <p className="text-[10px] text-muted-foreground mt-0.5">Responses with 5xx status codes</p>
+            </div>
+         </div>
+
+         {/* Traces and Logs side-by-side */}
+         <div className="grid gap-6 lg:grid-cols-12">
+            {/* Recent OTLP Traces */}
+            <div className="lg:col-span-6 card-enterprise flex flex-col h-[320px] overflow-hidden">
+               <div className="px-4 py-3 border-b border-border flex items-center justify-between bg-surface-alt bg-surface-alt/50">
+                  <div className="flex items-center gap-1.5">
+                     <Activity className="h-4 w-4 text-indigo-400" />
+                     <span className="text-[12px] font-bold uppercase tracking-wider text-foreground">Recent Distributed Traces</span>
+                  </div>
+                  <span className="text-[9px] bg-indigo-950/40 text-indigo-400 border border-indigo-900/50 px-1.5 py-0.5 rounded font-mono">Jaeger Storage</span>
+               </div>
+               <div className="p-3 overflow-y-auto flex-1 space-y-2">
+                  {!telemetry?.recentTraces || telemetry.recentTraces.length === 0 ? (
+                     <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-center py-10">
+                        <Activity className="h-8 w-8 opacity-25 animate-pulse mb-2 text-indigo-500" />
+                        <p className="text-[12px]">No spans recorded yet. Generate API traffic.</p>
+                     </div>
+                  ) : (
+                     telemetry.recentTraces.map((trace: any) => (
+                        <div key={trace.id} className={cn(
+                           "flex items-center justify-between p-2.5 rounded border text-[12px] transition-all hover:bg-surface-hover",
+                           trace.error ? "border-red-900/50 bg-red-950/15" : "border-border bg-surface"
+                        )}>
+                           <div className="flex flex-col gap-0.5">
+                              <span className="font-bold text-foreground font-mono">{trace.operation}</span>
+                              <span className="text-[9px] text-muted-foreground font-mono">ID: {trace.id.substring(0, 8)}... • {new Date(trace.timestamp).toLocaleTimeString()}</span>
+                           </div>
+                           <div className="flex items-center gap-2">
+                              <span className={cn(
+                                 "px-1.5 py-0.5 rounded text-[10px] font-bold font-mono",
+                                 trace.error ? "bg-red-955 text-red-500 border border-red-500" : "bg-indigo-950 text-indigo-400 border border-indigo-900"
+                              )}>
+                                 {trace.durationMs.toFixed(1)} ms
+                              </span>
+                           </div>
+                        </div>
+                     ))
+                  )}
+               </div>
+            </div>
+
+            {/* Recent Application Logs */}
+            <div className="lg:col-span-6 card-enterprise flex flex-col h-[320px] overflow-hidden">
+               <div className="px-4 py-3 border-b border-border flex items-center justify-between bg-surface-alt bg-surface-alt/50">
+                  <div className="flex items-center gap-1.5">
+                     <Terminal className="h-4 w-4 text-emerald-400" />
+                     <span className="text-[12px] font-bold uppercase tracking-wider text-foreground">Live Application Log Streams</span>
+                  </div>
+                  <span className="text-[9px] bg-emerald-950/40 text-emerald-400 border border-emerald-900/50 px-1.5 py-0.5 rounded font-mono">Loki Storage</span>
+               </div>
+               <div className="p-3 overflow-y-auto flex-1 font-mono text-[11px] leading-relaxed space-y-1.5 bg-black/60 rounded-b-[var(--radius)]">
+                  {!telemetry?.recentLogs || telemetry.recentLogs.length === 0 ? (
+                     <div className="flex flex-col items-center justify-center h-full text-muted-foreground text-center py-10">
+                        <Terminal className="h-8 w-8 opacity-25 animate-pulse mb-2 text-emerald-500" />
+                        <p className="text-[12px]">No log entries. Generate endpoints activity.</p>
+                     </div>
+                  ) : (
+                     telemetry.recentLogs.map((log: any, index: number) => (
+                        <div key={index} className="flex items-start gap-1 p-1 hover:bg-neutral-800/40 rounded transition-colors">
+                           <span className="text-neutral-500 select-none">[{new Date(log.timestamp).toLocaleTimeString()}]</span>
+                           <span className={cn(
+                              "font-bold select-none px-1 rounded text-[9px]",
+                              log.level === 'ERROR' ? "bg-red-950 text-red-500" :
+                              log.level === 'WARN' ? "bg-amber-950 text-amber-500" :
+                              "bg-indigo-950 text-indigo-400"
+                           )}>
+                              {log.level}
+                           </span>
+                           <span className={cn(
+                              "ml-1 whitespace-pre-wrap break-all text-neutral-300",
+                              log.level === 'ERROR' && "text-red-400/90"
+                           )}>
+                              {log.message}
+                           </span>
+                        </div>
+                     ))
+                  )}
+               </div>
+            </div>
+         </div>
+      </div>
+
       {/* Widget Provisioning Modal */}
       {showWidgetMarketplace && (
         <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">

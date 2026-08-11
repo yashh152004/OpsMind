@@ -421,6 +421,14 @@ class ApiClient {
   }
 
   /**
+   * Realtime Telemetry (Phase 2)
+   */
+  async getRealtimeTelemetry() {
+    const response = await this.client.get('/telemetry/realtime')
+    return response.data
+  }
+
+  /**
    * Analytics Endpoints
    */
   async getAnalyticsTrends() {

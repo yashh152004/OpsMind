@@ -57,6 +57,7 @@ public class SecurityConfiguration {
                                 .requestMatchers(AntPathRequestMatcher.antMatcher("/system/**")).permitAll()
                                 .requestMatchers(AntPathRequestMatcher.antMatcher("/storage/**")).permitAll()
                                 .requestMatchers(AntPathRequestMatcher.antMatcher("/simulator/**")).permitAll()
+                                .requestMatchers(AntPathRequestMatcher.antMatcher("/telemetry/**")).permitAll()
                                 .requestMatchers(AntPathRequestMatcher.antMatcher("/error")).permitAll()
                                 .requestMatchers(AntPathRequestMatcher.antMatcher("/login/oauth2/code/**")).permitAll()
                                 .anyRequest().authenticated()
