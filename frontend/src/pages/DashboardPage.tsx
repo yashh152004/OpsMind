@@ -77,6 +77,23 @@ const DashboardPage: React.FC = () => {
     refetchInterval: 3000
   })
 
+  const { data: incidents, refetch: refetchIncidents } = useQuery({
+    queryKey: ['monitored-service-incidents'],
+    queryFn: () => apiClient.getIncidents(),
+    refetchInterval: 3000
+  })
+
+  const monitoredServiceIncidents = React.useMemo(() => {
+    if (!incidents || !Array.isArray((incidents as any).content)) return []
+    return ((incidents as any).content as any[]).filter(
+      (inc) => inc.serviceName === 'monitored-service' && inc.type === 'HIGH_ERROR_RATE'
+    ).sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  }, [incidents])
+
+  const activeDetectionIncident = React.useMemo(() => {
+    return monitoredServiceIncidents.find((inc) => inc.status === 'OPEN' || inc.status === 'INVESTIGATING' || inc.status === 'ACKNOWLEDGED')
+  }, [monitoredServiceIncidents])
+
   React.useEffect(() => {
     const search = async () => {
       if (searchQuery.length > 0) {
@@ -125,8 +142,8 @@ const DashboardPage: React.FC = () => {
   const kpis = [
     { label: 'Platform Availability', val: stats?.uptime || '99.99%', trend: '+0.01%', status: 'NOMINAL', icon: Globe, href: '/infrastructure' },
     { label: 'Active Incidents', val: stats?.activeIncidents || '0', trend: 'STABLE', status: stats?.activeIncidents > 0 ? 'WARNING' : 'HEALTHY', icon: AlertTriangle, href: '/incidents' },
-    { label: 'Median Latency', val: stats?.mttr || '18ms', trend: '-1.4ms', status: 'FAST', icon: Cpu, href: '/analytics' },
-    { label: 'Security Posture', val: '98.4%', trend: 'SECURE', status: 'VERIFIED', icon: ShieldCheck, href: '/security' },
+    { label: 'Average Latency', val: stats?.latency || '18ms', trend: '-1.4ms', status: 'FAST', icon: Cpu, href: '/analytics' },
+    { label: 'Security Posture', val: stats?.securityPosture || '100%', trend: 'SECURE', status: 'VERIFIED', icon: ShieldCheck, href: '/security' },
   ]
 
   return (
@@ -206,7 +223,7 @@ const DashboardPage: React.FC = () => {
 
         <div className="flex items-center gap-2">
            <button 
-             onClick={() => { refetch(); refetchTelemetry(); }}
+             onClick={() => { refetch(); refetchTelemetry(); refetchIncidents(); }}
              className="btn-secondary h-8.5 w-8.5 p-0 flex items-center justify-center"
              title="Force Refresh"
            >
@@ -425,6 +442,55 @@ const DashboardPage: React.FC = () => {
                <RefreshCw className="h-3 w-3 animate-spin text-indigo-400" /> Live Telemetry Pipeline
             </div>
          </div>
+
+         {/* Active Incidents Alert Banner */}
+         {activeDetectionIncident ? (
+            <div className="mb-6 p-4 bg-red-950/40 border border-red-800/80 rounded-[var(--radius)] flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-in">
+               <div className="flex items-start gap-3">
+                  <div className="p-2 bg-red-900/60 rounded text-red-400 mt-0.5">
+                     <AlertTriangle className="h-5 w-5" />
+                  </div>
+                  <div>
+                     <h3 className="text-[14px] font-bold text-red-200">
+                        Active Incident: {activeDetectionIncident.title}
+                     </h3>
+                     <p className="text-[12px] text-red-305 font-mono mt-1 leading-relaxed">
+                        {activeDetectionIncident.description}
+                     </p>
+                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-[10px] text-red-400 uppercase tracking-wider font-semibold font-mono">
+                        <span>Severity: {activeDetectionIncident.severity}</span>
+                        <span>•</span>
+                        <span>Detected At: {new Date(activeDetectionIncident.detectedAt).toLocaleTimeString()}</span>
+                        <span>•</span>
+                        <span>Metric: {activeDetectionIncident.metricValue?.toFixed(2)}% (threshold: {activeDetectionIncident.threshold?.toFixed(2)}%)</span>
+                     </div>
+                  </div>
+               </div>
+               <button 
+                  onClick={() => navigate('/incidents')}
+                  className="px-3 py-1.5 bg-red-800 hover:bg-red-700 text-white rounded text-[11px] font-bold uppercase tracking-wider transition-all self-start md:self-center whitespace-nowrap shadow-md hover:scale-[1.02]"
+               >
+                  Investigate
+               </button>
+            </div>
+         ) : monitoredServiceIncidents.length > 0 && monitoredServiceIncidents[0].status === 'RESOLVED' ? (
+            <div className="mb-6 p-4 bg-emerald-950/15 border border-emerald-900/40 rounded-[var(--radius)] flex items-start gap-3 animate-fade-in">
+               <div className="p-2 bg-emerald-900/20 rounded text-emerald-400 mt-0.5">
+                  <ShieldCheck className="h-5 w-5" />
+               </div>
+               <div>
+                  <h3 className="text-[14px] font-bold text-emerald-300">
+                     Automated Platform Protection Alert
+                  </h3>
+                  <p className="text-[12px] text-emerald-400/90 font-mono mt-0.5 leading-relaxed">
+                     The high error rate incident was auto-resolved. HTTP error rate is healthy at {monitoredServiceIncidents[0].metricValue?.toFixed(2)}% (below {monitoredServiceIncidents[0].threshold?.toFixed(2)}% threshold).
+                  </p>
+                  <p className="text-[10px] text-muted-foreground mt-2 font-mono">
+                     Resolved At: {new Date(monitoredServiceIncidents[0].resolvedAt).toLocaleTimeString()} • Resolution: {monitoredServiceIncidents[0].resolution}
+                  </p>
+               </div>
+            </div>
+         ) : null}
 
          {/* Microservice Metrics Grid */}
          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-6">

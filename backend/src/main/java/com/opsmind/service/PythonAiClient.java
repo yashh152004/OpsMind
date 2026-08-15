@@ -18,7 +18,9 @@ import java.util.Map;
 public class PythonAiClient {
     private static final Logger logger = LoggerFactory.getLogger(PythonAiClient.class);
     private final RestTemplate restTemplate;
-    private final String pythonServiceUrl = "http://localhost:8000/analyze";
+
+    @org.springframework.beans.factory.annotation.Value("${app.ai-engine-url:http://localhost:8000/analyze}")
+    private String pythonServiceUrl;
 
     public PythonAiClient(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;

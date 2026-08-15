@@ -30,6 +30,10 @@ spring:
 
 app:
   frontend-url: ${FRONTEND_URL:http://localhost:5173}
+  incident:
+    error-rate-threshold: ${INCIDENT_ERROR_RATE_THRESHOLD:0.05}
+    evaluation-window-minutes: ${INCIDENT_EVALUATION_WINDOW_MINUTES:1}
+  ai-engine-url: ${AI_ENGINE_URL:http://localhost:8000/analyze}
 
 # Management & Observability
 management:

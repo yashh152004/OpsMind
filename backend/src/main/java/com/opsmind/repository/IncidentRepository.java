@@ -15,6 +15,8 @@ public interface IncidentRepository extends JpaRepository<Incident, Long> {
     List<Incident> findByOrganizationId(Long organizationId);
     long countByStatus(String status);
     
+    java.util.Optional<Incident> findFirstByServiceNameAndTypeAndStatusNotOrderByIdDesc(String serviceName, String type, String status);
+    
     @org.springframework.data.jpa.repository.Query("SELECT i FROM Incident i WHERE " +
            "(LOWER(i.title) LIKE LOWER(concat('%', :query, '%')) OR " +
            "LOWER(i.serviceName) LIKE LOWER(concat('%', :query, '%')) OR " +

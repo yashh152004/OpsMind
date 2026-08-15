@@ -63,10 +63,7 @@ public class SreReasoningService {
     }
 
     public void streamInvestigate(String query, List<com.opsmind.model.ChatMessage> history, java.util.function.Consumer<String> chunkConsumer) {
-        // Gathering context first in a block
-        Intent intent = classifyIntent(query);
-        String context = fetchContext(intent, query);
-        String fullResponse = synthesizeNativeResponse(intent, query, context);
+        String fullResponse = investigateWithContext(query, history);
         
         // Simulating streaming of the full response
         String[] blocks = fullResponse.split("\n");

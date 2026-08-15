@@ -76,11 +76,14 @@ public class AiController {
 
         Conversation conversation = conversationOpt.get();
         conversationService.saveMessage(conversation, "USER", content);
+        
+        List<com.opsmind.model.ChatMessage> history = new java.util.ArrayList<>(conversation.getMessages());
+        Long conversationId = conversation.getId();
 
         new Thread(() -> {
             try {
                 StringBuilder fullResponse = new StringBuilder();
-                sreReasoningService.streamInvestigate(content, conversation.getMessages(), chunk -> {
+                sreReasoningService.streamInvestigate(content, history, chunk -> {
                     try {
                         emitter.send(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.event().data(chunk));
                         fullResponse.append(chunk);
@@ -89,8 +92,8 @@ public class AiController {
                     }
                 });
                 
-                // Save full response at the end
-                conversationService.saveMessage(conversation, "ASSISTANT", fullResponse.toString());
+                // Save full response at the end safely
+                conversationService.saveMessageById(conversationId, "ASSISTANT", fullResponse.toString());
                 emitter.complete();
             } catch (Exception e) {
                 emitter.completeWithError(e);

@@ -79,10 +79,16 @@ public class OtelTelemetryService {
         double totalErrors = queryPrometheus("sum(opsmind_http_server_request_duration_seconds_count{exported_job=\"monitored-service\", http_response_status_code=~\"5..\"})");
         double requestRate = queryPrometheus("sum(rate(opsmind_http_server_request_duration_seconds_count{exported_job=\"monitored-service\"}[1m]))");
         
-        double totalSum = queryPrometheus("sum(opsmind_http_server_request_duration_seconds_sum{exported_job=\"monitored-service\"})");
+        double increaseSum = queryPrometheus("sum(increase(opsmind_http_server_request_duration_seconds_sum{exported_job=\"monitored-service\"}[1m]))");
+        double increaseCount = queryPrometheus("sum(increase(opsmind_http_server_request_duration_seconds_count{exported_job=\"monitored-service\"}[1m]))");
         double latencyMs = 0.0;
-        if (totalRequests > 0) {
-            latencyMs = (totalSum / totalRequests) * 1000.0;
+        if (increaseCount > 0) {
+            latencyMs = (increaseSum / increaseCount) * 1000.0;
+        } else {
+            double totalSum = queryPrometheus("sum(opsmind_http_server_request_duration_seconds_sum{exported_job=\"monitored-service\"})");
+            if (totalRequests > 0) {
+                latencyMs = (totalSum / totalRequests) * 1000.0;
+            }
         }
 
         // 2. Query Jaeger Traces
@@ -116,7 +122,7 @@ public class OtelTelemetryService {
         }
     }
 
-    private double queryPrometheus(String promQuery) {
+    public double queryPrometheus(String promQuery) {
         try {
             java.net.URI uri = UriComponentsBuilder.fromHttpUrl(prometheusUrl)
                     .path("/api/v1/query")

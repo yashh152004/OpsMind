@@ -73,7 +73,7 @@ opsmind/
 ```bash
 # Clone repository
 git clone <repo-url>
-cd opsmind
+
 
 # Start all services
 docker-compose up -d

@@ -94,6 +94,17 @@ public class IncidentController {
         return ResponseEntity.ok(service.transitionStatus(id, newStatus, operator, note));
     }
 
+    @PostMapping("/{id}/acknowledge")
+    public ResponseEntity<Incident> acknowledgeIncident(@PathVariable Long id) {
+        return ResponseEntity.ok(service.transitionStatus(id, "ACKNOWLEDGED", "system", "Incident acknowledged manually"));
+    }
+
+    @PostMapping("/{id}/resolve")
+    public ResponseEntity<Incident> resolveIncident(@PathVariable Long id, @RequestBody(required = false) Map<String, String> body) {
+        String resolution = body != null ? body.getOrDefault("resolution", "Incident resolved manually") : "Incident resolved manually";
+        return ResponseEntity.ok(service.transitionStatus(id, "RESOLVED", "system", resolution));
+    }
+
     @PostMapping("/{id}/assign")
     public ResponseEntity<Incident> assignIncident(@PathVariable Long id, @RequestBody Map<String, String> body) {
         String userId = body.get("userId");

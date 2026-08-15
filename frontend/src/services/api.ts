@@ -110,9 +110,11 @@ class ApiClient {
     await this.client.delete(`/users/${userId}`)
   }
 
-  /**
-   * Incident Endpoints
-   */
+  async getIncidents(params?: { organizationId?: number; status?: string; severity?: string }) {
+    const response = await this.client.get('/incidents', { params })
+    return response.data
+  }
+
   async searchIncidents(params: { q?: string, status?: string, severity?: string, page?: number, size?: number, sort?: string }) {
     const response = await this.client.get('/incidents/search', { params })
     return response.data
@@ -139,6 +141,11 @@ class ApiClient {
     const response = await this.client.post(`/incidents/${incidentId}/resolve`, {
       resolution,
     })
+    return response.data
+  }
+
+  async acknowledgeIncident(incidentId: string | number) {
+    const response = await this.client.post(`/incidents/${incidentId}/acknowledge`)
     return response.data
   }
 

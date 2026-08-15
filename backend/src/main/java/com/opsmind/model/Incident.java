@@ -57,7 +57,12 @@ public class Incident {
     
     private String resolution;
     
+    private String type;
+    private Double metricValue;
+    private Double threshold;
+    
     private LocalDateTime detectedAt;
+    private LocalDateTime resolvedAt;
     private LocalDateTime estimatedResolutionTime;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

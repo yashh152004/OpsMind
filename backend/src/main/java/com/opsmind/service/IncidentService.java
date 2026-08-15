@@ -63,6 +63,7 @@ public class IncidentService {
         
         if ("RESOLVED".equalsIgnoreCase(newStatus)) {
             incident.setResolution(commentary);
+            incident.setResolvedAt(LocalDateTime.now());
         }
         
         Incident saved = repository.save(incident);

@@ -59,6 +59,22 @@ public class ConversationService {
     }
 
     @Transactional
+    public ChatMessage saveMessageById(Long conversationId, String role, String content) {
+        Conversation conversation = conversationRepository.findById(conversationId)
+                .orElseThrow(() -> new RuntimeException("Conversation not found"));
+        ChatMessage message = ChatMessage.builder()
+                .conversation(conversation)
+                .role(role)
+                .content(content)
+                .createdAt(java.time.LocalDateTime.now())
+                .build();
+        ChatMessage saved = chatMessageRepository.save(message);
+        conversation.setUpdatedAt(java.time.LocalDateTime.now());
+        conversationRepository.save(conversation);
+        return saved;
+    }
+
+    @Transactional
     public void deleteConversation(Long id) {
         conversationRepository.deleteById(id);
     }

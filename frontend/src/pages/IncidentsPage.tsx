@@ -64,6 +64,36 @@ const IncidentsPage: React.FC = () => {
     }
   })
 
+  const acknowledgeMutation = useMutation({
+    mutationFn: (id: number | string) => apiClient.acknowledgeIncident(id),
+    onSuccess: () => {
+      triggerCascadeSync()
+      toast.success('Incident acknowledged.')
+      refetch().then((res) => {
+        const updated = res.data?.content?.find((i: any) => i.id === selectedIncident?.id)
+        if (updated) setSelectedIncident(updated)
+      })
+    },
+    onError: () => {
+      toast.error('Failed to acknowledge incident.')
+    }
+  })
+
+  const resolveMutation = useMutation({
+    mutationFn: ({ id, resolution }: { id: number | string; resolution: string }) => apiClient.resolveIncident(id, resolution),
+    onSuccess: () => {
+      triggerCascadeSync()
+      toast.success('Incident resolved.')
+      refetch().then((res) => {
+        const updated = res.data?.content?.find((i: any) => i.id === selectedIncident?.id)
+        if (updated) setSelectedIncident(updated)
+      })
+    },
+    onError: () => {
+      toast.error('Failed to resolve incident.')
+    }
+  })
+
   const handleExport = async () => {
     try {
       const blob = await apiClient.exportModule('incidents')
@@ -351,6 +381,22 @@ const IncidentsPage: React.FC = () => {
                               "{selectedIncident.description}"
                            </p>
                         </div>
+                        {selectedIncident.metricValue !== null && selectedIncident.metricValue !== undefined && (
+                           <div className="grid grid-cols-2 gap-4 pt-3.5 border-t border-border">
+                              <div className="space-y-0.5">
+                                 <label className="text-[10px] font-semibold text-muted-foreground uppercase">Current Value</label>
+                                 <div className="text-[13px] font-bold text-red-500 font-mono">
+                                    {selectedIncident.metricValue.toFixed(2)}%
+                                 </div>
+                              </div>
+                              <div className="space-y-0.5">
+                                 <label className="text-[10px] font-semibold text-muted-foreground uppercase">Threshold</label>
+                                 <div className="text-[13px] font-bold text-foreground font-mono">
+                                    {selectedIncident.threshold?.toFixed(2)}%
+                                 </div>
+                              </div>
+                           </div>
+                        )}
                      </div>
                   </section>
 
@@ -370,14 +416,33 @@ const IncidentsPage: React.FC = () => {
                   </section>
                </div>
 
-               <div className="px-6 py-4 border-t border-border bg-surface flex gap-3.5">
-                  <button className="btn-secondary flex-1 h-9.5">
-                     Internal Chat
-                  </button>
-                  <button className="btn-primary flex-1 h-9.5">
-                     Update Operational State
-                  </button>
-               </div>
+               {selectedIncident.status !== 'RESOLVED' ? (
+                  <div className="px-6 py-4 border-t border-border bg-surface flex gap-3.5 w-full">
+                     {selectedIncident.status === 'OPEN' && (
+                        <button 
+                           onClick={() => acknowledgeMutation.mutate(selectedIncident.id)}
+                           disabled={acknowledgeMutation.isPending}
+                           className="btn-secondary flex-1 h-9.5 font-bold uppercase tracking-wider text-[11px] text-amber-500 hover:text-amber-400 border border-amber-500/30 bg-amber-500/5"
+                        >
+                           {acknowledgeMutation.isPending ? 'Acknowledging...' : 'Acknowledge'}
+                        </button>
+                     )}
+                     <button 
+                        onClick={() => {
+                           const res = prompt("Enter resolution commentary:", "Outage resolved, error rate normalized.");
+                           if (res) resolveMutation.mutate({ id: selectedIncident.id, resolution: res });
+                        }}
+                        disabled={resolveMutation.isPending}
+                        className="btn-primary flex-1 h-9.5 font-bold uppercase tracking-wider text-[11px] text-emerald-400 hover:text-emerald-300 border border-emerald-500/30 bg-emerald-500/5"
+                     >
+                        {resolveMutation.isPending ? 'Resolving...' : 'Resolve'}
+                     </button>
+                  </div>
+               ) : (
+                  <div className="px-6 py-4.5 border-t border-border bg-surface text-center text-[12px] font-semibold text-emerald-400 uppercase tracking-widest bg-emerald-950/10 w-full">
+                     This incident has been resolved.
+                  </div>
+               )}
             </>
          )}
       </div>
