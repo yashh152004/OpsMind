@@ -59,6 +59,14 @@ const AlertsPage: React.FC = () => {
     }
   })
 
+  const acknowledgeAllMutation = useMutation({
+    mutationFn: () => apiClient.acknowledgeAllAlerts(),
+    onSuccess: () => {
+       queryClient.invalidateQueries({ queryKey:['alerts'] })
+       toast.success('All active alerts acknowledged.')
+    }
+  })
+
   return (
     <div className="page-transition-fade space-y-6 p-6 lg:p-8 bg-background min-h-screen">
       {/* Stream Header */}
@@ -81,8 +89,16 @@ const AlertsPage: React.FC = () => {
               <Download className="h-4 w-4" />
               <span>Export Audit</span>
            </button>
-           <button className="btn-primary h-8.5 px-3">
-              <CheckCircle2 className="h-4 w-4" />
+           <button 
+             onClick={() => acknowledgeAllMutation.mutate()}
+             disabled={acknowledgeAllMutation.isPending}
+             className="btn-primary h-8.5 px-3"
+           >
+              {acknowledgeAllMutation.isPending ? (
+                <RefreshCcw className="h-4 w-4 animate-spin" />
+              ) : (
+                <CheckCircle2 className="h-4 w-4" />
+              )}
               <span>Acknowledge All</span>
            </button>
         </div>

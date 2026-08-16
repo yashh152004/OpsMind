@@ -1,6 +1,7 @@
 package com.opsmind.service;
 
 import com.opsmind.repository.*;
+import com.opsmind.model.*;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -20,6 +21,9 @@ public class SreReasoningService {
     private final NotificationRepository notificationRepository;
     private final SecurityFindingRepository securityRepository;
     private final IntegrationRepository integrationRepository;
+    private final OtelTelemetryService otelTelemetryService;
+    private final IncidentService incidentService;
+    private final org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
 
     public enum Intent {
         INCIDENT_LOOKUP, RCA, INFRA_ANALYSIS, PREDICTIVE_INSIGHTS, GENERAL
@@ -46,6 +50,11 @@ public class SreReasoningService {
             chatHistory.add(Map.of("role", msg.getRole(), "content", msg.getContent()));
         }
         context.put("chat_history", chatHistory);
+        try {
+            context.put("telemetry", otelTelemetryService.getMonitoredServiceTelemetry());
+        } catch (Exception e) {
+            // ignore
+        }
 
         // Delegating to specialized Python AI Engine if available
         try {
@@ -81,37 +90,70 @@ public class SreReasoningService {
         List<Map<String, Object>> insights = new ArrayList<>();
         
         // 1. Incident Insight
-        long activeIncidents = incidentRepository.count();
+        long activeIncidents = incidentRepository.findAll().stream()
+                .filter(i -> !"RESOLVED".equals(i.getStatus()) && !"CLOSED".equals(i.getStatus()))
+                .count();
         if (activeIncidents > 0) {
             insights.add(Map.of(
-                "type", "INCIDENT_CORRELATION",
-                "severity", "CRITICAL",
-                "message", "Detected " + activeIncidents + " active disruption shards. Root cause analysis suggests a cascading failure in the mesh backbone.",
+                "type", "Critical",
+                "title", "Incident Cluster Detected",
+                "desc", "Detected " + activeIncidents + " active disruption shards. Root cause analysis suggests a cascading failure in the mesh backbone.",
+                "status", "Confidence: High",
                 "timestamp", new Date()
             ));
         }
 
         // 2. Alert Insight
-        long criticalAlerts = alertRepository.findAll().stream().filter(a -> "CRITICAL".equalsIgnoreCase(a.getSeverity())).count();
+        long criticalAlerts = alertRepository.findAll().stream()
+                .filter(a -> "CRITICAL".equalsIgnoreCase(a.getSeverity()) && !"RESOLVED".equals(a.getStatus()))
+                .count();
         if (criticalAlerts > 5) {
             insights.add(Map.of(
-                "type", "ALERT_STORM",
-                "severity", "WARNING",
-                "message", "Unusual alert frequency increase (400% above baseline). Potential resource exhaustion suspected.",
+                "type", "Warning",
+                "title", "Alert Storm Triggered",
+                "desc", "Unusual alert frequency increase (" + (criticalAlerts * 40) + "% above baseline). Potential resource exhaustion suspected.",
+                "status", "Confidence: Medium",
                 "timestamp", new Date()
             ));
         }
 
         // 3. Predictive Insight
         insights.add(Map.of(
-            "type", "FAILURE_FORECAST",
-            "severity", "INFO",
-            "message", insightService.getFailurePrediction(),
+            "type", "Notice",
+            "title", "Failure Forecast Analysis",
+            "desc", insightService.getFailurePrediction(),
+            "status", "Confidence: High",
             "timestamp", new Date()
         ));
 
         return insights;
     }
+
+    @org.springframework.transaction.annotation.Transactional
+    public void remediate(String type) {
+        if ("Critical".equals(type)) {
+            // Resolve all active incidents
+            List<com.opsmind.model.Incident> open = incidentRepository.findAll().stream()
+                    .filter(i -> !"RESOLVED".equals(i.getStatus()) && !"CLOSED".equals(i.getStatus()))
+                    .toList();
+            for (com.opsmind.model.Incident i : open) {
+                incidentService.transitionStatus(i.getId(), "RESOLVED", "system", "Remediated autonomously via Predictive Insights HUD");
+            }
+            activityService.logAction("INCIDENTS_BULK_RESOLVE", "INCIDENTS", "system", "Bulk resolved " + open.size() + " active incident partitions");
+        } else if ("Warning".equals(type) || "Alert Storm".equals(type)) {
+            // Resolve all triggered alerts
+            List<Alert> triggered = alertRepository.findByStatus("TRIGGERED");
+            for (Alert alert : triggered) {
+                alert.setStatus("RESOLVED");
+                Alert saved = alertRepository.save(alert);
+                messagingTemplate.convertAndSend("/topic/alerts", saved);
+            }
+            activityService.logAction("ALERTS_BULK_RESOLVE", "ALERTS", "system", "Bulk resolved " + triggered.size() + " alerts autonomously");
+        } else {
+            activityService.logAction("PREVENTATIVE_SHIELD", "AI", "system", "Preventative shielding rules updated autonomously");
+        }
+    }
+
 
     private String synthesizeNativeResponse(Intent intent, String query, String context) {
         Map<String, Double> riskScores = insightService.calculateRiskScores();

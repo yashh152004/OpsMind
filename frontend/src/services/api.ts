@@ -191,6 +191,11 @@ class ApiClient {
     return response.data
   }
 
+  async acknowledgeAllAlerts() {
+    const response = await this.client.post('/alerts/acknowledge-all')
+    return response.data
+  }
+
   /**
    * Infrastructure Endpoints
    */
@@ -313,6 +318,11 @@ class ApiClient {
 
   async getAiInsights() {
     const response = await this.client.get('/ai/insights')
+    return response.data
+  }
+
+  async remediateInsight(type: string) {
+    const response = await this.client.post('/ai/remediate', { type })
     return response.data
   }
 

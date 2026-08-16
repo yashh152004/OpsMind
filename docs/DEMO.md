@@ -158,6 +158,29 @@ This is the core operational flow demonstrating threshold evaluation and status 
 
 ---
 
+### Walkthrough E: Predictive Insights & Autonomous Remediation
+1. **Click**: **Predictive Insights** on the sidebar.
+2. **Show**:
+   - The platform health score and global risk index. These cards reflect the actual active incident count (e.g. if an incident is active, health score drops from `100.0%`).
+   - The predictive charts rendering live CPU/resource performance metrics chronologically.
+   - The **Recommendation Intelligence** table. If an active incident is detected, an recommendation card appears suggesting a fix.
+3. **Trigger Remediation**:
+   - Click the **Remediate** button on the `"Incident Cluster Detected"` recommendation card.
+   - Watch the autonomous patch sequence execute, calling the backend `/api/ai/remediate` endpoint.
+   - **Result**: The active incident is resolved in the database autonomously. Navigate back to the Dashboard to verify that the critical banner has turned into a green protection recovery alert immediately.
+
+---
+
+### Walkthrough F: Alert Stream Bulk Actions
+1. **Click**: **Alert Stream** on the sidebar.
+2. **Show**:
+   - The list of active alert signals. Clicks on the check icons acknowledge individual alerts.
+3. **Execute Bulk Acknowledge**:
+   - Click the **Acknowledge All** button at the top right of the Alert Stream.
+   - **Result**: All triggered alerts transition to `ACKNOWLEDGED` status in the database, updating the UI dynamically through query invalidations and WebSocket broadcasts.
+
+---
+
 ## 🎙️ 4. Presenter Script
 
 Use this script to guide recruiters or engineering leads through the architecture:

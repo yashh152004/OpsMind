@@ -82,4 +82,17 @@ public class AlertController {
         messagingTemplate.convertAndSend("/topic/alerts", saved);
         return ResponseEntity.ok(saved);
     }
+
+    @PostMapping("/acknowledge-all")
+    public ResponseEntity<Void> acknowledgeAll() {
+        List<Alert> triggered = repository.findByStatus("TRIGGERED");
+        for (Alert alert : triggered) {
+            alert.setStatus("ACKNOWLEDGED");
+            repository.save(alert);
+            messagingTemplate.convertAndSend("/topic/alerts", alert);
+        }
+        activityService.logAction("ALERTS_BULK_ACKNOWLEDGE", "ALERTS", "system", "Bulk acknowledged " + triggered.size() + " alerts");
+        return ResponseEntity.ok().build();
+    }
 }
+

@@ -49,9 +49,9 @@ public class AnalyticsController {
 
         // Team Performance
         List<Map<String, Object>> teamPerformance = new ArrayList<>();
-        teamPerformance.add(createTeamPoint("SRE Core", (int)(count + 120), "18m"));
-        teamPerformance.add(createTeamPoint("DevOps North", 98, "24m"));
-        teamPerformance.add(createTeamPoint("Platform Unit", 76, "12m"));
+        teamPerformance.add(createTeamPoint("SRE Core", (int)(count + 120), "18m", 98.4));
+        teamPerformance.add(createTeamPoint("DevOps North", 98, "24m", 96.2));
+        teamPerformance.add(createTeamPoint("Platform Unit", 76, "12m", 99.1));
         response.put("teamPerformance", teamPerformance);
 
         return ResponseEntity.ok(response);
@@ -71,11 +71,12 @@ public class AnalyticsController {
         return point;
     }
 
-    private Map<String, Object> createTeamPoint(String name, int resolved, String avg) {
+    private Map<String, Object> createTeamPoint(String name, int resolved, String avg, double successRate) {
         Map<String, Object> point = new HashMap<>();
         point.put("team", name);
         point.put("resolved", resolved);
         point.put("avgTime", avg);
+        point.put("successRate", successRate);
         return point;
     }
 }

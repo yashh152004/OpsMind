@@ -202,12 +202,12 @@ const AnalyticsPage: React.FC = () => {
                   <div className="space-y-1.5">
                      <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                         <span>Success Rate</span>
-                        <span>{Math.floor(Math.random() * 5 + 95)}%</span>
-                     </div>
-                     <div className="h-[5px] w-full bg-secondary rounded-full overflow-hidden border border-border/80">
-                        <div className="h-full bg-foreground w-[88%] transition-all duration-1000" />
-                     </div>
-                  </div>
+                        <span>{team.successRate ?? 95}%</span>
+                      </div>
+                      <div className="h-[5px] w-full bg-secondary rounded-full overflow-hidden border border-border/80">
+                         <div className="h-full bg-foreground transition-all duration-1000" style={{ width: `${team.successRate ?? 95}%` }} />
+                      </div>
+                   </div>
                </div>
             ))}
          </div>

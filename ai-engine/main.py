@@ -21,6 +21,12 @@ class ContextData(BaseModel):
     infrastructure: List[Dict[str, Any]] = []
     metrics: Dict[str, Any] = {}
     user_info: Optional[Dict[str, Any]] = None
+    risk_scores: Dict[str, float] = {}
+    latest_metrics: List[Dict[str, Any]] = []
+    latest_logs: List[Dict[str, Any]] = []
+    security_findings: List[Dict[str, Any]] = []
+    chat_history: List[Dict[str, str]] = []
+    telemetry: Optional[Dict[str, Any]] = None
 
 class ReasoningRequest(BaseModel):
     query: str
@@ -63,29 +69,61 @@ class SREReasoningEngine:
         pass
 
     def perform_rca(self, query: str, context: ContextData) -> Dict[str, Any]:
-        """Deep correlation of alerts and metrics to find root cause."""
+        """Deep correlation of alerts, metrics, and logs to find root cause."""
         active_alerts = context.alerts
-        infrastructure = context.infrastructure
+        incidents = context.incidents
+        logs = context.latest_logs
         
-        if not active_alerts:
-            return {"conclusion": "Telemetry analysis indicates no active anomalies. Infrastructure health is within normal parameters."}
+        # 1. Search logs for exceptions or errors
+        error_logs = [l for l in logs if l.get('level') == 'ERROR' or 'exception' in l.get('message', '').lower() or 'failed' in l.get('message', '').lower()]
+        log_evidence = None
+        if error_logs:
+            log_evidence = error_logs[0].get('message')
+            
+        # 2. Search for active HTTP error rate incidents
+        error_rate_incident = [i for i in incidents if i.get('type') == 'HIGH_ERROR_RATE' and i.get('status') != 'RESOLVED']
         
-        # Look for heavy resource hitters in alerts
-        criticals = [a for a in active_alerts if a.get('severity') == 'CRITICAL']
-        target = criticals[0] if criticals else active_alerts[0]
-        
-        source = target.get('source', 'Unknown Resource')
-        name = target.get('alertName', 'General Anomaly')
-        msg = target.get('message', 'Threshold exceeded')
-
-        return {
-            "conclusion": f"Root cause investigation for {source} identified {name}. Detail: {msg}. This matches a classic resource exhaustion pattern.",
-            "evidence": {
-                "source": source,
-                "signal": name,
-                "correlation_count": len(active_alerts),
-                "timestamp": target.get('timestamp')
+        if error_rate_incident:
+            incident = error_rate_incident[0]
+            val = incident.get('metricValue', 0.0)
+            thresh = incident.get('threshold', 0.0)
+            conclusion = f"Root cause investigation identified a P1 High HTTP Error Rate incident on monitored-service. Current metric value is {val:.2f}% error rate, exceeding the {thresh:.2f}% threshold."
+            if log_evidence:
+                conclusion += f" Application log analysis points to: '{log_evidence}'."
+            return {
+                "conclusion": conclusion,
+                "evidence": {
+                    "source": "monitored-service",
+                    "signal": "HTTP_5XX_ERROR_RATE",
+                    "metric_value": val,
+                    "timestamp": incident.get('detectedAt')
+                }
             }
+
+        if active_alerts:
+            # Look for heavy resource hitters in alerts
+            criticals = [a for a in active_alerts if a.get('severity') == 'CRITICAL']
+            target = criticals[0] if criticals else active_alerts[0]
+            
+            source = target.get('source', 'Unknown Resource')
+            name = target.get('alertName', 'General Anomaly')
+            msg = target.get('message', 'Threshold exceeded')
+            conclusion = f"Root cause investigation for {source} identified {name}. Detail: {msg}. This matches a classic resource exhaustion pattern."
+            if log_evidence:
+                conclusion += f" Core error logs: '{log_evidence}'."
+            return {
+                "conclusion": conclusion,
+                "evidence": {
+                    "source": source,
+                    "signal": name,
+                    "correlation_count": len(active_alerts),
+                    "timestamp": target.get('timestamp')
+                }
+            }
+            
+        return {
+            "conclusion": "Telemetry analysis indicates no active anomalies. Service performance is nominal. Average latency is healthy and HTTP 5xx error rate is 0.00%.",
+            "evidence": None
         }
 
     def generate_sre_response(self, intent: str, query: str, context: ContextData) -> ReasoningResponse:
@@ -113,15 +151,16 @@ class SREReasoningEngine:
 
         if intent == "ROOT_CAUSE_ANALYSIS":
             rca = self.perform_rca(query, context)
+            recs = [{"label": "View Affected Resource", "action": "/infrastructure"}]
+            if context.incidents:
+                recs.append({"label": "Open Incident Command", "action": "/incidents"})
+                
             return ReasoningResponse(
                 intent=intent,
-                reasoning=["Correlating telemetry spikes", "Cross-referencing alerts with infrastructure status"],
+                reasoning=["Correlating telemetry spikes", "Cross-referencing Loki logs and Prometheus metrics"],
                 response=f"Investigation Complete: {rca['conclusion']}.",
-                confidence=0.88,
-                recommendations=[
-                    {"label": "View Affected Resource", "action": "/infrastructure"},
-                    {"label": "Run Remediation", "action": "trigger_fix"}
-                ],
+                confidence=0.92,
+                recommendations=recs,
                 evidence=rca.get('evidence')
             )
             

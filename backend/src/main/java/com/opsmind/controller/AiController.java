@@ -140,4 +140,11 @@ public class AiController {
             "intelligence_type", "Domain-Specific-Deterministic-Reasoning"
         ));
     }
+
+    @PostMapping("/remediate")
+    public ResponseEntity<Map<String, String>> remediate(@RequestBody Map<String, String> request) {
+        String type = request.get("type");
+        sreReasoningService.remediate(type);
+        return ResponseEntity.ok(Map.of("status", "SUCCESS", "message", "Remediation logic executed."));
+    }
 }

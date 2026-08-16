@@ -8,7 +8,7 @@ import {
    AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
    BarChart, Bar, Legend
 } from 'recharts'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/services/api'
 import { cn } from '@/utils/cn'
 import { toast } from 'sonner'
@@ -21,10 +21,10 @@ const CustomTooltip = ({ active, payload, label }: any) => {
         <div className="space-y-1">
            {payload.map((p: any) => (
              <div key={p.name} className="flex items-center gap-1.5">
-               <div className={cn("h-1.5 w-1.5 rounded-full", p.name === 'PROBABILITY' || p.name === 'SIGNALS' ? 'bg-foreground' : 'bg-muted-foreground')} />
-               <span className="text-[13px] font-semibold text-foreground">
-                  {p.name}: {typeof p.value === 'number' ? p.value.toFixed(1) : p.value}
-               </span>
+                <div className={cn("h-1.5 w-1.5 rounded-full", p.name === 'PROBABILITY' || p.name === 'SIGNALS' ? 'bg-foreground' : 'bg-muted-foreground')} />
+                <span className="text-[13px] font-semibold text-foreground">
+                   {p.name}: {typeof p.value === 'number' ? p.value.toFixed(1) : p.value}
+                </span>
              </div>
            ))}
         </div>
@@ -35,10 +35,18 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 const AiInsightsPage: React.FC = () => {
+   const queryClient = useQueryClient()
+
    const { data: insightsData, isLoading, refetch, isRefetching } = useQuery({
       queryKey: ['ai-insights'],
       queryFn: () => apiClient.getAiInsights(),
       refetchInterval: 60000
+   })
+
+   const { data: stats } = useQuery({
+      queryKey: ['dashboard-stats'],
+      queryFn: () => apiClient.getDashboardStats(),
+      refetchInterval: 15000
    })
 
    // Simulated Series Data for Visualizations
@@ -56,24 +64,56 @@ const AiInsightsPage: React.FC = () => {
       return data;
    }, []);
 
+   const performanceSeries = useMemo(() => {
+      if (!stats?.performanceSeries || stats.performanceSeries.length === 0) {
+         return seriesData;
+      }
+      return stats.performanceSeries.map((m: any) => ({
+         time: m.time,
+         prediction: m.value,
+         risk: Math.max(5, m.value - 10),
+         anomaly: m.value > 80 ? 5 : 1,
+         alertDensity: m.value > 80 ? 4 : 0.5
+      }));
+   }, [stats, seriesData]);
+
+   const remediateMutation = useMutation({
+      mutationFn: (type: string) => apiClient.remediateInsight(type),
+      onSuccess: (data) => {
+         toast.success(`REMEDIATION_SUCCESS: ${data.message || 'Stabilization logic enforced.'}`)
+         refetch()
+         queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
+         queryClient.invalidateQueries({ queryKey: ['monitored-service-incidents'] })
+      },
+      onError: () => {
+         toast.error(`REMEDIATION_FAULT: Remediation logic failed.`)
+      }
+   })
+
    const handleRemediate = async (insight: any) => {
-      const toastId = toast.loading(`MISSION_PATCH_INIT: Initializing stabilization for ${insight.id || 'shard-01'}...`, {
+      const toastId = toast.loading(`MISSION_PATCH_INIT: Initializing stabilization for ${insight.title}...`, {
          className: 'font-mono font-semibold text-[12px] uppercase tracking-widest'
       })
 
       try {
-         await new Promise(resolve => setTimeout(resolve, 800))
-         toast.loading(`[NODE_LOGIC] Patching ingress logic in autonomous-shard...`, { id: toastId })
-         await new Promise(resolve => setTimeout(resolve, 1200))
-         toast.success(`MISSION_SUCCESS: Shard stabilized. Remediation logic enforced.`, {
-            id: toastId,
-            className: 'font-mono font-semibold text-[12px] uppercase tracking-widest'
-         })
-         refetch()
+         await remediateMutation.mutateAsync(insight.type)
+         toast.dismiss(toastId)
       } catch (e) {
-         toast.error(`MISSION_FAULT: Remediation logic failed.`, { id: toastId })
+         toast.dismiss(toastId)
       }
    }
+
+   const computedHealth = stats ? (100.0 - (stats.activeIncidents || 0) * 15.0).toFixed(1) : '98.2';
+   const computedConfidence = stats?.activeIncidents > 0 ? '82.5%' : '98.5%';
+   const computedForecast = stats?.activeIncidents > 0 ? '2-3' : '0';
+   const computedRisk = stats?.activeIncidents > 0 ? 'ELEVATED' : 'LOW';
+   
+   const kpis = [
+      { label: 'Platform Health Score', val: computedHealth, trend: stats?.activeIncidents > 0 ? '-1.5%' : '+0.2%', icon: Gauge, desc: 'Composite integrity metric' },
+      { label: 'Prediction Confidence', val: computedConfidence, trend: 'STABLE', icon: ShieldCheck, desc: 'Model verification rate' },
+      { label: 'Incident Forecast (24h)', val: computedForecast, trend: stats?.activeIncidents > 0 ? '+1' : '0', icon: TrendingUp, desc: 'Probabilistic signal count' },
+      { label: 'Global Risk Index', val: computedRisk, trend: stats?.activeIncidents > 0 ? 'HIGH' : 'NONE', icon: ShieldAlert, desc: 'Cross-region security state' },
+   ]
 
    if (isLoading) {
       return (
@@ -130,12 +170,7 @@ const AiInsightsPage: React.FC = () => {
 
          {/* Top Layer: KPI Shards */}
          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-               { label: 'Platform Health Score', val: '98.2', trend: '+1.4%', icon: Gauge, desc: 'Composite integrity metric' },
-               { label: 'Prediction Confidence', val: '94.5%', trend: 'STABLE', icon: ShieldCheck, desc: 'Model verification rate' },
-               { label: 'Incident Forecast (24h)', val: '12-14', trend: '-22%', icon: TrendingUp, desc: 'Probabilistic signal count' },
-               { label: 'Global Risk Index', val: 'LOW', trend: 'NONE', icon: ShieldAlert, desc: 'Cross-region security state' },
-            ].map(kpi => (
+            {kpis.map(kpi => (
                <div key={kpi.label} className="card-enterprise p-5 group hover:bg-surface-hover transition-all text-left">
                   <div className="flex justify-between items-start mb-4">
                      <div className="h-8.5 w-8.5 bg-surface-alt border border-border rounded flex items-center justify-center transition-colors group-hover:bg-foreground group-hover:text-background group-hover:border-foreground">
@@ -156,7 +191,7 @@ const AiInsightsPage: React.FC = () => {
          <div className="grid gap-6 lg:grid-cols-2">
             <ChartContainer title="Failure Prediction Shard" subtitle="7-day probabilistic drift analysis">
                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={seriesData}>
+                  <AreaChart data={performanceSeries}>
                      <defs>
                         <linearGradient id="colorRisk" x1="0" y1="0" x2="0" y2="1">
                            <stop offset="5%" stopColor="currentColor" className="text-foreground" stopOpacity={0.06} />
@@ -188,7 +223,7 @@ const AiInsightsPage: React.FC = () => {
 
             <ChartContainer title="Anomaly Frequency Trend" subtitle="Cluster-wide signal deviations">
                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={seriesData}>
+                  <BarChart data={performanceSeries}>
                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" className="text-border/40" />
                      <XAxis
                         dataKey="time"
@@ -203,18 +238,18 @@ const AiInsightsPage: React.FC = () => {
                         tickLine={false}
                         tick={{ fill: 'currentColor', fontSize: 10, fontWeight: 500 }}
                         className="text-muted-foreground"
-                     />
-                     <Tooltip content={<CustomTooltip />} />
-                     <Legend wrapperStyle={{ fontSize: '10px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.1em', paddingTop: '15px' }} />
-                     <Bar dataKey="anomaly" fill="currentColor" radius={[2, 2, 0, 0]} name="SIGNALS" className="text-foreground" />
-                     <Bar dataKey="alertDensity" fill="currentColor" radius={[2, 2, 0, 0]} name="ALERTS" className="text-muted-foreground/40" />
-                  </BarChart>
-               </ResponsiveContainer>
-            </ChartContainer>
-         </div>
+                      />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Legend wrapperStyle={{ fontSize: '10px', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.1em', paddingTop: '15px' }} />
+                      <Bar dataKey="anomaly" fill="currentColor" radius={[2, 2, 0, 0]} name="SIGNALS" className="text-foreground" />
+                      <Bar dataKey="alertDensity" fill="currentColor" radius={[2, 2, 0, 0]} name="ALERTS" className="text-muted-foreground/40" />
+                   </BarChart>
+                </ResponsiveContainer>
+             </ChartContainer>
+          </div>
 
-         {/* Bottom Layer: Insights & Recommendations */}
-         <div className="grid gap-6 lg:grid-cols-3">
+          {/* Bottom Layer: Insights & Recommendations */}
+          <div className="grid gap-6 lg:grid-cols-3">
             <div className="lg:col-span-2 space-y-4">
                <div className="flex items-center justify-between border-b border-border pb-3 text-left">
                   <h3 className="text-[16px] font-semibold text-foreground m-0 flex items-center gap-1.5 uppercase tracking-wide">

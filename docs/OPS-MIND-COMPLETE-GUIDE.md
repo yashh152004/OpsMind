@@ -102,12 +102,12 @@ This audit classifies each UI dashboard feature into one of four states:
 | **Incidents Triage** | Bulk Actions | **REAL** | Clicks resolve bulk records via `POST /api/incidents/bulk-resolve`. |
 | **Alert Stream** | WebSocket Signal Toast | **REAL** | Subscribes to SockJS `/topic/alerts` using STOMP client to display sonner notifications on live telemetry alerts. |
 | **Alert Stream** | Individual Acknowledgement | **REAL** | Calls `/api/alerts/{id}/acknowledge` and updates persistence database mapping. |
-| **Alert Stream** | Acknowledge All Button | **MOCK** | Renders in sidebar toolbar, but does not invoke a bulk-acknowledgement transaction. |
+| **Alert Stream** | Acknowledge All Button | **REAL** | Calls `/api/alerts/acknowledge-all` to bulk acknowledge active signals in the database. |
 | **AI SRE Copilot** | Conversation List Control | **REAL** | Implements chat conversation creation, renaming, deletion, pinning, and archiving in the SQLite database. |
 | **AI SRE Copilot** | Prompt Injection Stream | **REAL** | Uses Spring WebMvc `SseEmitter` thread-safely to stream tokens from the FastAPI reasoning engine with prompt history context. |
-| **Predictive Insights** | Health & Confidence Metrics | **MOCK** | Static HUD metrics display static numeric labels (`98.2`, `94.5%`). |
+| **Predictive Insights** | Health & Confidence Metrics | **REAL** | Dynamically calculated from open incidents counts and metric values. |
 | **Predictive Insights** | Recommendation Matrix | **REAL** | Dynamic listings from database predictions using `apiClient.getAiInsights()`. |
-| **Predictive Insights** | Recommendation Remediation | **PARTIALLY REAL** | Clicks initiate loading sequences via sonner toasts representing patching steps, but do not execute server scripts. |
+| **Predictive Insights** | Recommendation Remediation | **REAL** | Calls `/api/ai/remediate` to autonomously resolve incidents or alerts in the database. |
 | **Performance Analytics**| MTTR / Fleet health charts | **REAL** | Charts rendering historical trend sets fetched from `/api/analytics/trends`. |
 | **Service Map (Infra)** | Cluster Scan Activation | **REAL** | Triggers asset generation in database, mapping discovered nodes dynamically. |
 | **Security HUD** | High-Risk Alert Counts | **REAL** | Calculates length of elements in database containing `severity = 'HIGH'`. |
